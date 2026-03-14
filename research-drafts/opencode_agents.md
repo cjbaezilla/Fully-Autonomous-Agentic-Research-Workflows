@@ -2,7 +2,7 @@
 
 ---
 
-## What Is OpenCode? (In Plain English)
+## What Is OpenCode?
 
 Let us start with the absolute fundamentals. OpenCode is a coding assistant that lives directly inside your text editor. Think of it like having a knowledgeable programming partner sitting next to you at your desk, ready to help with whatever coding task you are working on at any moment. But here is where it becomes truly powerful: instead of being just one person with general knowledge, you can build a whole team of specialized helpers, each with their own expertise and strengths.
 
