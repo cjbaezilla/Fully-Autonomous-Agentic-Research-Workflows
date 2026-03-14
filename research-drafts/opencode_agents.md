@@ -1,228 +1,222 @@
-# OpenCode Agents: Complete Reference Guide
+# OpenCode Agents: A Beginner's Guide
 
-## Introduction
-
-Imagine having a team of specialized assistants, each with their own skills and personality, ready to help you with different kinds of tasks. That's what OpenCode agents are all about. They're like customizable AI helpers that you can configure to handle specific types of work—whether you need someone to build code, review it for problems, explore your project files, or plan out complex features.
-
-In OpenCode, agents are the way you interact with artificial intelligence. Instead of having one generic AI that tries to do everything, agents let you create focused specialists. Think of it like having a carpenter, an electrician, and a plumber in your toolbox—each has their own tools and expertise, and you call on the right one for each job.
-
-This guide will walk you through everything you need to know about OpenCode agents, from the built-in ones that come with the system to creating your own custom agents perfectly suited to your workflow.
-
----
-
-## Understanding Agent Types
-
-OpenCode distinguishes between two fundamental types of agents: **primary agents** and **subagents**. Understanding this distinction is key to using OpenCode effectively.
-
-### Primary Agents
-
-Primary agents are your main companions during a coding session. They're the ones you talk to directly, the ones that respond to your questions, and the ones that carry out your requests. When you start a new OpenCode session, you're automatically paired with a primary agent.
-
-Primary agents have full access to their configured tools and can work independently. They're like your main assistant who handles the bulk of the work. OpenCode comes with two built-in primary agents:
-
-- **Build**: The default agent, equipped with all tools and ready for any development task
-- **Plan**: A cautious agent designed for analysis without making changes
-
-You can switch between primary agents during a session using the **Tab** key (or your configured `switch_agent` keybind). This cycles through all primary agents that aren't disabled or hidden. Each time you press Tab, you switch to the next agent, and the interface updates to show which agent is currently active.
-
-When you switch agents, the conversation context remains the same—you're not starting over. You're simply changing who you're talking to. This means if Build has been working on a feature and you switch to Plan, Plan can see everything that was discussed and built so far, and can offer analysis or suggestions based on that context.
-
-The keyboard shortcut for switching agents is configurable through the `switch_agent` keybind in your TUI configuration. If you prefer a different key or key combination, you can customize it.
-
-### Subagents
-
-Subagents are specialists that get called in for specific tasks. They don't operate as your main conversational partner, but they can be summoned when needed. There are two ways subagents get involved:
-
-1. **Automatically**: Primary agents can recognize when a task would be better handled by a subagent and invoke them automatically based on their descriptions. If you ask Build to "find all the places where we handle user authentication," Build might automatically invoke the Explore subagent to search the codebase because that's Explore's specialty.
-
-This happens seamlessly—you might see a message indicating that a subagent has been called in, and when it finishes, the primary agent will return with the results.
-
-2. **Manually**: You can explicitly call any subagent by typing `@` followed by the agent's name in your message. For example: `@explore find all files related to authentication`. This is like saying, "Hey, I need your expertise on this specific part."
-
-Subagents are designed to be focused and efficient. They receive a clear task, complete it, and return their results to the primary agent that called them. Some subagents, like Explore, are intentionally limited—Explore can't modify files because its job is to investigate, not change things.
-
-### Hidden System Agents
-
-Beyond the primary and subagent categories, OpenCode has three hidden system agents that work behind the scenes:
-
-- **Compaction**: Automatically manages conversation context when it gets too long
-- **Title**: Generates concise session titles
-- **Summary**: Creates session summaries for later reference
-
-These agents run automatically when needed and don't appear in your agent selection. They're like back-office staff—essential but invisible.
+## Quick Glossary
+**Agent** - A specialized AI helper that performs specific tasks  
+**Build agent** - Your main coding assistant that writes and modifies code  
+**Plan agent** - Your analysis assistant that reviews code without changing anything  
+**Primary agent** - An agent you talk to directly and switch between  
+**Subagent** - A specialist you call for specific tasks using `@name`  
+**Configuration** - A file with your agent settings (like an instruction manual)  
+**Tools** - Actions an agent can take (write, edit, read, etc.)  
+**Permission** - Whether an agent needs approval before using a tool  
+**Model** - The AI "brain" powering the agent (Claude Sonnet, GPT-5, etc.)  
+**Prompt** - Instructions that tell an agent how to behave  
+**Temperature** - Creativity setting: 0 (very predictable) to 1 (very creative)  
+**Provider** - The company that makes the AI (Anthropic, OpenAI, etc.)  
+**@-mention** - Typing `@agent-name` to summon a specific agent  
+**Keybind** - A keyboard shortcut
 
 ---
 
-## Built-in Agents
+## What Are Agents? (And Why Should You Care?)
 
-OpenCode ships with seven built-in agents, each serving a specific purpose. Let's explore each one in detail.
+Imagine you're working on a project and you have a team of specialized helpers:
+- One person who actually builds things (the **Builder**)
+- One person who reviews work for mistakes (the **Planner**)
+- One person who searches through old files (the **Explorer**)
+- One person who researches best practices (the **Researcher**)
 
-### Build Agent
+That's what OpenCode agents are! Instead of having one generic AI that tries to do everything, you can create or use specialized AI helpers for different kinds of tasks.
 
-**Mode**: Primary
-**Default**: Yes
+**The best part**: You don't need to create any custom agents to get started. OpenCode comes with several built-in agents that handle most everyday needs.
 
-The Build agent is your all-purpose development companion. It's the default agent you start with because it has access to all tools—file editing, bash commands, web fetching, everything. Think of Build as your general contractor who can handle any aspect of the project.
+### What You Can Do Right Now (Without Reading Further)
 
-When you're writing code, debugging issues, making architectural changes, or doing routine development work, Build is the agent you want. It can read files, make edits, run commands, search for patterns, and generally act as a full-stack development partner.
+If you have OpenCode open, try these:
 
-Because Build has full permissions, you should be aware that it can make changes to your codebase and execute system commands. That's not a risk—it's by design—but it means you should always review what Build is doing, especially for critical operations.
+1. **Press Tab** (or your switch agent key) to cycle through different agents. Notice the names: `build`, `plan`.
+2. **Ask Build** to create a simple file: "Create a hello.js file that prints 'Hello World'"
+3. **Switch to Plan** (press Tab) and ask: "Review the hello.js file for any issues"
+4. **Call Explore** by typing: `@explore what files are in this project?`
 
-### Plan Agent
-
-**Mode**: Primary
-**Default**: No
-
-The Plan agent is the cautious counterpart to Build. While Build is all about action, Plan is all about thinking. It's designed for analysis, planning, and review without making any actual changes to your codebase. By default, Plan has all write, edit, and bash tools set to `ask` permission, meaning you'll be prompted before any changes are made.
-
-Plan is invaluable when you want to:
-- Review code changes and get feedback
-- Plan out features before implementation
-- Analyze problems and create solution strategies
-- Explore architectural options
-- Generate documentation about existing code
-
-Since Plan doesn't make changes unless you explicitly approve them, it's perfect for situations where you want to think through a problem without risk. You can have Plan analyze your entire codebase, identify potential issues, and suggest improvements, all while knowing that nothing will be modified unless you say so.
-
-### General Agent
-
-**Mode**: Subagent
-**Default**: No
-
-The General agent is your research specialist. While the primary agents handle conversations, General is designed to tackle complex, multi-step research tasks that require deep investigation. It has full tool access (except for todo management) and can make file changes when needed for research purposes.
-
-General excels at:
-- Answering complex questions that require multiple searches and investigations
-- Researching best practices and documentation
-- Finding examples and patterns across your codebase
-- Gathering information from multiple sources and synthesizing it
-
-You can summon General manually by typing `@general` in your message, or your primary agent might call on it automatically when it detects that a question would benefit from dedicated research.
-
-### Explore Agent
-
-**Mode**: Subagent
-**Default**: No
-
-The Explore agent is your codebase investigator. Unlike General, Explore is explicitly read-only—it cannot modify files. This restriction makes it fast and focused, perfect for quick exploration and information gathering. Think of Explore as your detective who can look around but not touch anything.
-
-Explore is optimized for:
-- Finding files by pattern or name
-- Searching code for specific functions, classes, or keywords
-- Answering questions about code structure
-- Mapping out how different parts of the codebase connect
-- Understanding dependencies and relationships
-
-Because it's read-only, Explore is safe to let loose on your codebase without worrying about accidental changes. It's faster than General for simple lookup tasks and doesn't waste time with capabilities it doesn't need.
-
-To use Explore, type `@explore` followed by your question, like `@explore where is the authentication logic?`.
-
-### Compaction Agent
-
-**Mode**: Primary (Hidden)
-**Default**: System
-
-The Compaction agent is a behind-the-scenes worker that manages conversation context. As you have long conversations with OpenCode, the amount of information accumulates. Eventually, you hit the context limit of your AI model—it can only process so much text at once. When this happens, the Compaction agent automatically steps in.
-
-Compaction works by analyzing the conversation history and creating a condensed summary that preserves the important information while discarding details that are no longer relevant. It's like a smart archivist who keeps the essential notes but removes old, unnecessary paperwork.
-
-You never interact with Compaction directly; it runs automatically when needed. You might notice signs that compaction is happening if you see references to earlier compacted messages being summarized, but for the most part, it's invisible.
-
-### Title Agent
-
-**Mode**: Primary (Hidden)
-**Default**: System
-
-The Title agent generates concise, descriptive titles for your OpenCode sessions. Every time you start a new conversation, OpenCode needs to know what that conversation is about so you can find it later. The Title agent automatically creates these titles based on the conversation content.
-
-Like Compaction, the Title agent runs automatically in the background. You don't control it directly, but you benefit from its work when you see well-named sessions in your history.
-
-### Summary Agent
-
-**Mode**: Primary (Hidden)
-**Default**: System
-
-The Summary agent creates comprehensive summaries of your OpenCode sessions when they conclude or when you explicitly request a summary. These summaries capture the key points, decisions made, code written, and lessons learned.
-
-Session summaries are valuable for:
-- Catching up on work you did earlier
-- Sharing context with team members
-- Documenting decisions and rationale
-- Creating audit trails of development work
-
-You can typically trigger a summary with a command like `/summary` in the TUI interface. The Summary agent will then process the entire conversation and produce a condensed overview.
+That's 50% of what you need to know. The rest is just learning to customize these helpers for your specific needs.
 
 ---
 
-## Using Agents
+## Part 1: Built-In Agents (What You Get for Free)
 
-Now that you understand the different types of agents, let's look at how to actually use them in practice.
+OpenCode ships with seven agents. You'll mainly use two, occasionally use two more, and never interact with the last three (they work automatically).
 
-### Switching Primary Agents
+### Primary Agents (Your Main Partners)
 
-During an active OpenCode session, you can switch between available primary agents using the **Tab** key. This cycles through all primary agents that aren't disabled or hidden. Each time you press Tab, you switch to the next agent, and the interface updates to show which agent is currently active.
+These are the agents you switch to and talk to directly.
 
-When you switch agents, the conversation context remains the same—you're not starting over. You're simply changing who you're talking to. This means if Build has been working on a feature and you switch to Plan, Plan can see everything that was discussed and built so far, and can offer analysis or suggestions based on that context.
+#### Build Agent (Your Default Helper)
+- **What it does**: Writes code, edits files, runs commands - does the actual work
+- **When to use**: Everyday coding, creating new features, fixing bugs, making changes
+- **Tools**: Can do everything (write, edit, bash, read, grep, webfetch)
+- **Example use**: "Add login functionality to my app" or "Refactor this messy function"
+- **Switch to it**: Press Tab until you see `build` in the interface
 
-The keyboard shortcut for switching agents is configurable through the `switch_agent` keybind in your TUI configuration. If you prefer a different key or key combination, you can customize it.
+#### Plan Agent (Your Safety Net)
+- **What it does**: Analyzes, reviews, plans - but does NOT make changes unless you approve
+- **When to use**: Code review, planning features, analyzing problems, generating documentation about existing code
+- **Tools**: Can read and analyze, but modification tools require your approval
+- **Example use**: "Review my recent changes for security issues" or "Plan out the database schema for this feature"
+- **Switch to it**: Press Tab until you see `plan` in the interface
 
-### Invoking Subagents
+**Pro tip**: Start most tasks with Build. When you want a second opinion, press Tab to switch to Plan and ask it to review what Build did.
 
-Subagents enter the conversation in two ways:
+### Subagents (Your Specialists)
 
-**Automatic Invocation**: When you ask a question or give a task to a primary agent, that agent might recognize that a subagent would be better suited to handle part of the work. For example, if you ask Build to "find all the places where we handle user authentication," Build might automatically invoke the Explore subagent to search the codebase because that's Explore's specialty.
+These aren't in the Tab rotation. You call them by typing `@name` in your message.
 
-This happens seamlessly—you might see a message indicating that a subagent has been called in, and when it finishes, the primary agent will return with the results.
+#### Explore Agent (Your Detective)
+- **What it does**: Searches and explores your codebase without changing anything
+- **When to use**: "Where is the authentication code?", "What files contain database connections?", "How is the user module structured?"
+- **Perfect for**: Understanding a new codebase, finding where something is defined, mapping out dependencies
+- **How to call**: Type `@explore find all files related to payments`
 
-**Manual Invocation via @-mentions**: You can explicitly call any subagent by typing `@` followed by the agent's name in your message. For example: `@explore find all files related to authentication`. This is like saying, "Hey, I need your expertise on this specific part."
+#### General Agent (Your Researcher)
+- **What it does**: Conducts deep, multi-step research on complex questions
+- **When to use**: "What are the best practices for API rate limiting?", "Research how OAuth 2.0 works", "Find examples of error handling patterns in our codebase"
+- **Perfect for**: Questions that require multiple searches and synthesis of information
+- **How to call**: Type `@general research the recommended approach for file uploads`
 
-Examples:
-- `@explore what files contain database connections?`
-- `@general research the best practices for API rate limiting`
-- `@explore find all test files for the payment module`
+**What about the other three?**
+- **Compaction agent**: Automatically summarizes old conversations when they get too long. Invisible.
+- **Title agent**: Creates session titles automatically. Invisible.
+- **Summary agent**: Creates summaries when you end a session or type `/summary`. Invisible.
 
-When you use an @-mention, the subagent receives your message as its task, works independently (potentially creating its own conversation thread), and returns results. The primary agent then incorporates those results into the overall conversation.
-
-### Navigating Between Sessions
-
-When subagents are invoked, they sometimes create what are called "child sessions" or "sub-sessions." These are separate conversation threads that maintain their own context. This is particularly important because subagents might need to do multiple rounds of work, and keeping that work isolated prevents it from cluttering the main conversation.
-
-The sub-session system lets you "zoom in" on what the subagent is doing and then "zoom back out" to the main conversation. OpenCode provides keybinds for this navigation:
-
-- **Enter first child session** (`session_child_first`, default: `<Leader>+Down`): When a subagent has created a child session, this keybind lets you enter that session and see exactly what's happening in real-time. You can watch as the subagent searches, thinks, and responds.
-
-- **Cycle between child sessions** (`session_child_cycle`, default: `Right`): If multiple sub-sessions exist, this moves to the next one in sequence.
-
-- **Cycle in reverse** (`session_child_cycle_reverse`, default: `Left`): Moves to the previous child session.
-
-- **Return to parent** (`session_parent`, default: `Up`): Takes you back to the main conversation from whatever sub-session you're currently viewing.
-
-This navigation system is powerful for debugging and oversight. If you ask a question and see that a subagent is invoked, you can jump into that sub-session mid-work to see what's happening, ask clarifying questions, or even cancel it if it's going down the wrong path.
+You can ignore these - they work automatically in the background.
 
 ---
 
-## Agent Configuration
+## Part 2: Getting Started - Hands-On Guide
 
-Agents in OpenCode are configured through two main formats: JSON in your main configuration file, or Markdown files in dedicated agent directories. Both approaches achieve the same result, so you can choose the one that fits your workflow better.
+### Switching Between Agents
 
-### JSON Configuration
+During an OpenCode session, you can switch between available primary agents using the **Tab** key (this might be different if you customized it).
 
-The primary way to configure agents is in your `opencode.json` or `opencode.jsonc` file using the `agent` key. This file lives in your project root for project-specific configuration, or in `~/.config/opencode/` for global configuration.
+**What happens when you switch?**
+- The conversation continues exactly where you left off
+- You're just talking to a different person now
+- The new agent can see everything that was discussed so far
+- Example: Build writes some code → Switch to Plan → Plan reviews that code → Switch back to Build → Build implements Plan's suggestions
 
-Here's the basic structure:
+**The fastest workflow**:
+1. Build creates something
+2. Tab → switch to Plan
+3. "Review what we just did"
+4. Tab → back to Build
+5. "Make the changes suggested"
+
+### Calling Subagents with @-mentions
+
+Instead of switching, you can summon a specialist while staying with your current agent.
+
+**Automatic invocation**: If you ask Build "where is the authentication logic?" it might automatically call Explore because that's Explore's specialty. You'll see a message indicating a subagent was called.
+
+**Manual invocation**: You decide which specialist to use by typing `@` followed by the agent name:
+```
+@explore find all files that handle user passwords
+@general what's the standard way to store API keys securely?
+```
+
+**What happens next**:
+1. The subagent receives your message as its task
+2. It works independently (you may see it create a separate conversation thread)
+3. It returns results to your main agent
+4. The main agent incorporates those results into its response
+
+**Navigating subagent conversations**: If a subagent creates its own thread, you can jump in:
+- Use the default keybinds to navigate between parent and child sessions
+- Default: `<Leader>+Down` to enter first child, `Right/Left` to cycle, `Up` to return to parent
+- This lets you watch what the subagent is doing in real-time or intervene if needed
+
+---
+
+## Part 3: Do You Need a Custom Agent?
+
+### Start with Built-in Agents
+
+The built-in Build and Plan agents handle 90% of everyday needs. Before creating a custom agent, ask yourself:
+
+**Can I accomplish this by:**
+- Just asking Build directly? ✅
+- Switching to Plan for analysis? ✅
+- Using @explore or @general? ✅
+
+If yes, don't create a custom agent yet. Custom agents are for when you find yourself repeatedly asking for the **same kind of specialized help**.
+
+### Signs You Need a Custom Agent
+
+Create a custom agent when:
+- You're always saying "review this for security issues" → create a **security auditor** agent
+- You frequently write documentation and want consistent style → create a **documentation writer** agent
+- You need a specific workflow (like always running tests before committing) → create a **quality assurance** agent
+- You want an agent with just the right tools and permissions for a repetitive task
+
+**If it's a one-time need**, just ask directly. Custom agents are for patterns you see in your work.
+
+### Creating Your First Custom Agent
+
+The easiest way is to use the interactive wizard:
+
+```bash
+opencode agent create
+```
+
+This asks you:
+1. **Where to save it**: Globally (available in all projects) or just for this project
+2. **Name**: Short identifier like `security-checker` or `doc-writer` (no spaces, use hyphens)
+3. **Description**: What it does in 10-20 words (e.g., "Looks for security vulnerabilities in code")
+4. **Model**: Which AI to use (or accept the default)
+5. **Tools**: Use arrow keys to select what actions it can perform
+
+The wizard creates the configuration file in the right place with proper formatting. Start here - it prevents mistakes.
+
+---
+
+## Part 4: Configuration Files - Your Agent Instruction Manual
+
+### What Is a Configuration File?
+
+It's a **settings file** that tells OpenCode: "Here's what my agents are like and what they can do."
+
+Think of it like a job description for each agent:
+- Name: Security Checker
+- Role: Find security problems
+- Tools allowed: Can read anything, can't change anything
+- Behavior: Be thorough, be critical, list issues by severity
+
+### Where Configuration Lives
+
+| Location | Who Can Use It | Create It With |
+|----------|----------------|----------------|
+| Project folder: `opencode.json` | Only this project | Edit manually or `opencode agent create` (project option) |
+| Global: `~/.config/opencode/opencode.json` | All your projects | Edit manually or `opencode agent create` (global option) |
+| Agent files: `.opencode/agents/` (project) or `~/.config/opencode/agents/` (global) | Depends on location | `opencode agent create` (creates these automatically) |
+
+**Get started**: Use `opencode agent create` and it puts files in the right place automatically.
+
+### Two Ways to Write Configurations
+
+Both formats work equally well. Use whichever you prefer.
+
+#### Option 1: JSON (Everything in One File)
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
   "agent": {
-    "agent-name": {
-      "description": "What this agent does",
-      "mode": "primary",
+    "my-agent": {
+      "description": "Does something helpful",
+      "mode": "subagent",
       "model": "anthropic/claude-sonnet-4-5",
-      "prompt": "{file:./prompts/build.txt}",
+      "temperature": 0.5,
       "tools": {
-        "write": true,
-        "edit": true,
+        "write": false,
+        "edit": false,
         "bash": true
       }
     }
@@ -230,637 +224,312 @@ Here's the basic structure:
 }
 ```
 
-Each agent is a key under the `agent` object. The key becomes the agent's identifier—the name you use to reference it or switch to it. Inside each agent object, you define its properties using the options we'll cover in detail later.
+**Pros**: Everything together, good for version control, easy to share  
+**Cons**: Curly braces everywhere, harder to read
 
-JSON configuration is great for:
-- Sharing configuration in version control (like Git)
-- Making systematic changes across multiple agents
-- Programmatic generation of configurations
-- Keeping everything in one place
+#### Option 2: Markdown (One File Per Agent)
 
-### Markdown Configuration
-
-Alternatively, you can define agents using Markdown files with YAML frontmatter. This approach is more modular and can be easier to manage for many custom agents or when sharing agent definitions.
-
-To create a Markdown-based agent, create a `.md` file in one of these directories:
-- Global: `~/.config/opencode/agents/`
-- Per-project: `.opencode/agents/`
-
-The filename (without the `.md` extension) becomes the agent name. So `security-auditor.md` creates an agent named `security-auditor`.
-
-The file structure looks like this:
+Create a file like `.opencode/agents/security-checker.md`:
 
 ```markdown
 ---
-description: Performs security audits and identifies vulnerabilities
+description: Finds security vulnerabilities
 mode: subagent
 model: anthropic/claude-sonnet-4-5
 temperature: 0.1
 tools:
   write: false
   edit: false
-  bash: false
+  bash: true
+  read: true
 ---
 
-You are a security expert reviewing code for vulnerabilities.
+You are a security expert auditing code for vulnerabilities.
 
-Look for:
-- Input validation issues
-- Authentication and authorization flaws
-- Data exposure risks
-- Dependency vulnerabilities
-- Configuration security problems
+Check for:
+- SQL injection
+- XSS vulnerabilities
+- Hardcoded secrets
+- Authentication issues
 
-Provide findings with severity ratings and specific remediation steps.
+Rate findings by severity and provide fixes.
 ```
 
-The section between the `---` lines is YAML frontmatter that defines the agent's configuration options. Everything after the closing `---` is the agent's system prompt—the instructions that define how the agent behaves and what it focuses on.
-
-Markdown configuration shines when:
-- You have many agents and want them in separate files
-- You want to use file-based versioning for individual agents
-- You prefer writing prompts in Markdown where you can include formatting, code blocks, and lists
-- You're creating a shareable collection of agents for others to use
-
-Both JSON and Markdown configurations can coexist. OpenCode automatically loads agents from all configured locations and merges them according to the configuration precedence rules.
-
----
-
-## Agent Configuration Options
-
-Now let's examine each configuration option in detail. These options control every aspect of an agent's behavior, capabilities, and appearance.
-
-### Description
-
-The `description` field provides a brief explanation of what the agent does and when to use it. This description serves two important purposes:
-
-1. It helps you remember what each agent is for when you're choosing between them
-2. It enables automatic agent selection—primary agents can use these descriptions to decide when to invoke a subagent
-
-A good description is concise but informative. Aim for about 10-20 words that capture the agent's purpose and specialty.
-
-```json
-{
-  "agent": {
-    "code-reviewer": {
-      "description": "Reviews code for best practices and potential issues"
-    }
-  }
-}
-```
-
-When you see a list of available agents to switch between, these descriptions appear alongside the names. And when a primary agent is deciding whether to call a subagent, it evaluates these descriptions to find the best match for the task.
-
-The description is a **required** option—every agent must have one.
-
-### Temperature
-
-The `temperature` setting controls how creative or deterministic the AI's responses are. This might sound technical, but it's actually quite intuitive.
-
-Think of temperature like this: when the AI generates text, it's essentially predicting what comes next. At low temperatures, it always picks the most likely next word—very predictable and focused. At high temperatures, it's more willing to pick less obvious words, which leads to more variety and creativity.
-
-Temperature values range from 0.0 to 1.0:
-
-**Low Temperature (0.0–0.2)**: The AI is very focused and sticks closely to patterns it has seen. This is ideal for:
-- Code analysis and review (where precision matters)
-- Technical documentation
-- Following specific formats or templates
-- Any task where consistency is critical
-
-```json
-{
-  "agent": {
-    "plan": {
-      "temperature": 0.1,
-      "description": "Analyzes code with focused, deterministic responses"
-    }
-  }
-}
-```
-
-**Medium Temperature (0.3–0.5)**: A balance between creativity and consistency. Good for:
-- General development tasks
-- Writing code with some flexibility
-- Most everyday AI assistance
-
-**High Temperature (0.6–1.0)**: The AI is more experimental and varied. Useful for:
-- Brainstorming sessions
-- Creative problem-solving
-- Generating multiple alternative approaches
-- Tasks where diversity of thought is valuable
-
-```json
-{
-  "agent": {
-    "brainstorm": {
-      "temperature": 0.7,
-      "description": "Generates creative ideas and approaches"
-    }
-  }
-}
-```
-
-If you don't specify a temperature, OpenCode uses model-specific defaults—typically 0 for most models, or 0.55 for Qwen models. But explicitly setting it gives you control over an agent's "personality."
-
-### Max Steps
-
-The `steps` (formerly `maxSteps`) setting limits how many iterations an agent can go through before it must produce a final response. An "iteration" in this context means a cycle where the AI thinks, uses tools, receives results, and thinks again. This is crucial for controlling costs and preventing runaway agent behavior.
-
-By default, agents continue iterating until the AI decides it's done (or you interrupt). But for categories of work where you want to ensure efficiency, setting a step limit forces the agent to wrap up.
-
-```json
-{
-  "agent": {
-    "quick-research": {
-      "description": "Fast research with limited iterations",
-      "steps": 5
-    }
-  }
-}
-```
-
-In this example, the agent can perform at most 5 cycles of thinking and tool use before it's compelled to provide a final answer. If it reaches the limit, it receives a special system instruction to summarize its findings and list any remaining tasks.
-
-This option is particularly useful for:
-- Budget-conscious projects where you want to cap agent time
-- Production environments where response time matters
-- Agents handling routine, bounded tasks
-- Preventing infinite loops in edge cases
-
-If you don't set a limit, the agent can theoretically run indefinitely (within the overall conversation constraints).
-
-**Important**: The legacy `maxSteps` field is deprecated. Use `steps` instead.
-
-### Disable
-
-The `disable` option is a simple boolean that, when set to `true`, completely deactivates an agent. Disabled agents don't appear in agent selection lists, can't be invoked with @-mentions, and are essentially invisible to the system.
-
-```json
-{
-  "agent": {
-    "experimental-agent": {
-      "disable": true
-    }
-  }
-}
-```
-
-This is useful when:
-- You have an agent configuration but want to temporarily turn it off without deleting it
-- You're developing a custom agent and want to disable it until it's ready
-- You want to remove an agent from rotation without losing the configuration
-- You need to troubleshoot issues by eliminating certain agents from consideration
-
-Disabled agents remain in your configuration file but are inert. Changing `disable` to `false` or removing the field entirely reactivates them.
-
-### Prompt
-
-The `prompt` option specifies a file containing the agent's system prompt—the fundamental instructions that define its behavior, expertise, and tone. This file contains the personality and methodology of the agent.
-
-```json
-{
-  "agent": {
-    "code-reviewer": {
-      "prompt": "{file:./prompts/review.txt}"
-    }
-  }
-}
-```
-
-The `{file:...}` syntax loads the prompt from a file on disk. The path is relative to the location of the configuration file that defines it. So if `prompt: "{file:./prompts/review.txt}"` is in your project's `opencode.json`, it looks for `./prompts/review.txt` in the project root.
-
-Prompt files are plain text that can contain any instructions you want to give the agent. A good prompt typically includes:
-- The agent's role and identity
-- Its objectives and priorities
-- How it should approach problems
-- What to avoid or watch out for
-- Expected output format (if any)
-- Any special constraints or boundaries
-
-For Markdown-defined agents, the prompt is everything after the YAML frontmatter—no separate file needed.
-
-```markdown
----
-description: Security auditor
-mode: subagent
----
-
-You are a security expert reviewing code for vulnerabilities.
-
-Your methodology:
-1. Examine input validation and sanitization
-2. Check authentication and access controls
-3. Look for data exposure risks
-4. Review dependency security
-5. Assess configuration safety
-
-Provide specific findings with severity ratings and remediation steps.
-```
-
-The content after `---` becomes the prompt. This format is convenient because the prompt is right there in the same file as the configuration.
-
-If you don't specify a prompt, the agent uses a default generic prompt. For most custom agents, you'll want to provide a specific prompt that guides the AI toward the behavior you need.
-
-### Model
-
-The `model` option overrides the default model for this agent, letting you assign different AI models to different tasks based on their strengths.
-
-Models in OpenCode are identified using the format `provider/model-id`. For example:
-- `anthropic/claude-sonnet-4-5` (Anthropic's Claude Sonnet)
-- `openai/gpt-5` (OpenAI's GPT-5)
-- `opencode/gpt-5.1-codex` (OpenCode Zen's GPT-5.1 Codex)
-
-```json
-{
-  "agent": {
-    "plan": {
-      "model": "anthropic/claude-haiku-4-5"
-    },
-    "build": {
-      "model": "anthropic/claude-sonnet-4-5"
-    }
-  }
-}
-```
-
-In this example, the Plan agent uses the faster, cheaper Haiku model for analysis, while Build uses the more capable Sonnet model for implementation work.
-
-The model option is powerful because different models have different:
-- Capabilities (some are better at coding, others at analysis)
-- Costs (some are much cheaper per token)
-- Speed (some respond much faster)
-- Context limits (how much they can process at once)
-
-By assigning models per agent, you can optimize both performance and cost. Your research agent might use a fast model for quick lookups, while your complex builder uses a high-end model for tough coding problems.
-
-If you don't specify a model:
-- Primary agents use the globally configured model (the one you set with `/models` or in config)
-- Subagents inherit the model from the primary agent that invoked them
-
-This inheritance makes sense—if you're using a powerful model for your main work, your subagents probably want to use the same model to maintain compatibility and quality.
-
-### Tools
-
-The `tools` setting controls which tools (capabilities) an agent has access to. Tools are the actions an agent can perform in your environment—writing files, editing code, running bash commands, fetching web content, etc.
-
-By default, agents inherit the global tool settings, but you can override them per agent to create specialists with focused capabilities.
-
-```json
-{
-  "agent": {
-    "plan": {
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": false
-      }
-    }
-  }
-}
-```
-
-This Plan agent configuration disables all modification tools, making it read-only. Even if the global configuration enables these tools, this agent-level setting overrides them.
-
-Tool settings are boolean:
-- `true`: The tool is available
-- `false`: The tool is unavailable
-
-Common tools include:
-- `write`: Create new files
-- `edit`: Modify existing files
-- `bash`: Execute shell commands
-- `read`: Read file contents
-- `grep`: Search for patterns in files
-- `webfetch`: Retrieve web content
-- MCP tools: Tools from connected MCP servers (use patterns like `mymcp_*`)
-
-You can also use wildcards to control groups of tools. For example, to disable all tools from an MCP server:
-
-```json
-{
-  "agent": {
-    "safe-agent": {
-      "tools": {
-        "mymcp_*": false,
-        "write": false,
-        "bash": false
-      }
-    }
-  }
-}
-```
-
-This pattern is powerful for managing integrations. If you have an MCP server with many tools and you want to disable them all for a particular agent, the wildcard does it in one line.
-
-Tool configuration is about safety and focus. A read-only agent can't accidentally modify things. An agent without bash access can't run dangerous commands. And an agent with limited tools is more focused on its specialty.
-
-### Permissions
-
-The `permission` setting goes beyond simple enable/disable for tools—it provides fine-grained control over what actions an agent can take, with different levels of approval.
-
-Permissions apply to the `edit`, `bash`, and `webfetch` tools. For each, you can set:
-
-**`"ask"`**: The agent can attempt the action, but you'll be prompted to approve it first. This is the default for Plan agent's modification tools. It's the middle ground—the agent can proceed but can't surprise you.
-
-```json
-{
-  "agent": {
-    "plan": {
-      "permission": {
-        "edit": "ask",
-        "bash": "ask"
-      }
-    }
-  }
-}
-```
-
-**`"allow"`**: The agent has unrestricted access. No prompts, no warnings. This is Build's default for most tools, and it's appropriate when you fully trust the agent or the tool is harmless.
-
-**`"deny"`**: The tool is completely disabled. The agent cannot use it at all, not even with your approval. The tool simply doesn't exist from this agent's perspective.
-
-Permissions can also be set globally and overridden per agent, just like tool settings. The agent-level permissions take precedence.
-
-#### Command-Specific Permissions
-
-For the `bash` tool, you can get even more granular by specifying permissions for specific commands. This lets you allow safe commands while restricting dangerous ones, or require approval for specific operations.
-
-```json
-{
-  "agent": {
-    "coder": {
-      "permission": {
-        "bash": {
-          "git status": "allow",
-          "git commit": "ask",
-          "git push": "ask",
-          "rm -rf": "deny"
-        }
-      }
-    }
-  }
-}
-```
-
-This configuration:
-- Allows `git status` without prompt (harmless read-only)
-- Asks before `git commit` and `git push` (destructive operations that need review)
-- Denies `rm -rf` entirely (too dangerous)
-
-You can use glob patterns to match multiple commands:
-
-```json
-{
-  "agent": {
-    "safe-coder": {
-      "permission": {
-        "bash": {
-          "git *": "ask",
-          "npm test": "allow",
-          "*": "deny"
-        }
-      }
-    }
-  }
-}
-```
-
-Here, any git command requires approval, npm test is always allowed, and all other commands are denied. Pattern order matters when using wildcards—the last matching rule wins, so place the catch-all `"*"` first and specific rules after, or structure logically based on your needs.
-
-You can also set permission patterns in Markdown agent files:
-
-```markdown
----
-description: Code reviewer with selective permissions
-mode: subagent
-permission:
-  edit: deny
-  bash:
-    "*": ask
-    "git diff": allow
-    "git log*": allow
-    "grep *": allow
-  webfetch: deny
----
-```
-
-This agent can't edit files or fetch web content (read-only focus), but it can run bash commands with approval, except that `git diff`, `git log`, and `grep` are always allowed since they're read-only operations essential for code review.
-
-Permissions are your primary safety mechanism for controlling what agents can do. Use them thoughtfully to balance capability with risk.
-
-### Mode
-
-The `mode` option determines how the agent can be used. It's a simple setting with three possible values:
-
-**`"primary"`**: The agent appears in the primary agent rotation and can be the main conversational partner. Only primary agents can be the default agent and participate in the Tab-based switching. Build and Plan are both primary agents.
-
-**`"subagent"`**: The agent is only available as a subagent—it can't be switched to as a primary agent, and it won't appear in the Tab rotation. Subagents can only be invoked through @-mentions or automatic invocation by primary agents. Explore and General are subagents.
-
-**`"all"`** (default): The agent can function both as a primary agent and as a subagent. This is the default if no mode is specified, giving maximum flexibility.
-
-```json
-{
-  "agent": {
-    "build": {
-      "mode": "primary"
-    },
-    "explore": {
-      "mode": "subagent"
-    },
-    "orchestrator": {
-      "mode": "all"
-    }
-  }
-}
-```
-
-The mode affects where and how the agent appears in the UI, what keybinds apply to it, and how it can be invoked. For most custom agents, you'll choose either `primary` or `subagent` based on their intended use.
-
-### Hidden
-
-The `hidden` option (boolean, defaults to `false`) hides subagents from the @-mention autocomplete menu. When `true`, users won't see the agent as an option when typing `@`, but the agent can still be invoked programmatically by primary agents using the Task tool.
-
-```json
-{
-  "agent": {
-    "internal-helper": {
-      "mode": "subagent",
-      "hidden": true
-    }
-  }
-}
-```
-
-This is useful for internal subagents that you want other agents to use, but you don't want end users to manually invoke. Think of it like private methods in programming—they exist for internal orchestration but aren't part of the public interface.
-
-**Important**: `hidden` only applies to `mode: subagent` agents. It has no effect on primary agents.
-
-### Task Permissions
-
-The `permission.task` setting (note the dot notation) controls which subagents an agent can invoke via the Task tool. This is about what other agents this agent can call upon for assistance.
-
-Task permissions use glob patterns for flexible matching:
-
-```json
-{
-  "agent": {
-    "orchestrator": {
-      "permission": {
-        "task": {
-          "*": "deny",
-          "orchestrator-*": "allow",
-          "code-reviewer": "ask"
-        }
-      }
-    }
-  }
-}
-```
-
-In this configuration:
-- The orchestrator cannot invoke any subagent by default (`"*": "deny"`)
-- It can invoke subagents whose names start with `orchestrator-` (`"orchestrator-*": "allow"`)
-- It can invoke the `code-reviewer` agent but needs approval (`"code-reviewer": "ask"`)
-
-Permissions values for task invocation:
-- `"allow"`: Can invoke without restriction
-- `"ask"`: User will be asked to approve the invocation
-- `"deny"`: Cannot invoke; the subagent won't even appear in the Task tool's description to the model
-
-When set to `deny`, the subagent is completely invisible to the agent—the AI doesn't even know it's an option. This prevents the model from wasting time considering subagents that aren't available.
-
-**Important**: Task permissions don't restrict what users can do. Users can always invoke any subagent directly via @-mention, regardless of these settings. Task permissions only control what the agent itself can do autonomously.
-
-### Color
-
-The `color` option sets the agent's visual appearance in the OpenCode interface. It's purely cosmetic but can help you distinguish between different agents at a glance.
-
-You can specify colors in two ways:
-
-1. **Hex color codes**: `"#FF5733"`, `"#4CAF50"`, etc.
-2. **Theme colors**: `"primary"`, `"secondary"`, `"accent"`, `"success"`, `"warning"`, `"error"`, `"info"`
-
-```json
-{
-  "agent": {
-    "security": {
-      "color": "#ff4444"
-    },
-    "docs": {
-      "color": "accent"
-    }
-  }
-}
-```
-
-If you don't set a color, the agent uses the default primary color. Using distinctive colors can be helpful when you have many agents and need to quickly identify which one is active in the UI.
-
-### Top P
-
-The `top_p` option is an alternative to temperature for controlling response diversity. Instead of adjusting the sampling temperature, `top_p` uses nucleus sampling—where the AI considers only the most likely tokens whose cumulative probability exceeds `top_p`.
-
-Values range from 0.0 to 1.0:
-- Lower values (`0.1–0.5`): More focused, deterministic responses (similar to low temperature)
-- Higher values (`0.7–1.0`): More diverse, varied responses
-
-```json
-{
-  "agent": {
-    "explore": {
-      "top_p": 0.9
-    }
-  }
-}
-```
-
-Most users will primarily use `temperature`. `top_p` is an advanced option for fine-tuning generation behavior, and you generally shouldn't set both in the same agent configuration as they can conflict.
-
-### Additional (Pass-through Options)
-
-Beyond the explicitly defined options, *any other* configuration you include in an agent definition will be passed directly to the AI provider as a model parameter. This is a powerful escape hatch that lets you use provider-specific features without OpenCode needing to explicitly support them.
-
-```json
-{
-  "agent": {
-    "deep-thinker": {
-      "model": "openai/gpt-5",
-      "reasoningEffort": "high",
-      "textVerbosity": "low"
-    }
-  }
-}
-```
-
-In this example, `reasoningEffort` and `textVerbosity` aren't standard OpenCode agent options. They're specific to OpenAI's reasoning models and get passed straight through to the provider.
-
-This pass-through mechanism means OpenCode automatically supports new model parameters as providers introduce them—no OpenCode update needed. Whatever options your model accepts can be configured here.
-
-To discover what options your provider supports, check their documentation. Common examples include:
-
-- OpenAI: `reasoningEffort`, `textVerbosity`, `reasoningSummary`, `include`
-- Anthropic: `thinking` (with `type` and `budgetTokens`)
-- Google: `top_k`, `top_p`, `temperature` (though temperature is already explicit)
-
-These additional options are written directly in the agent object alongside the standard ones:
-
-```json
-{
-  "agent": {
-    "my-agent": {
-      "model": "openai/gpt-5",
-      "temperature": 0.3,
-      "reasoningEffort": "high",
-      "textVerbosity": "low"
-    }
-  }
-}
-```
+**Pros**: Human-readable, easy to edit, each agent in its own file, supports formatting  
+**Cons**: More files to manage
+
+**Which should you choose?**
+- Just starting? Use `opencode agent create` - it picks the right format
+- Making many custom agents? Markdown files keep them organized
+- Sharing configs via Git? Both work, but some people prefer separate files
+- Following online examples? They're usually JSON - you can convert later
+
+**You can mix both**: OpenCode loads agents from all sources and combines them. Start with one format; you can always add the other later.
 
 ---
 
-## Creating Custom Agents
+## Part 5: Configuration Options Explained
 
-OpenCode makes it straightforward to create your own agents tailored to your specific needs. You have two options: use the interactive command or create the configuration manually.
+This section explains each setting you can put in an agent configuration. Start with the highlighted ones; the rest you can learn as needed.
 
-### Interactive Creation
+### The Essential Options (Start Here)
 
-Run this command in your terminal:
+#### Description (Required)
+- **What it does**: A short explanation of what the agent does and when to use it
+- **Length**: 10-20 words
+- **Example**: "Reviews code for security vulnerabilities" or "Writes and maintains documentation"
+- **Where you see it**: In agent selection lists and when auto-summoning subagents
+
+**Good examples**:
+- `code-reviewer` - "Reviews code for best practices and potential issues" ✓
+- `doc-writer` - "Creates and updates project documentation" ✓
+- `security-audit` - "Finds security vulnerabilities and suggests fixes" ✓
+
+**Bad examples**:
+- `agent1` - "Does stuff" ✗
+- `myagent` - "An AI agent that does things" ✗
+
+#### Mode (Important!)
+- **What it does**: Determines how the agent can be used
+- **Values**:
+  - `"primary"`: Appears in Tab-switch rotation, can be your main conversational partner
+  - `"subagent"`: Only available via @-mentions or automatic calls, NOT in Tab-switch
+  - `"all"`: Can be both primary and subagent (maximum flexibility)
+- **Rule of thumb**:
+  - Use `primary` for agents you want to switch to and talk with directly
+  - Use `subagent` for specialists you call only when needed (like @explore)
+  - Most custom agents you create will be `subagent`
+
+#### Model (Choose Your AI Brain)
+- **What it does**: Selects which AI model powers this agent
+- **Format**: `provider/model-id` examples:
+  - `anthropic/claude-sonnet-4-5`
+  - `openai/gpt-5`
+  - `opencode/gpt-5.1-codex`
+- **If you don't set it**: Agent uses whatever model you currently have selected globally (the one you see when you run `/models`)
+- **Why you'd set it**: Different models have different speeds, costs, and capabilities. You might give your architect agent a smarter (but slower/expensive) model, while your quick research agent uses a fast/cheap model.
+
+**Quick guide**:
+- **Fast & cheap** (Haiku, GPT-5 Nano): Simple tasks, quick lookups, frequently-called subagents
+- **Balanced** (Sonnet, GPT-5): Your everyday coding assistant
+- **Smart & powerful** (Opus, GPT-5 Codex): Complex reasoning, architecture, critical code generation
+
+**Don't overthink it**: Use the default model unless you have a specific reason. You can always change it later.
+
+#### Prompt (Your Agent's Instructions)
+- **What it does**: Defines the agent's personality, expertise, methodology, and constraints
+- **Where**: In JSON, you reference a file: `"prompt": "{file:./prompts/build.txt}"`. In Markdown, the prompt is everything after the `---` section
+- **What goes in it**:
+  - Role definition: "You are a security auditor with 10 years of experience..."
+  - Methodology: "Your process: 1) Check inputs, 2) Review auth, 3) Look for secrets..."
+  - Output format: "Provide findings as: Severity: [rating], Location: [file:line], Issue: [description], Fix: [suggestion]"
+  - Constraints: "Do not modify files. Only analyze."
+  - Priorities: "Focus on security over code style"
+
+**Why it matters**: The prompt is the single biggest factor in how well your agent performs. A well-written prompt gets better, more focused results.
+
+**Bad prompt**: "You are a code reviewer." (Too vague)  
+**Good prompt**: "You are a senior code reviewer. Check for: security vulnerabilities, performance issues, maintainability problems, missing error handling. For each issue, explain why it's a problem and provide a specific fix with code examples. Focus on critical issues first."
+
+### The Most Important Settings
+
+#### Temperature (The Creativity Dial)
+- **What it does**: Controls how predictable vs. creative the agent is
+- **Range**: 0.0 (very predictable) to 1.0 (very creative)
+- **Analogy**: Think of it like a slider on a creativity dial
+
+**Real-world examples**:
+
+At **low temperature (0.1-0.3)**:
+- You ask: "Name a good function for user login"
+- Agent says: `login()`, `authenticateUser()`, `signIn()` - obvious, conventional names
+- **Use for**: Code review, security checks, documentation, anything requiring accuracy and consistency
+
+At **medium temperature (0.4-0.6)**:
+- Same question
+- Agent says: `verifyCredentials()`, `beginSession()`, `userAuthGate()` - reasonable but varied
+- **Use for**: General coding help, generating options to choose from
+
+At **high temperature (0.7-0.9)**:
+- Same question
+- Agent says: `portalToIdentity()`, `theGateKeeperAwakens()`, `grantMeAccess()` - wild, creative, sometimes too weird
+- **Use for**: Brainstorming sessions, creative naming, exploring unusual approaches
+
+**The rule of thumb**:
+- Reviewing/analyzing → 0.1-0.3 (be consistent and reliable)
+- Everyday coding → 0.4-0.6 (balanced)
+- Brainstorming → 0.7-0.9 (get variety)
+
+**Common mistake**: Using high temperature for code review → entertaining but unreliable feedback. Using low temperature for brainstorming → same ideas every time.
+
+**Start with**: 0.5. Adjust based on results. Too repetitive? Go up. Too weird? Go down.
+
+#### Tools (What the Agent Can Do)
+- **What it does**: Enables or disables specific actions the agent can perform
+- **Common tools**:
+  - `write`: Create new files
+  - `edit`: Modify existing files
+  - `bash`: Run system commands (terminal operations)
+  - `read`: Read file contents
+  - `grep`: Search for patterns across files
+  - `webfetch`: Get content from websites
+- **Default**: Usually agents inherit global tool settings
+- **How to think about it**: You're giving the agent access to different "rooms" in your house. A detective doesn't need to modify files, so you'd disable `write` and `edit`. A builder needs those tools enabled.
+
+**Example configurations**:
+
+**Code Reviewer** (looks but doesn't touch):
+```json
+"tools": {
+  "write": false,
+  "edit": false,
+  "bash": true,
+  "read": true,
+  "grep": true
+}
+```
+
+**Builder Agent** (your main coder):
+```json
+"tools": {
+  "write": true,
+  "edit": true,
+  "bash": true,
+  "read": true,
+  "grep": true
+}
+```
+
+**Explorer** (detective only):
+```json
+"tools": {
+  "write": false,
+  "edit": false,
+  "bash": false,
+  "read": true,
+  "grep": true
+}
+```
+
+**Safety tip**: Don't give agents tools they don't need. Fewer tools = more focused, less chance of accidental damage.
+
+#### Permissions (Your Safety Controls)
+- **What it does**: Controls whether the agent needs your approval before using a tool
+- **Values**:
+  - `"allow"`: Agent does it automatically (no prompt)
+  - `"ask"`: Agent asks "Can I do this?" - you approve or deny
+  - `"deny"`: Agent cannot use this tool at all
+
+**Analogy**: Parental controls. Some actions are safe and don't need checking (`read` = `allow`). Some are risky and you want to review (`delete` = `ask`). Some are totally forbidden for this agent (`write` for a reviewer = `deny`).
+
+**Example**:
+```json
+"permission": {
+  "edit": "ask",
+  "bash": {
+    "*": "ask",
+    "git status": "allow",
+    "rm -rf": "deny"
+  }
+}
+```
+
+Translation:
+- When agent wants to edit a file → asks you first ✓
+- When agent wants to run most bash commands → asks you first ✓
+- When agent wants to run `git status` → allowed automatically (harmless) ✓
+- When agent tries `rm -rf` → denied completely (too dangerous) ✓
+
+**Why this matters**: Permissions give you oversight. Use `ask` for operations that could affect your work. Use `allow` for safe, read-only actions. Use `deny` to completely forbid something.
+
+**Built-in defaults**:
+- Build: Most tools = `allow` (your main worker)
+- Plan: Modification tools = `ask` (analysis mode, you want oversight)
+
+### Other Useful Options
+
+#### Steps (How Long Can It Work?)
+- **What it does**: Maximum number of thinking/acting cycles before the agent must stop
+- **Default**: Unlimited (within overall session limits)
+- **When to use**: To control costs, ensure fast responses, or prevent infinite loops
+- **Example**: `"steps": 10` → agent can think and act up to 10 times before giving final answer
+- **Typical values**:
+  - Simple tasks: 3-5 steps
+  - Complex tasks: 10-20 steps
+  - Research tasks: 20-50 steps
+- **Leave it blank** for most uses - the agent knows when it's done
+
+#### Color (Make It Pretty)
+- **What it does**: Sets the agent's visual color in the interface
+- **Values**: Hex codes (`"#FF5733"`) or theme names (`"primary"`, `"success"`, `"warning"`, `"error"`)
+- **Why**: Helps you quickly identify which agent is active at a glance
+- **Example**:
+  - Security agent → red (`"#ff4444"`)
+  - Documentation → green
+  - Explorer → blue
+  - Builder → yellow
+
+#### Mode & Hidden (For Advanced Users)
+- Already covered in essentials
+- `hidden: true` hides subagents from the @-mention menu (they can only be called programmatically). Rarely needed.
+
+### Options You Can Ignore (For Now)
+
+- **top_p**: Alternative to temperature. Use temperature instead unless you know you need this.
+- **Additional (pass-through) options**: Provider-specific settings. Only if you're using advanced model features.
+- **Task permissions** (`permission.task`): Controls what subagents an agent can call. Advanced orchestration.
+
+---
+
+## Part 6: Complete Example - Building a Documentation Agent
+
+Let's walk through creating a real custom agent from scratch.
+
+### Step 1: Decide You Need It
+
+**Scenario**: You maintain a project with lots of code. You frequently need to:
+- Write README files
+- Document APIs
+- Add code comments explaining complex logic
+- Update documentation when code changes
+
+Instead of asking Build to do this every time (and giving inconsistent results), create a specialized **documentation agent**.
+
+### Step 2: Run the Interactive Wizard
 
 ```bash
 opencode agent create
 ```
 
-This launches an interactive wizard that guides you through:
+Answer the prompts:
 
-1. **Location choice**: Save globally (available in all projects) or in the current project (only for this project)
+1. **Save globally or for this project?** → Project (for this example)
+2. **Agent name?** → `doc-writer` (short, hyphenated, memorable)
+3. **Description?** → "Creates and maintains project documentation" (what it does in ~10 words)
+4. **Select a model?** → Accept default (whatever your current model is)
+5. **Select tools**: Use spacebar to toggle:
+   - ✓ write (needs to create docs)
+   - ✓ edit (needs to update existing docs)
+   - ✓ read (needs to read code to understand it)
+   - ✗ bash (documentation doesn't need system commands)
+   - ✓ grep (needs to search code)
+6. **Finish** → Creates `.opencode/agents/doc-writer.md`
 
-2. **Agent name**: A short identifier (letters, numbers, hyphens). This is the name you'll use to reference the agent.
+### Step 3: Customize the Prompt
 
-3. **Description**: A brief explanation of what the agent does and when to use it.
-
-4. **Model selection**: Choose which AI model powers this agent, or accept the default.
-
-5. **Tool selection**: Pick which tools the agent should have access to using a checklist interface.
-
-The wizard then generates a Markdown file with a complete configuration and places it in the appropriate directory (`.opencode/agents/` for project-specific, `~/.config/opencode/agents/` for global).
-
-This is the easiest way to create agents and ensures you don't miss any required fields.
-
-### Manual Creation
-
-You can also create agent files manually. For a Markdown agent, create a new `.md` file in `.opencode/agents/` (project) or `~/.config/opencode/agents/` (global).
-
-Example: `.opencode/agents/documentation-writer.md`
+The wizard creates a basic prompt. Edit `.opencode/agents/doc-writer.md`:
 
 ```markdown
 ---
-description: Writes and maintains project documentation
+description: Creates and maintains project documentation
 mode: subagent
 model: anthropic/claude-sonnet-4-5
 temperature: 0.4
 tools:
   write: true
   edit: true
+  read: true
+  grep: true
   bash: false
 permission:
   edit: ask
@@ -869,57 +538,65 @@ permission:
 You are a technical writer specializing in clear, comprehensive documentation.
 
 Your documentation should:
-- Start with a clear purpose statement
+- Start with a clear purpose statement (what problem does this solve?)
 - Use headings to organize content logically
-- Include code examples where relevant
-- Explain concepts in simple language
+- Include code examples with language hints
+- Explain concepts in simple language (assume reader is competent but not expert)
 - Follow consistent formatting
+- Link to related resources
+
+Documentation types you handle:
+- README files (project overview, setup, usage examples)
+- API documentation (endpoints, parameters, response formats)
+- Developer guides (architecture, patterns, contribution guidelines)
+- Code comments (explain why, not what)
+- Inline documentation (JSDoc, docstrings)
 
 When writing documentation:
-1. First understand the code or feature
-2. Identify the audience (developers, users, administrators)
+1. First understand the code/feature by reading it
+2. Identify the audience (developers, end users, administrators)
 3. Structure from general to specific
-4. Include practical examples
+4. Include practical, copy-pasteable examples
 5. Review for clarity and completeness
+
+When updating existing documentation:
+- Preserve what's still relevant
+- Flag outdated information clearly
+- Maintain consistent voice and style
+- Update cross-references and links
+
+Output format:
+- Use Markdown appropriately
+- Code blocks with language identifiers: ```javascript\n...```
+- Tables for options/parameters
+- Include diagrams if helpful (describe in text)
 ```
 
-The filename (`documentation-writer.md`) determines the agent name (`documentation-writer`). You can now invoke this agent with `@documentation-writer` in your messages.
+### Step 4: Test Your Agent
 
-For JSON configuration, add an entry to the `agent` section of your `opencode.json`:
+In OpenCode, type:
 
-```json
-{
-  "agent": {
-    "documentation-writer": {
-      "description": "Writes and maintains project documentation",
-      "mode": "subagent",
-      "model": "anthropic/claude-sonnet-4-5",
-      "temperature": 0.4,
-      "tools": {
-        "write": true,
-        "edit": true,
-        "bash": false
-      },
-      "permission": {
-        "edit": "ask"
-      },
-      "prompt": "You are a technical writer specializing in clear, comprehensive documentation..."
-    }
-  }
-}
+```
+@doc-writer write a README.md for this project explaining what it does and how to install it
 ```
 
-Either format works; use whichever fits your workflow. Markdown files are often easier for team sharing and versioning individual agents, while JSON keeps everything centralized.
+Watch the agent work. It should read your codebase, understand the project, and produce a good README.
+
+### Step 5: Refine
+
+If the output isn't quite right, adjust the prompt:
+- Too verbose? Change `temperature` from 0.4 to 0.3
+- Missing something? Add it to the instructions
+- Wrong tone? Rewrite the "Your documentation should" section
 
 ---
 
-## Use Cases and Examples
+## Part 7: Examples Gallery - Ready-to-Use Agents
 
-Let's explore practical applications for agents with complete configuration examples.
+Copy these configurations to quickly add specialized agents to your toolkit.
 
-### Code Review Agent
-
-A specialized agent for reviewing code without making changes. Perfect for pull request analysis, pre-commit reviews, or periodic codebase audits.
+### Code Reviewer
+Analyzes code for quality, security, and best practices without making changes.
 
 ```markdown
 ---
@@ -931,6 +608,8 @@ tools:
   write: false
   edit: false
   bash: true
+  read: true
+  grep: true
 permission:
   bash:
     "*": ask
@@ -939,113 +618,36 @@ permission:
     "grep *": allow
 ---
 
-You are a senior code reviewer with expertise in security, performance, and maintainability.
+You are a senior code reviewer. Examine code thoroughly and provide structured feedback.
 
-Your review process:
-1. Understand the code's purpose and context
-2. Check for security vulnerabilities (injection, XSS, authentication issues)
-3. Evaluate error handling and edge cases
-4. Assess performance implications
-5. Review code style and consistency
-6. Check for code smells and technical debt
+Review checklist:
+1. Security: injection, XSS, authentication, authorization, secrets in code
+2. Error handling: missing try-catch, unhandled edge cases
+3. Performance: inefficient loops, unnecessary computations, memory leaks
+4. Code quality: naming, duplication, complexity, SOLID principles
+5. Testing: missing tests, inadequate coverage, flaky tests
+6. Maintainability: tightly coupled, magic numbers, unclear logic
 
-Provide specific line references when possible. Categorize issues by severity (critical, major, minor).
+For each issue:
+- Severity: Critical / High / Medium / Low
+- Location: file:line
+- Problem: clear explanation
+- Suggestion: specific fix with code example when helpful
 
-When suggesting improvements:
-- Explain the problem clearly
-- Provide concrete examples
-- Offer specific fixes
-- Consider maintainability
+Provide a summary with:
+- Total issues by severity
+- Positive observations (what was done well)
+- Top 3 priorities to address
 
-Do not make changes—only recommend them.
+Be direct and specific. Don't just say "this is bad" - explain why and show better.
 ```
 
-### Debugging Agent
+**Use it**: `@code-reviewer review the changes in src/auth/` or `@code-reviewer check for security issues in the payment module`
 
-An agent focused on troubleshooting and issue investigation.
-
-```json
-{
-  "agent": {
-    "debugger": {
-      "description": "Investigates bugs and performance issues",
-      "mode": "subagent",
-      "model": "openai/gpt-5",
-      "temperature": 0.3,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": true,
-        "grep": true,
-        "read": true
-      },
-      "permission": {
-        "bash": {
-          "*": ask,
-          "tail *": allow,
-          "cat *": allow,
-          "ps aux": allow,
-          "netstat": allow
-        }
-      },
-      "prompt": "You are a debugging specialist. When investigating issues:\n\n1. Gather information about the problem\n2. Check logs and error messages\n3. Trace execution flow\n4. Identify root cause\n5. Suggest reproducible test cases\n6. Recommend fixes with rationale"
-    }
-  }
-}
-```
-
-### Documentation Specialist
-
-An agent dedicated to writing, updating, and organizing documentation.
-
-```markdown
 ---
-description: Creates and maintains project documentation
-mode: subagent
-model: openai/gpt-5
-temperature: 0.5
-tools:
-  write: true
-  edit: true
-  read: true
-  bash: false
-permission:
-  edit: ask
----
-
-You are a technical documentation specialist. Your mission is to create clear, comprehensive documentation that serves its intended audience.
-
-Documentation types you handle:
-- README files (project overview, setup, usage)
-- API documentation (endpoints, parameters, examples)
-- Developer guides (architecture, patterns, best practices)
-- User guides (step-by-step instructions)
-- Code comments (explaining complex logic)
-
-Principles of good documentation:
-1. Know your audience (adjust technical level accordingly)
-2. Start with the problem, not the solution
-3. Use examples liberally
-4. Keep it up to date—flag outdated content
-5. Structure hierarchically (overview → details)
-6. Include both "how" and "why"
-
-When updating existing documentation:
-- Preserve what's still relevant
-- Flag deprecated information clearly
-- Maintain consistent voice and style
-- Update cross-references
-
-Output format:
-- Use Markdown formatting appropriately
-- Include code blocks with language hints
-- Add diagrams for complex flows when needed
-- Link to related resources
-```
 
 ### Security Auditor
-
-A focused agent for identifying security vulnerabilities.
+Finds security vulnerabilities and provides remediation steps.
 
 ```markdown
 ---
@@ -1065,126 +667,339 @@ permission:
     "grep *": allow
 ---
 
-You are a security expert conducting a comprehensive security audit.
+You are a cybersecurity expert conducting a comprehensive security audit.
 
-Your audit covers:
-- Input validation and sanitization
-- Authentication and authorization mechanisms
-- Session management
-- Data exposure risks (PII, secrets in code)
-- Dependency vulnerabilities (check package manifests)
-- Configuration security (hardcoded credentials, exposed ports)
-- Injection vulnerabilities (SQL, command, XSS)
-- Cryptographic implementation issues
+Audit categories:
+1. Input validation: injection (SQL, command, XSS, path traversal), sanitization
+2. Authentication: password handling, session management, MFA, credential storage
+3. Authorization: privilege escalation, access controls, IDOR
+4. Data protection: PII handling, encryption at rest/in transit, secrets management
+5. Dependencies: known vulnerabilities in package manifests, outdated versions
+6. Configuration: exposed ports, hardcoded credentials, debug mode in prod
+7. Cryptography: weak algorithms, improper key management, random number generation
+8. Logging: sensitive data in logs, insufficient logging for forensics
 
 For each finding:
-1. Describe the vulnerability clearly
-2. Rate severity (Critical/High/Medium/Low)
-3. Explain the potential impact
-4. Provide concrete remediation steps
-5. Reference relevant security guidelines (OWASP, CWE)
+- Severity: Critical / High / Medium / Low / Info
+- CWE/OWASP reference when applicable
+- Description: what is the vulnerability
+- Impact: what could happen
+- Location: file:line or component
+- Remediation: step-by-step fix with code examples
 
-Present findings in a structured report format with:
-- Executive summary
-- Detailed findings by category
-- Prioritized remediation plan
-- Positive observations (secure practices found)
+Structure output as:
+## Executive Summary
+- Overall risk rating
+- Key statistics
+- Immediate actions required
 
-Focus on actionable intelligence, not just theoretical risks.
+## Findings by Category
+For each category, list all findings with full details
+
+## Positive Observations
+Secure practices you found (helps reinforce good behavior)
+
+## Remediation Roadmap
+Prioritized by severity with effort estimates
 ```
 
-### Exploratory Research Agent
+**Use it**: `@security-auditor perform a full security audit of the authentication system` or `@security-auditor check for secrets in recent commits`
 
-For broad investigation and information gathering.
+---
+
+### Debugging Assistant
+Investigates bugs, errors, and performance issues.
 
 ```json
 {
   "agent": {
-    "researcher": {
-      "description": "Conducts broad research and synthesizes information",
+    "debugger": {
+      "description": "Investigates bugs and performance issues",
       "mode": "subagent",
       "model": "openai/gpt-5",
-      "temperature": 0.6,
-      "tools": {
-        "read": true,
-        "grep": true,
-        "webfetch": true
-      },
-      "permission": {},
-      "prompt": "You are a research specialist who excels at gathering and synthesizing information from diverse sources.\n\nYour approach:\n1. Clarify the research question\n2. Identify all relevant information sources\n3. Systematically explore each source\n4. Take notes on key findings\n5. Synthesize into comprehensive answer\n6. Identify gaps or uncertainties\n\nWhen researching codebases:\n- Map the relevant components\n- Trace data flows and dependencies\n- Find related files and modules\n- Extract patterns and conventions\n\nWhen using web fetch:\n- Verify source credibility\n- Extract only relevant information\n- Note the source and date\n\nOrganize findings hierarchically and highlight key insights."
-    }
-  }
-}
-```
-
-### Architecture Planning Agent
-
-For high-level design and planning work.
-
-```json
-{
-  "agent": {
-    "architect": {
-      "description": "Designs system architecture and plans implementation",
-      "mode": "primary",
-      "model": "anthropic/claude-opus-4",
       "temperature": 0.3,
       "tools": {
         "write": false,
         "edit": false,
-        "bash": false,
+        "bash": true,
         "read": true,
         "grep": true
       },
       "permission": {
-        "edit": "deny",
-        "bash": "deny"
+        "bash": {
+          "*": "ask",
+          "tail *": "allow",
+          "cat *": "allow",
+          "ps aux": "allow",
+          "netstat": "allow",
+          "lsof": "allow"
+        }
       },
-      "prompt": "You are a system architect focused on robust, scalable designs.\n\nYour planning process:\n1. Analyze requirements thoroughly\n2. Identify constraints and dependencies\n3. Consider trade-offs (simplicity vs flexibility, performance vs maintainability)\n4. Choose appropriate patterns and technologies\n5. Document the architecture with diagrams and explanations\n6. Create implementation milestones\n7. Identify risks and mitigation strategies\n\nArchitecture artifacts you produce:\n- System component diagrams\n- Data flow diagrams\n- API specifications\n- Database schemas\n- Technology stack recommendations\n- Implementation roadmap\n\nConsider:\n- Scalability boundaries\n- Failure modes and resilience\n- Security implications\n- Operational concerns (monitoring, deployment)\n- Team skill alignment\n\nProvide specific, actionable recommendations with rationale."
+      "prompt": "You are a debugging specialist. Systematic approach:\n\n1. Gather information: error messages, stack traces, symptoms\n2. Check logs: application logs, system logs, error outputs\n3. Reproduce: steps to trigger the issue\n4. Isolate: narrow down to specific component/function\n5. Trace: follow execution flow, watch variable states\n6. Hypothesize: what could cause this\n7. Test hypothesis: validate or refute\n8. Identify root cause\n9. Suggest fix with rationale\n10. Recommend test case to prevent regression\n\nWhen investigating:\n- Look for recent changes (git blame, git log)\n- Check for resource exhaustion (memory, file handles, connections)\n- Consider timing issues, race conditions\n- Check for missing null checks, boundary conditions\n- Review error handling paths\n\nOutput format:\n- Summary of issue\n- Investigation steps taken\n- Root cause identified\n- Recommended fix\n- Test case to verify\n- Preventive measures for future"
     }
   }
 }
 ```
 
+**Use it**: `@debugger why am I getting 'undefined is not a function' in main.js?` or `@debugger the server is slow, help me find the bottleneck`
+
 ---
 
-## Integration with Config, Providers, and Models
+### Architecture Planner
+Designs system architecture and plans implementation (read-only).
 
-Agents don't exist in isolation—they integrate deeply with OpenCode's configuration system, provider management, and model selection. Understanding these integrations helps you use agents effectively.
+```markdown
+---
+description: Designs system architecture and plans implementation
+mode: primary
+model: anthropic/claude-opus-4
+temperature: 0.3
+tools:
+  write: false
+  edit: false
+  bash: false
+  read: true
+  grep: true
+permission:
+  edit: "deny"
+  bash: "deny"
+---
 
-### Configuration Hierarchy
+You are a system architect designing robust, scalable systems.
 
-Agent configurations participate in OpenCode's layered configuration system. The precedence order is:
+Your planning process:
+1. Requirements analysis: functional requirements, non-functional (performance, security, reliability)
+2. Constraints identification: budget, timeline, team skills, existing infrastructure
+3. Consider trade-offs: simplicity vs flexibility, performance vs maintainability, time-to-market vs robustness
+4. Choose patterns and technologies: justify each choice
+5. Document architecture with diagrams (described in text) and explanations
+6. Create implementation roadmap with milestones
+7. Identify risks and mitigation strategies
 
-1. **Remote config** (from `.well-known/opencode`): Organizational defaults
-2. **Global config** (`~/.config/opencode/opencode.json`): Your user preferences
-3. **Custom config** (`OPENCODE_CONFIG` env var): Custom overrides
-4. **Project config** (`opencode.json` in project): Project-specific settings
-5. **`.opencode` directories**: Agents, commands, plugins
-6. **Inline config** (`OPENCODE_CONFIG_CONTENT` env var): Runtime overrides
+Artifacts you produce:
+- System component diagram (describe components and relationships)
+- Data flow diagram (how data moves through the system)
+- API specifications (endpoints, request/response formats, auth)
+- Database schema (tables, relationships, indexes)
+- Technology stack recommendations (with alternatives)
+- Implementation phases (what to build first, what can wait)
+- Risk assessment (what could go wrong and how to prevent it)
 
-This means:
-- You can define agents globally and override them project-by-project
-- Organizations can provide agent standards via remote config
-- Project configs have the final say for that project
+Consider:
+- Scalability boundaries and capacity planning
+- Failure modes and resilience patterns (circuit breakers, retries, fallbacks)
+- Security implications at each layer
+- Operational concerns: monitoring, logging, deployment, backup/restore
+- Team skill alignment and learning curve
+- Cost implications (infrastructure, maintenance)
 
-For agents specifically, they can be defined in:
-- The `agent` key in any config file at any precedence level
-- Markdown files in agents/ directories at any precedence level (`~/.config/opencode/agents/`, `.opencode/agents/`, or custom directories via `OPENCODE_CONFIG_DIR`)
+Provide specific, actionable recommendations with clear rationale. Acknowledge trade-offs rather than presenting a single "perfect" solution.
+```
 
-All agent definitions are merged together, with later sources overriding earlier ones for identically-named agents.
+**Use it**: Switch to this primary agent and ask: "Design a microservice architecture for an e-commerce platform with 100K users" or "Plan the refactoring of this monolithic app to separate services."
 
-### Provider Integration
+---
 
-Agents use models from your configured providers. When you specify a model for an agent like `anthropic/claude-sonnet-4-5`, OpenCode looks for the `anthropic` provider configuration to determine how to connect to Anthropic's API.
+### Research Specialist
+Conducts broad research and synthesizes information.
 
-The provider documentation shows that you set up providers via:
-1. The `/connect` command to add credentials (stored in `~/.local/share/opencode/auth.json`)
-2. Provider-specific configuration in the `provider` section of your config
+```markdown
+---
+description: Conducts broad research and synthesizes information
+mode: subagent
+model: openai/gpt-5
+temperature: 0.6
+tools:
+  write: false
+  edit: false
+  read: true
+  grep: true
+  webfetch: true
+permission:
+  webfetch: "ask"
+---
 
-An agent's `model` setting must reference a provider that is configured and available. If you specify a model from a provider that hasn't been connected, the agent won't work—OpenCode will fail to load that agent with an error.
+You are a research specialist who excels at gathering and synthesizing information from diverse sources.
 
-You can also create custom providers for OpenAI-compatible APIs. In that case, your agent can use models from that custom provider:
+Your approach:
+1. Clarify the research question: identify sub-questions, scope, and intended audience
+2. Identify information sources: codebase locations, documentation sites, best practice articles, specification documents
+3. Systematically explore each source: search code, read files, fetch authoritative web resources
+4. Take structured notes: organize by theme, question, or architecture layer
+5. Synthesize: connect dots between sources, identify consensus and contradictions
+6. Identify gaps: what remains uncertain or requires additional investigation
+7. Present findings: structured by priority, with clear citations and confidence levels
+
+When researching codebases:
+- Map relevant components and their relationships
+- Trace data flows and dependencies
+- Find patterns, conventions, and anti-patterns
+- Extract configurations, constants, and business logic
+- Understand the "why" behind architectural decisions
+
+When using web fetch:
+- Prefer authoritative sources (official documentation, RFCs, well-known blogs)
+- Verify information across multiple sources when possible
+- Extract only relevant information, not entire articles
+- Note the source and date (information freshness matters)
+- Be skeptical of outdated content
+
+Organize findings:
+- Hierarchical structure (main topics → subtopics → details)
+- Highlight key insights and actionable recommendations
+- Distinguish facts from opinions
+- Include code examples when helpful
+- Provide a summary for executives and detailed sections for implementers
+
+Be thorough but concise. Prefer synthesis over raw dump.
+```
+
+**Use it**: `@general research the best practices for handling file uploads in web applications` or `@general what authentication methods does this codebase currently use?`
+
+---
+
+### Quick Checklist Agent
+For running standard checks (linting, tests, formatting).
+
+```markdown
+---
+description: Runs project quality checks (lint, test, format)
+mode: subagent
+model: openai/gpt-5
+temperature: 0.2
+tools:
+  write: false
+  edit: false
+  bash: true
+  read: true
+permission:
+  bash:
+    "*": "ask"
+    "npm test": "allow"
+    "npm run lint": "allow"
+    "npm run format": "allow"
+    "git status": "allow"
+---
+
+You run quality assurance commands to ensure code health.
+
+Standard check sequence:
+1. Linting: catch style issues, potential bugs, code smells
+2. Tests: verify existing functionality works
+3. Type checking: ensure type safety (if TypeScript)
+4. Format: apply consistent code formatting
+5. Security scan: check for vulnerabilities (if configured)
+
+Commands for common ecosystems:
+
+JavaScript/TypeScript:
+- npm run lint (or yarn lint)
+- npm test
+- npm run type-check (if TypeScript)
+- npm run format
+
+Python:
+- flake8 or pylint
+- pytest or tox
+- black --check (see if formatting needed)
+
+Go:
+- go vet
+- go test
+- go fmt -l (list unformatted files)
+
+After running checks:
+- Summarize results: passed/failed, warnings, errors
+- If failures: explain what they mean and how to fix
+- If all pass: "All quality checks passed ✅"
+- Suggest next steps (e.g., "Now you can commit" or "Fix the 3 lint errors before continuing")
+
+Note: You only RUN checks, don't fix automated fixes unless explicitly asked.
+```
+
+**Use it**: `@quality-check run all the quality checks for this project` or `@quality-check should I commit these changes?`
+
+---
+
+## Part 8: Advanced Topics (For When You're Ready)
+
+### Configuration Precedence (Which Setting Wins?)
+
+When you define an agent in multiple places, OpenCode merges them. Later sources override earlier ones for the same agent.
+
+**Priority order (from lowest to highest)**:
+1. Built-in defaults (OpenCode's built-in agents)
+2. Global config: `~/.config/opencode/opencode.json`
+3. Global agents: `~/.config/opencode/agents/*.md`
+4. Custom config (OPENCODE_CONFIG env var)
+5. Project config: `opencode.json` in project root
+6. Project agents: `.opencode/agents/*.md`
+
+**Example**: You have a global Plan agent and a project-specific Plan agent with different temperature settings. The project setting wins - the Plan agent in that project uses the project temperature.
+
+**How to see the final result**: Run `opencode config show` - it displays the fully merged configuration.
+
+### Configuration Merging Example
+
+You have:
+
+**Global** (`~/.config/opencode/opencode.json`):
+```json
+{
+  "agent": {
+    "plan": {
+      "model": "anthropic/claude-haiku-4-5",
+      "temperature": 0.1
+    }
+  }
+}
+```
+
+**Project** (`opencode.json`):
+```json
+{
+  "agent": {
+    "plan": {
+      "temperature": 0.2
+    }
+  }
+}
+```
+
+**Project agent file** (`.opencode/agents/plan.md`):
+```markdown
+---
+mode: primary
+---
+
+You are a thoughtful planning assistant...
+```
+
+**Resulting Plan agent**:
+- Model: `anthropic/claude-haiku-4-5` (from global, not overridden)
+- Temperature: `0.2` (from project override)
+- Prompt: "You are a thoughtful planning assistant..." (from project agent file)
+- Mode: `primary` (from project agent file)
+
+Don't stress about this. Start simple (use one location), and use `opencode config show` when you need to debug.
+
+### Provider and Model Integration
+
+Agents use models from your configured providers. Before using a model like `anthropic/claude-sonnet-4-5`, you must connect the Anthropic provider:
+
+```bash
+# In OpenCode, run:
+/connect
+# Follow prompts to add your API key
+```
+
+The provider is the service (Anthropic, OpenAI, etc.). The model is the specific AI version. The agent configuration references both as `provider/model-id`.
+
+If you specify a model from a provider you haven't connected, the agent won't load and you'll see an error.
+
+### Custom Providers (For Local Models or Internal APIs)
+
+If you have a local model (Ollama, LM Studio) or company AI API, create a custom provider:
 
 ```json
 {
@@ -1210,383 +1025,273 @@ You can also create custom providers for OpenAI-compatible APIs. In that case, y
 }
 ```
 
-### Model Configuration Integration
+This is advanced. Stick with built-in providers (Anthropic, OpenAI) until you need something custom.
 
-Agents' model settings integrate with OpenCode's model system, which includes:
+### Task Permissions (Advanced Orchestration)
 
-- **Model selection** via `/models` command or `model` config key
-- **Model variants** (like `high`, `max`, `low` reasoning settings)
-- **Model-specific options** configured in the `provider.models` section
-- **Model limits** (context window, output limits)
+`permission.task` controls which subagents an agent can invoke via the Task tool. It's about **what other agents this agent can call**.
 
-When an agent specifies `model: "anthropic/claude-sonnet-4-5"`, that model might have default options defined globally for the Anthropic provider. The agent can also override those options with its own settings.
-
+Example:
 ```json
-{
-  "provider": {
-    "anthropic": {
-      "models": {
-        "claude-sonnet-4-5": {
-          "options": {
-            "thinking": {
-              "type": "enabled",
-              "budgetTokens": 8000
-            }
-          }
-        }
-      }
-    }
-  },
-  "agent": {
-    "planner": {
-      "model": "anthropic/claude-sonnet-4-5",
-      "thinking": {
-        "type": "enabled",
-        "budgetTokens": 16000
-      }
-    }
+"permission": {
+  "task": {
+    "*": "deny",
+    "orchestrator-*": "allow",
+    "code-reviewer": "ask"
   }
 }
 ```
 
-In this example, the provider defines a default thinking budget of 8000 tokens for Claude Sonnet. The `planner` agent overrides that with 16000 tokens. The agent-level options take precedence.
+Translation:
+- Cannot invoke any subagent by default
+- Can invoke subagents starting with `orchestrator-` without asking
+- Can invoke `code-reviewer` but needs user approval
 
-### Configuration Merging Example
+**Why use this?** To create agent hierarchies. A management agent might only call your custom, vetted agents - not arbitrary ones users @-mention.
 
-Let's trace how a complete configuration might come together.
+**Important**: This doesn't restrict what *users* can do. Users can always @-mention any agent. Task permissions only restrict what the *agent* does autonomously.
 
-You have:
+---
 
-**Global config** (`~/.config/opencode/opencode.json`):
+## Part 9: Troubleshooting - Plain English
 
+### "I created an agent but can't find it"
+
+**Symptoms**: New agent doesn't appear in Tab-switch list or @-mention suggestions.
+
+**Most likely causes (check in order)**:
+
+1. **Did you restart OpenCode?** OpenCode loads configs at startup. Restart it.
+2. **Is the agent mode set correctly?** Subagents don't appear in Tab-switch. Use `mode: "primary"` or `mode: "all"` to make it switchable.
+3. **Is the file in the right place?**
+   - Markdown agents: `.opencode/agents/your-agent.md` (project) or `~/.config/opencode/agents/` (global)
+   - JSON agents: `opencode.json` with agent under `"agent"` key
+4. **Syntax error?** YAML frontmatter indentation matters. JSON missing commas? Validate.
+5. **Is `disable: true` set?** Remove it or set to `false`.
+
+**Debug**: Run `opencode config show` to see all loaded agents. Is yours listed?
+
+---
+
+### "My agent is using the wrong AI model"
+
+**Symptoms**: Agent uses a different model than you configured.
+
+**Causes**:
+
+1. **Model not available**: Check spelling and provider connection. Format must be `provider/model-id`. Did you connect the provider via `/connect`?
+2. **Config not reloading**: Restart OpenCode.
+3. **Wrong field**: In JSON, it's `"model"` (not `"models"` or `"aiModel"`).
+4. **Another config overriding it**: Use `opencode config show` to see the effective configuration.
+
+---
+
+### "Agent can't use a tool I enabled"
+
+**Symptoms**: Agent fails to use `write`, `edit`, `bash`, or other tools.
+
+**Causes**:
+
+1. **Tool disabled at agent level**: Check agent's `tools` settings. Agent-level overrides global settings.
+2. **Permission is `deny`**: Tool may be enabled but denied by `permission`.
+3. **Provider limitation**: Some models don't support certain tools. Check model documentation.
+4. **MCP server offline**: If tool comes from an MCP server, is it running?
+
+**Check**: In your agent config, ensure:
 ```json
-{
-  "model": "anthropic/claude-sonnet-4-5",
-  "agent": {
-    "plan": {
-      "model": "anthropic/claude-haiku-4-5"
-    }
-  }
+"tools": {
+  "write": true
+},
+"permission": {
+  "write": "allow"  // or "ask", but not "deny"
 }
 ```
 
-**Project config** (`opencode.json` in project):
+---
 
-```json
-{
-  "agent": {
-    "plan": {
-      "temperature": 0.2
-    },
-    "docs-writer": {
-      "description": "Project documentation specialist"
-    }
-  }
-}
-```
+### "Agent responses are too weird/unpredictable"
 
-**Project agents directory** (`.opencode/agents/docs-writer.md`):
+**Symptoms**: Agent gives strange answers, goes off-topic, or is inconsistent.
+
+**Fix**: Lower the `temperature`. If it's 0.8, try 0.4. Temperature above 0.6 can cause randomness. Most tasks need 0.1-0.5.
+
+---
+
+### "Agent keeps calling subagents I don't want"
+
+**Symptoms**: Primary agent automatically invokes subagents for simple tasks.
+
+**Cause**: Subagent descriptions are too broad, making them match many tasks.
+
+**Fixes**:
+1. Make subagent descriptions more specific
+2. Disable the subagent if you never want it used
+3. Use @-mentions to explicitly call agents instead of relying on auto-selection
+4. There's no setting to disable auto-invocation - adjust descriptions or remove the subagent
+
+---
+
+### "Changes to my config file don't take effect"
+
+**Symptoms**: You edited `opencode.json` or created a new agent file, but OpenCode still uses old settings.
+
+**Cause**: OpenCode reads config at startup.
+
+**Fix**: Restart OpenCode completely.
+
+---
+
+### "How do I know what's actually configured?"
+
+**Command**: `opencode config show`
+
+This displays the fully merged configuration after all files are loaded and merged. Use it to see what settings are actually in effect.
+
+---
+
+### "Agent behaves unexpectedly"
+
+**Checklist**:
+
+1. **Temperature too high?** Lower it (use 0.3-0.5 range)
+2. **Prompt unclear?** Rewrite with more specific instructions
+3. **Wrong model?** Try a different one (Haiku for speed, Sonnet for balance, Opus for complexity)
+4. **Too many/few steps?** Adjust `steps` if agent stops too early or goes on too long
+5. **Tools inappropriate?** Review `tools` and `permission`
+
+---
+
+## Part 10: Quick Reference
+
+### Agent Decision Cheat Sheet
+
+| I want to... | Use this agent | How to invoke |
+|--------------|----------------|---------------|
+| Write/change code | Build | Default, just ask |
+| Review/analyze code | Plan | Press Tab → select plan |
+| Explore codebase structure | Explore | `@explore your question` |
+| Research best practices | General | `@general your question` |
+| Get session summary | Summary (hidden) | `/summary` |
+| Create documentation | doc-writer (custom) | `@doc-writer ...` |
+| Find security issues | security-auditor (custom) | `@security-auditor ...` |
+
+### Temperature Quick Reference
+
+| Task Type | Temperature | Why |
+|-----------|-------------|-----|
+| Code review, security, documentation | 0.1-0.3 | Need consistency, not creativity |
+| General coding help | 0.4-0.6 | Balanced |
+| Brainstorming, creative tasks | 0.7-0.9 | Want variety |
+
+### Tools Quick Reference
+
+| Agent Type | Typical Tools | Typical Permissions |
+|------------|---------------|---------------------|
+| Code Reviewer | write: false, edit: false, bash: true, read: true, grep: true | bash: ask (except git status: allow) |
+| Builder | all tools true | Most: allow, destructive: ask |
+| Explorer | write: false, edit: false, bash: false, read: true, grep: true | all: allow (it's read-only) |
+| Researcher | write: false, edit: false, read: true, grep: true, webfetch: true | webfetch: ask |
+
+### Configuration File Locations
+
+| Scope | Config file | Agent files |
+|-------|-------------|-------------|
+| Project-specific | `opencode.json` | `.opencode/agents/*.md` |
+| Global (all projects) | `~/.config/opencode/opencode.json` | `~/.config/opencode/agents/*.md` |
+
+### Common Commands
+
+- `opencode agent create` - Interactive agent creation wizard
+- `opencode config show` - See your effective configuration
+- `opencode config validate` - Check for config errors
+- `/models` - See available AI models
+- `/connect` - Add provider credentials
+- Tab - Switch between primary agents (default keybind)
+- `@agent-name` - Manually summon a subagent
+
+### Minimal Agent Config (Copy-Paste Template)
 
 ```markdown
 ---
-mode: subagent
-model: openai/gpt-5
+description: What this agent does
+mode: subagent  # or "primary"
+model: anthropic/claude-sonnet-4-5  # optional, uses default if omitted
+temperature: 0.5  # optional, default varies
+tools:
+  write: false
+  edit: false
+  bash: false
+  read: true
+  grep: true
+permission:
+  edit: "ask"  # or "allow" or "deny"
 ---
 
-You are a documentation writer...
+Your prompt goes here. Detailed instructions for the agent.
 ```
-
-The resulting agent configuration that OpenCode actually uses:
-
-- `plan` agent:
-  - Model: `anthropic/claude-haiku-4-5` (from global, unchanged by project)
-  - Temperature: `0.2` (from project override)
-  - Other properties: as defined for the built-in Plan agent (since it exists in OpenCode defaults)
-
-- `docs-writer` agent:
-  - Description: "Project documentation specialist" (from project's JSON config)
-  - Mode: `subagent` (from Markdown file)
-  - Model: `openai/gpt-5` (from Markdown file, overrides default)
-  - Prompt: "You are a documentation writer..." (from Markdown file)
-
-This demonstrates the flexibility—you can mix configuration formats and sources, with each layer adding or overriding properties.
-
----
-
-## Best Practices
-
-Based on experience with OpenCode agents, here are recommendations for effective agent configuration and usage.
-
-### Start Simple
-
-When you're new to agents, begin with the built-in Build and Plan agents. They cover 90% of everyday needs. Build handles implementation; Plan handles analysis. You can accomplish a tremendous amount with just these two.
-
-Only create custom agents when you find yourself repeatedly asking for the same kind of specialized help. If you're always saying "review this for security," a security auditor agent makes sense. If it's a one-time need, just ask directly.
-
-### Clear, Descriptive Agent Names
-
-Agent names are your handle for invoking them. Choose names that are:
-- Short but meaningful
-- Using hyphens to separate words (kebab-case)
-- Intuitive to type and remember
-- Distinct from each other
-
-Good names: `security-reviewer`, `doc-writer`, `debug-explorer`, `architect`
-Bad names: `agent1`, `foo`, `mycustomagentthatdoesthings`
-
-### Good Prompts Matter
-
-The quality of your agent's responses depends heavily on the prompt. Invest time in writing good prompts. A well-crafted prompt includes:
-
-- **Role definition**: "You are a security auditor with 10 years of experience..."
-- **Methodology**: "Your process is: 1) Input validation check, 2) Auth review, 3) Data flow analysis..."
-- **Output format**: "Provide findings as: Severity: [rating], Location: [file:line], Issue: [description], Fix: [recommendation]"
-- **Constraints**: "Do not modify files. Only analyze and report."
-- **Priorities**: "Focus on security over style. Cache performance over minor inefficiencies."
-
-Think of the prompt as the agent's job description and instruction manual. The more specific you are, the more focused the agent's responses will be.
-
-### Temperature Strategy
-
-As a rule of thumb:
-- **Analyze, review, plan**: 0.1–0.3 (focused, deterministic, consistent)
-- **Code generation**: 0.3–0.5 (balanced creativity)
-- **Brainstorming, exploration**: 0.6–0.8 (diverse ideas)
-
-Don't set temperature too high for critical tasks—you want reliability, not randomness. And don't set it too low for creative tasks—you want variety, not the same answer every time.
-
-### Use Permissions for Safety
-
-For agents that you trust but don't want running unchecked, use `permission.ask` for destructive operations. This gives you a chance to review before something happens. For truly safe operations (reading files, grep searches), use `permission.allow` so the agent can work without interruption.
-
-Build is configured with most tools as `allow` because it's your main worker. Plan is configured with modification tools as `ask` because it's for analysis. That pattern makes sense: the more powerful the agent's capabilities, the more oversight you want.
-
-### Tool Restrictions Create Focus
-
-Don't give an agent every tool unless it needs them. A documentation writer doesn't need bash access. A code reviewer doesn't need file write access. By restricting tools, you:
-- Make the agent more focused on its specialty
-- Reduce potential for accidental damage
-- Speed up the agent's decision-making (fewer tool choices)
-- Create clearer mental models of what each agent can do
-
-### Agent Color Coding
-
-Use the `color` option to visually distinguish agents. Pick colors that make sense:
-- Red/orange for aggressive or destructive agents (build)
-- Blue for analytical agents (plan, security)
-- Green for creative or generative agents (docs)
-- Yellow for exploratory agents (explore, researcher)
-
-Consistent colors help you quickly identify which agent is active just by glancing at the interface.
-
-### Model Selection Strategy
-
-Match models to agent needs:
-- **Fast, cheap models** (Haiku, GPT-5 Nano): For simple tasks, quick lookups, subagents that run frequently
-- **Mid-tier models** (Sonnet, GPT-5): For general development work
-- **High-end models** (Opus, GPT-5 Codex): For complex reasoning, architecture, critical code generation
-
-Consider cost and speed trade-offs. You don't need the most expensive model for everything.
-
-### Version Control for Agent Configs
-
-If you're using Markdown-based agents, you can version them individually in Git. Even if you use JSON configuration, the configuration file itself should be in version control. This gives you:
-- History of agent changes
-- Ability to roll back problematic configs
-- Team consistency (everyone uses the same agents)
-- Documentation of why agents were created (through commit messages)
-
-### Testing New Agents
-
-After creating a new agent, test it with simple tasks to verify it behaves as expected. Check that:
-- It has the right tool access
-- Its prompt produces the right tone and focus
-- Permissions work as intended
-- The model you selected is appropriate
-
-Run a few test queries and observe the behavior before deploying the agent for serious work.
-
-### Subagent Task Permissions
-
-Use `permission.task` to control which subagents an agent can invoke. This creates a hierarchy of control. For example, you might have a general-purpose "orchestrator" agent that can only invoke your custom, trusted subagents—not arbitrary ones the user might @-mention.
-
-Remember: task permissions control what the *agent* can do autonomously. They don't restrict what *users* can do via @-mentions.
-
-### Keep System Agents Alone
-
-Don't modify or disable the hidden system agents (compaction, title, summary). They're essential for OpenCode's operation and work automatically. If you're experiencing issues with them, it's almost certainly a bug to report, not something to fix by disabling them.
-
-### Documentation
-
-Document your custom agents. In the agent's Markdown file or in a separate README, explain:
-- What the agent is for
-- When to use it vs other agents
-- Any special prompts to use with it
-- Known limitations or gotchas
-
-Good documentation helps not just your future self, but also teammates if you share your configuration.
-
----
-
-## Troubleshooting
-
-When agents don't behave as expected, here are common issues and solutions.
-
-### Agent Not Appearing in Selection
-
-**Symptoms**: You configured an agent but it doesn't show up in the Tab-switch list or @-mention autocomplete.
-
-**Causes and solutions**:
-1. **Agent is disabled**: Check `disable: false` or remove the `disable` field.
-2. **Wrong mode**: For Tab-switching, the agent must be `mode: "primary"` or `"all"`, not `"subagent"`. Subagents only appear in @-mentions.
-3. **Configuration not loaded**: Verify your config file is in a recognized location (`opencode.json` in project root, `~/.config/opencode/agents/`, or `.opencode/agents/`). Run `opencode config show` to see the effective configuration.
-4. **Syntax error**: Invalid YAML frontmatter or JSON will cause the agent to be skipped. Validate your configuration format.
-5. **File extension**: For Markdown agents, ensure the file ends with `.md`, not `.markdown` or `.txt`.
-
-### Agent Not Invoking Subagents
-
-**Symptoms**: You @-mention a subagent or expect an automatic invocation, but nothing happens.
-
-**Causes and solutions**:
-1. **Task permissions**: The primary agent might not have permission to invoke that subagent. Check the primary agent's `permission.task` settings.
-2. **Missing description**: Subagents need a `description` for primary agents to recognize when to invoke them automatically. `@`-mentions don't require description, but automatic invocation does.
-3. **Wrong name**: Check the exact agent name. If your file is `security-auditor.md`, the agent name is `security-auditor`, not `security` or `auditor`.
-4. **Subagent hidden**: Hidden subagents can't be manually invoked via @-mention (only programmatically by other agents).
-
-### Agent Using Wrong Model
-
-**Symptoms**: Your agent is using a different AI model than you configured.
-
-**Causes and solutions**:
-1. **Model not available**: If the model ID is misspelled or refers to a provider you haven't connected, OpenCode falls back to the default model. Check your `/connect` setup and the model ID format (`provider/model-id`).
-2. **Global override**: No—agent model settings should take precedence. But if the agent's model config is invalid, it may fall back to globals.
-3. **Cached configuration**: Restart OpenCode to ensure config changes take effect.
-
-### Tools Not Working
-
-**Symptoms**: An agent can't use a tool that you thought was enabled.
-
-**Causes and solutions**:
-1. **Tool disabled in agent config**: Check the agent's `tools` settings. Agent-level overrides take precedence over global tool configuration.
-2. **Permission denied**: The tool might be enabled but have `permission: "deny"` set. Check both `tools` and `permission` settings.
-3. **Provider limitation**: Some models don't support certain tools. Check if your model choice is compatible with the tools you need.
-4. **MCP server offline**: If the tool comes from an MCP server, ensure that server is running and connected.
-
-### Agent Behaviors Unexpected
-
-**Symptoms**: Agent responses are too verbose, too brief, too creative, or too rigid.
-
-**Causes and solutions**:
-1. **Adjust temperature**: The single biggest lever on response style. Lower for consistency (0.1–0.3), higher for creativity (0.6–0.8).
-2. **Adjust `max steps`**: Too many steps can lead to overthinking; too few can cut off reasoning. Adjust based on task complexity.
-3. **Prompt refinement**: The agent might not understand its role properly. Rewrite the prompt with clearer instructions, examples, or constraints.
-4. **Model mismatch**: Some models are inherently more verbose or creative. Try a different model that matches your desired behavior.
-
-### Subagent Creating Unnecessary Work
-
-**Symptoms**: Primary agents are spawning subagents for simple tasks that could be handled directly.
-
-**Causes and solutions**:
-1. **Subagent descriptions too broad**: If a subagent's description makes it a good match for many tasks, primary agents will invoke it frequently. Make descriptions more specific to limit automatic invocations.
-2. **You can disable automatic subagent use**: Unfortunately, there's no direct setting to prevent primary agents from calling subagents. The workaround is to either remove/disable the subagent if you never want it used, or adjust its description to be very narrow.
-3. **Manual invocation preference**: Remember you can always @-mention the primary agent directly instead of relying on automatic subagent selection.
-
-### Configuration Precedence Confusion
-
-**Symptoms**: You set an agent option in your project `opencode.json`, but it seems ignored; the agent uses the global configuration instead.
-
-**Causes and solutions**:
-1. **Precedence order**: Configs are merged, not replaced. Check that you're not accidentally using a different agent name. An agent defined in both global and project configs will have its properties merged, with project overriding global for specific keys.
-2. **Nested structure**: Ensure you're placing the agent under the `"agent"` key correctly.
-3. **Run `opencode config show`**: This command displays the fully merged configuration, showing you exactly what settings are in effect. Use it to debug precedence issues.
-
-### Model Selection Issues
-
-**Symptoms**: `/models` command doesn't show expected models, or `model: "anthropic/claude-sonnet-4-5"` gives an error.
-
-**Causes and solutions**:
-1. **Provider not connected**: Run `/connect` and ensure you've added credentials for the provider.
-2. **Model ID format**: Use `provider/model-id` format. The provider part is the key used in the `provider` config section or the built-in provider name. The model-id is the specific model identifier.
-3. **Model not configured**: Some providers need explicit model configuration in the `provider.models` section. Check provider documentation.
-4. **Authentication failure**: API key may be invalid or expired. Re-run `/connect` to refresh credentials.
-
-### Custom Provider Not Working
-
-**Symptoms**: You added a custom provider configuration but models don't appear in `/models`.
-
-**Causes and solutions**:
-1. **Custom provider not in config**: Ensure the provider ID appears in the `provider` section.
-2. **Missing `npm` field**: Custom providers need `npm: "@ai-sdk/openai-compatible"` or similar to specify which AI SDK package to use.
-3. **Missing `models` section**: You must list the models available from this provider under `provider.<id>.models`.
-4. **Typo in provider ID**: The provider ID you use in agent model references must exactly match the key in the `provider` section.
-5. **Network/endpoint issues**: If using a local server (Ollama, LM Studio), ensure it's running and accessible at the configured `baseURL`.
 
 ---
 
 ## Conclusion
 
-OpenCode agents are a powerful way to customize your AI coding assistant. By understanding the distinction between primary and subagents, mastering the configuration options, and creating thoughtful custom agents, you can build a team of specialists that perfectly matches your workflow.
+OpenCode agents let you build a team of specialized AI helpers. Start with the built-in Build and Plan agents - they handle most tasks. Switch between them with Tab. Call specialists like `@explore` when needed.
 
-Remember: the best agent setup is the one that feels natural and productive to you. Start with the built-in agents, experiment with custom ones for repetitive specialized tasks, and continuously refine based on what works. OpenCode's configuration system is designed to be flexible—use that flexibility to create an experience that fits your unique needs.
+Create custom agents when you repeatedly need the same specialized help. Use `opencode agent create` to get started. Focus on three settings: `temperature` (creativity), `tools` (what it can do), and `permission` (when it needs approval).
 
-As you work with agents, you'll discover patterns: certain tasks always go together, certain questions always need the same kind of expertise. Those patterns are opportunities for custom agents. Document your successful agent configurations, share them with your team, and iterate.
+Don't overcomplicate. Start simple. Add agents as you discover needs. The configuration system is flexible - you can always refine later.
 
-OpenCode is a tool that evolves with you. As your projects grow in complexity, your agents can grow with them—specializing, refining, and adapting to serve your development practice better and better.
-
-Happy coding—may your agents be ever helpful and your merges conflict-free.
+Happy coding!
 
 ---
 
 ## Appendix
 
-### Agent Configuration Quick Reference
+### Full Built-in Agent Summary
 
-**Minimum required fields for any agent:**
-- `description`: Short explanation of purpose
-- (For primary agents) `mode: "primary"` or `"all"`
-- (For subagents) `mode: "subagent"` or `"all"`
+| Agent | Mode | Purpose | When to Use |
+|-------|------|---------|-------------|
+| build | primary | Main coding assistant | Writing code, making changes, debugging |
+| plan | primary | Analysis without changes | Code review, planning, documentation |
+| general | subagent | Deep research | Complex questions requiring investigation |
+| explore | subagent | Codebase exploration | Finding files, understanding structure |
+| compaction | hidden | Auto-summarizes old chat | Invisible, automatic |
+| title | hidden | Generates session titles | Invisible, automatic |
+| summary | hidden | Creates session summaries | `/summary` command |
 
-**Common optional fields:**
-- `model`: Override default model
-- `temperature`: Control randomness (0.0–1.0)
-- `steps`: Maximum iteration count
-- `tools`: Enable/disable specific tools
-- `permission`: Fine-grained action permissions
-- `prompt`: Custom system instructions
+### Glossary (Alphabetical)
 
-**Visual customization:**
-- `color`: Hex code or theme color name
-- `mode`: How the agent can be invoked
-- `hidden`: Hide from autocomplete (subagents only)
+**@-mention** - Typing `@agent-name` to explicitly call a subagent  
+**Agent** - A specialized AI helper with specific capabilities and instructions  
+**API** - Application Programming Interface; how software components communicate  
+**Bash** - Tool that allows agents to run system commands  
+**Configuration** - Settings file that defines how agents behave  
+**Edit** - Tool that allows agents to modify existing files  
+**Grep** - Tool that searches for patterns across files  
+**JSON** - Data format for configuration files (curly braces, key-value pairs)  
+**Markdown** - Simple text format with frontmatter for configuration (preferred for agents)  
+**Model** - The specific AI engine (Claude Sonnet, GPT-5, etc.)  
+**Permission** - Controls whether agent actions require user approval (`allow`/`ask`/`deny`)  
+**Primary agent** - An agent you can switch to and talk to directly  
+**Prompt** - Instructions that define agent behavior and expertise  
+**Provider** - The service supplying AI models (Anthropic, OpenAI, etc.)  
+**Read** - Tool that allows agents to view file contents  
+**Subagent** - A specialist agent called via @-mention for specific tasks  
+**Temperature** - 0-1 setting controlling AI creativity/predictability  
+**Tools** - Capabilities an agent can use (write, edit, bash, read, grep, webfetch)  
+**Webfetch** - Tool that retrieves content from websites  
+**Write** - Tool that allows agents to create new files
 
-**Advanced:**
-- `permission.task`: Control subagent invocation rights
-- `additional options`: Pass-through to provider
+### Further Reading (Links to Official Docs)
 
-### Built-in Agent Summary
+- Configuration - Full schema and all options
+- Providers - Setting up AI service connections
+- Models - Understanding different AI models
+- Permissions - Detailed permission system
+- Tools - Complete tool reference
+- Troubleshooting - General OpenCode help
 
-| Agent | Mode | Description | Default Tools |
-|-------|------|-------------|---------------|
-| build | primary | Full development capability | All enabled |
-| plan | primary | Analysis and planning only | Write, edit, bash disabled or ask |
-| general | subagent | Research and complex tasks | Full access (except todo) |
-| explore | subagent | Read-only codebase exploration | Read-only |
-| compaction | hidden | Context management | System-only |
-| title | hidden | Session title generation | System-only |
-| summary | hidden | Session summarization | System-only |
+---
 
-### Migration Notes
-
-- `maxSteps` is deprecated; use `steps` instead
-- Legacy `agent/` singular directory names still work but `agents/` is preferred
-- The `small_model` config option exists for certain system operations but doesn't correspond to a named agent you can switch to
-
-### Further Reading
-
-- [Configuration](/docs/config/) - Full config schema and precedence
-- [Providers](/docs/providers/) - Setting up AI providers
-- [Models](/docs/models/) - Model selection and variants
-- [Permissions](/docs/permissions/) - Detailed permission system
-- [Tools](/docs/tools/) - Available tools and MCP integration
-- [Plugins](/docs/plugins/) - Extending with plugins
-- [Troubleshooting](/docs/troubleshooting/) - General OpenCode troubleshooting
+**Document version**: 1.0 (Beginner-friendly rewrite)  
+**Last updated**: 2025-03-14  
+**Intended audience**: Non-technical users, OpenCode beginners, developers new to agent customization
