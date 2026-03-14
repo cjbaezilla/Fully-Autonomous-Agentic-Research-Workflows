@@ -84,6 +84,18 @@ The subagent architecture itself provides safety. Subagents operate under the ov
 
 Finally, the use of version control through Git means that all changes made by agents can be reviewed, reverted, or audited later. The GitMasters agent enforces disciplined Git practices, ensuring that work happens on branches, commits are well-documented, and the main branch remains stable. This creates a safety net where mistakes can be identified and corrected before they cause problems.
 
+## Ready to Publish Drafts
+
+The following research drafts are complete and ready for publication:
+
+- [OpenCode Agents Fundamentals: Create, Configure, Deploy Custom Agents and Automated Workflows](research-drafts/opencode_agents.md)
+- [A Beginner's Guide to DEX and AMM: Trading Without Middlemen](research-drafts/uniswap_amm_dex.md)
+
+## Future to Publish Drafts
+
+- [Ethereum Cryptography](research-drafts/ethereum_cryptography.md)
+- [Karpathy Autoresearch](research-drafts/karpathy_autoresearch.md)
+
 ## Conclusion
 
 This repository provides a working example of how to configure specialized AI agents for autonomous operation using the OpenCode SDK. It demonstrates the core concepts of agent architecture, configuration, and collaboration while providing practical agents for technical writing and Git operations. The comprehensive documentation in `opencode_agents.md` offers deeper guidance for those wanting to extend the configuration or build their own custom agents.
