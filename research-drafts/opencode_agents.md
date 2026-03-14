@@ -12,6 +12,83 @@ The key insight that makes OpenCode so effective is this: one-size-fits-all AI h
 
 ---
 
+## Understanding the Basics: Models, AI Assistants, and Providers
+
+Before diving deeper into how OpenCode agents work, let's clarify some fundamental concepts that are often confusing when you're new to AI-powered tools. We're talking about three key ideas: what a "model" is, how that differs from an "agent," what an AI coding assistant actually is, and what people mean by "providers." These terms come up constantly, and understanding them will make everything else in this guide make much more sense.
+
+### What's the Difference Between "Model" and "Agent"?
+
+This is one of the most common points of confusion, and it's important to get clear on it because these are fundamentally different things, even though they work together.
+
+Think of it this way: a model is like the engine in a car. It's the raw power source, the thing that actually does the thinking and generates responses. Models like Claude Sonnet, GPT-4, or other AI engines are massive neural networks trained on enormous amounts of text. They can write code, answer questions, analyze documents, and perform many other tasks. But on their own, they're just engines sitting there, waiting for someone to give them a job to do and tell them how to do it.
+
+An agent, on the other hand, is like the complete car with a driver. It's a package that includes the model (the engine), plus a set of instructions (the driver's directions), plus specific capabilities (the steering wheel, pedals, and tools), plus a defined role (are we driving to the grocery store or racing on a track?). The agent is what you actually interact with in OpenCode. When you type a message to the build agent, you're not talking directly to a model-you're talking to an agent that is using a model behind the scenes, following specific instructions, and wielding particular tools to get work done.
+
+Here's a concrete example to make this crystal clear. The model "claude-sonnet-4-5" is a specific AI engine created by Anthropic. You could use that same model for writing poetry, analyzing medical documents, or generating marketing copy-the model itself is just a general-purpose reasoning engine. But when you configure an OpenCode agent with model: "anthropic/claude-sonnet-4-5" and a prompt that says "You are a security auditor who finds vulnerabilities in code" and tools that include read and grep but not write, you've created a specific agent whose job is security review. That same model, with a different prompt and different tools, becomes a documentation writer or a debugging assistant. The model is the capability; the agent is how that capability is specialized, directed, and made safe for a specific purpose.
+
+The relationship can be visualized as a stack. At the foundation is the model-the raw AI reasoning engine. On top of that sits the agent configuration, which includes the prompt (instructions about role and behavior), tools (what the agent can do), permissions (when it needs approval), and temperature (how creative or predictable it is). The agent is what you actually use-it's a configured instance of a model with a specific job description and capabilities.
+
+Why does this distinction matter in practice? Because when you're creating a custom agent, you primarily think about the agent's role and instructions, not about swapping models. The model is an implementation detail-you choose it based on cost, speed, and capability needs, but most of your work goes into crafting a great prompt and selecting appropriate tools. You could use the same excellent agent prompt with different models and get similar results, maybe with slight variations in quality or speed. But you could use the same model for dozens of different agents, each with completely different behaviors and specialties. The specialization happens at the agent level through configuration, not at the model level.
+
+| Aspect | Model | Agent |
+|--------|-------|-------|
+| **What it is** | A raw AI reasoning engine (Claude, GPT, etc.) | A configured assistant with a specific role and tools |
+| **Analogy** | The engine in a car | The complete car with a driver and a destination |
+| **What you interact with** | You don't interact with models directly in OpenCode | You talk to agents directly |
+| **What it determines** | General capability level, speed, cost | Specific behavior, expertise, allowed actions |
+| **Can you have the same model in multiple agents?** | Yes-the same model can power many agents | Each agent gets its own model configuration |
+| **What you configure** | You select which model to use from available options | You configure prompt, tools, permissions, temperature |
+| **Changes affect** | Performance characteristics (speed, quality) | Behavior, safety, capabilities, output format |
+| **Example** | anthropic/claude-sonnet-4-5 | A security auditor that uses Sonnet and only reads code |
+
+The practical takeaway is this: when you're creating an agent, focus on the agent design-what job does this agent need to do, what instructions will make it effective, what tools should it have, how creative should it be? The model selection is important but secondary. Use the default model initially, make your agent excellent through good prompt design, and only change models if you have specific reasons related to cost, speed, or capability requirements.
+
+### What Is an AI Coding Assistant?
+
+An AI coding assistant is a software tool that uses artificial intelligence to help you write, understand, modify, and debug code. Instead of having to figure everything out on your own or search through endless documentation, you have a knowledgeable partner that can assist with programming tasks in natural language. You describe what you want in plain English (or your native language), and the AI helps make it happen.
+
+OpenCode is a specific type of AI coding assistant that works directly inside your text editor. But to understand what makes it special, let's first understand what AI coding assistants do in general.
+
+The core capabilities of an AI coding assistant include several categories. First, code generation-this is what most people think of first. You say "create a function that validates email addresses" and the AI writes working code. But AI coding assistants do much more than just write new code from scratch. They also explain code-you can point to a complex function and ask "what does this do?" and get a clear explanation. They can translate code from one language to another. They can refactor code-take working code and reorganize it to be cleaner, more efficient, or follow better patterns without changing what it does. They can find and fix bugs-you describe a problem or show an error, and they help identify the cause and suggest a fix. They can write tests-generate unit tests, integration tests, or edge case coverage for existing code. They can document code-add comments, write function documentation, or create README files that explain how a project works. They can search through codebases to find where things are defined and understand how different parts relate. And they can answer questions about programming concepts, best practices, and how to use specific APIs or frameworks.
+
+What makes modern AI coding assistants effective is that they understand context. They can see the files you have open, they can understand the structure of your project, they can read configuration files and dependencies. This context awareness means they can give relevant, specific help rather than generic advice. When you ask "how should I handle authentication in this project?" a good AI assistant will look at how authentication is currently implemented (if at all), what frameworks and libraries you're using, and give advice that fits your actual codebase rather than just reciting general principles.
+
+OpenCode takes this further by introducing the concept of specialized agents. Instead of having one assistant that tries to do everything reasonably well, OpenCode lets you build a team where each member has a specific specialty. You have a build agent that creates and modifies code, a plan agent that reviews and analyzes, and specialists for security, documentation, debugging, research, and more. This mirrors how real software teams work-you don't ask the same person to both build new features and perform security audits; you have specialists who excel in their domains.
+
+The workflow with an AI coding assistant is conversational and iterative. You don't just give one command and get perfect results. You have a back-and-forth: you ask for something, the AI produces code or analysis, you review it, you might ask for changes or clarification, you might switch to a different agent for a second opinion, you might call in a specialist for a particular aspect. It's a collaborative partnership. The AI is not autonomously building entire applications without your guidance-it's assisting you, doing the tedious parts, offering suggestions, and helping you be more productive. You remain in control, making decisions and reviewing work.
+
+This collaborative aspect is crucial. AI coding assistants are not replacements for developers. They're force multipliers. They handle the mechanics of code generation, reduce the time spent on routine tasks, help overcome "blank page" syndrome by giving you something to start from, and surface information you might not know to look for. But they don't replace your judgment, your understanding of the problem domain, your architecture decisions, or your responsibility for the final code. You're the lead developer; the AI is your capable assistant who can work fast but needs direction and oversight.
+
+The technology behind AI coding assistants is based on large language models-neural networks trained on vast amounts of text, including lots of source code. These models learn patterns of how code is written, how problems are solved, what good code looks like versus bad code, and how to translate natural language descriptions into working code. The models don't "understand" code the way humans do-they're detecting statistical patterns and generating likely completions. But because they've seen so much code, their suggestions are often remarkably accurate and useful.
+
+What limits AI coding assistants? They can make mistakes-they might generate code that looks correct but has subtle bugs, they might misunderstand requirements, they might use outdated APIs or insecure patterns. They have knowledge cutoffs-they don't know about very recent library versions or events after their training data. They can be confidently wrong, presenting incorrect information as if it's certain. They don't replace your need to understand what you're doing-you still need to review, test, and validate their output. They're not good at tasks requiring deep reasoning about business logic you haven't explained clearly. And they can't actually run code to see if it works-they're predicting what code should exist, not verifying it executes correctly. That's where the cycle of building and reviewing comes in.
+
+The best way to use an AI coding assistant is to treat it as a skilled but inexperienced junior developer who works very fast. You give clear direction, you review their work carefully, you catch errors they make, you ask them to redo things that aren't right. Over time, as you learn how to communicate with them effectively and as the models improve, this partnership becomes increasingly productive. But the partnership requires your engagement-the AI won't figure out what you really need without your guidance.
+
+### What Is a "Provider"?
+
+When you hear people talk about "providers" in the context of AI coding assistants like OpenCode, they're referring to the companies that create and host the AI models you can use. Anthropic, OpenAI, Google (with Gemini), and OpenCode itself are all providers. They're the ones who train massive neural networks on enormous datasets, who operate the computer clusters that run these models, and who charge for access to their models through APIs.
+
+Understanding providers is important because they affect cost, performance, features, and how you configure OpenCode. Each provider offers multiple models with different capabilities, price points, and characteristics. And you need credentials (API keys) from each provider to access their models.
+
+Let's break down what providers do and why they matter. A provider is essentially a service that gives you access to AI models over the internet. You don't run these models on your own computer (except for local options like Ollama, but that's a different story). You send a request over the internet to the provider's servers, their servers run your request through their AI model, and they send back the result. This is called cloud-based AI, and it's what most people use because running these models yourself requires extremely powerful and expensive hardware.
+
+The provider determines several important characteristics. Different providers have different pricing structures-some charge per token (roughly per word), some have monthly subscriptions, some have hybrid models. Prices vary dramatically between models from the same provider and between providers. Some providers offer models optimized for specific tasks-code generation, creative writing, mathematical reasoning, vision, etc. Some providers have different speed characteristics-some models respond in seconds, others take minutes for complex reasoning. Some providers have usage limits or rate limits on how many requests you can make in a given time period. And each provider has its own API format, authentication methods, and sometimes unique features.
+
+When you use OpenCode, you need to connect it to one or more providers via their API keys. This is done through the /connect command. You enter your API key for Anthropic, for OpenAI, or whichever providers you have accounts with. Once connected, OpenCode can use models from those providers. In your agent configuration, you specify which model to use in the format provider/model-id. For example, anthropic/claude-sonnet-4-5 means use the Claude Sonnet model from Anthropic. openai/gpt-5 means use GPT-5 from OpenAI. The provider name is the prefix before the slash, and it must match a provider you've connected.
+
+The provider/model naming format is consistent throughout OpenCode. You'll see it in agent configuration files, in the /models command output, in error messages. This format makes it explicit which company's model you're using and which specific model variant. It's important because different providers' models behave differently, even if they have similar capabilities. A prompt engineered for Claude might need adjustment for GPT. Temperature scales might have different effects. Cost structures differ.
+
+Here's why you need to understand providers when configuring agents. Suppose you create a security auditing agent. You might want to use the most capable model available because security analysis requires thorough reasoning. That might mean using anthropic/claude-opus-4 from Anthropic. But Opus is expensive and slower. So you might have a different agent for quick tasks that uses anthropic/claude-haiku-4-5, which is cheaper and faster but less thorough. Both are from the same provider (Anthropic), but they're different models with different trade-offs. Or you might have some agents using OpenAI models and others using Anthropic models, depending on your preferences and which providers you've connected to.
+
+Providers also differ in what models they offer and their specialties. Anthropic is known for models that are particularly good at safety, instruction following, and reasoning tasks. OpenAI's models are widely used and have strong all-around capabilities, with some variants optimized for specific tasks. OpenCode's own models are optimized for coding tasks. Each provider may release new models at different cadences, may have different terms of service, may offer different levels of support, and may have different data privacy policies. For professional use, these factors matter.
+
+The common providers you'll encounter are Anthropic (claude models), OpenAI (GPT models), and OpenCode (their own hosted models optimized for coding). Sometimes people also use local providers like Ollama or LM Studio to run models on their own hardware, which requires custom provider configuration. But for most users, the main providers are the major cloud services.
+
+In practice, you don't need to worry too much about the provider distinction once you've connected your API keys. You just specify the model in the format provider/model-id, and OpenCode handles the rest. But understanding providers helps you make informed choices about which models to use for which agents, helps you understand your costs and how they're calculated, and helps you troubleshoot when something doesn't work (like using a model from a provider you haven't connected).
+
+---
+
 ## Your First 10 Minutes with OpenCode Agents
 
 Before you read anything else in this document, we strongly encourage you to open OpenCode and try these simple steps. This hands-on experience will give you a concrete understanding of how agents work, which will make the rest of this guide much clearer.
@@ -102,7 +179,136 @@ The configuration file might include fields such as: the agent's name, which is 
 
 Configuration files live in specific locations depending on whether they are available to just one project or to all your projects. Project-specific configuration lives in a folder called .opencode inside your project directory. The agents you create for just that project go in .opencode/agents/your-agent.md. Global configuration that applies to all your projects lives in your operating system's configuration directory, typically ~/.config/opencode/agents/your-agent.md on Unix-like systems or the equivalent in AppData on Windows. There is also the option of having a single opencode.json file either in your project root or in the global config directory that contains definitions for multiple agents. The wizard helps you choose and creates files in the right place. As a general recommendation, use the wizard because it creates files in the right location with proper formatting. If you need to edit later, you will know exactly where to look.
 
-There are two ways to write agent configurations, and both work equally well. The wizard gives you the option to choose either format. Here is how they differ.
+There are two ways to write agent configurations, and both work equally well. The wizard gives you the option to choose either format. Here is how they differ. The choice between JSON and Markdown (with YAML frontmatter) is not just about syntax-it affects readability, maintainability, collaboration, and your day-to-day experience managing agent configurations. Let's explore the practical considerations in depth.
+
+**JSON Format: The Structured Single-File Approach**
+
+JSON (JavaScript Object Notation) is a data interchange format that uses strict syntax: curly braces for objects, square brackets for arrays, quotes around all string keys and values, and commas to separate elements. In OpenCode, you put all your agent definitions in a single opencode.json file. The structure looks like this:
+
+```json
+{
+  "agent": {
+    "security-checker": {
+      "description": "Reviews code for security vulnerabilities",
+      "mode": "subagent",
+      "model": "anthropic/claude-sonnet-4-5",
+      "temperature": 0.2,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": false,
+        "read": true,
+        "grep": true,
+        "webfetch": false
+      },
+      "permission": {
+        "edit": "ask"
+      },
+      "prompt": "You are a senior security auditor..."
+    }
+  }
+}
+```
+
+JSON's main advantage is having everything in one place. This appeals to people who like consolidation-one file to rule them all. If you're using version control like Git, you can track changes to all your agents in a single commit, see diffs across multiple agents, and manage agent definitions as a cohesive unit. JSON is also the format you'll see most often in programmatic contexts and API documentation, so if you're generating agent configurations from scripts or tools, JSON is more straightforward.
+
+However, JSON has significant drawbacks for humans editing it by hand. The syntax is unforgiving-a missing comma, an extra trailing comma, mismatched braces, or unquoted keys will cause the entire file to fail parsing, and error messages are often cryptic about where the problem is. The structure becomes deeply nested with all those braces, making it visually hard to scan. Multi-line strings are awkward-you either have to concatenate lines or deal with escaped newlines. And prompts become long single-line strings or ugly concatenated messes that are difficult to read and edit.
+
+**Markdown with YAML Frontmatter: The Human-Friendly Separate-Files Approach**
+
+In the Markdown format, each agent gets its own .md file in the .opencode/agents/ directory. The file starts with YAML frontmatter-the section between triple-dashed lines-which contains structured settings. Everything after the closing triple-dash is the prompt, written in regular Markdown with full formatting capabilities. Here's what it looks like:
+
+```yaml
+---
+description: "Reviews code for security vulnerabilities"
+mode: "subagent"
+model: "anthropic/claude-sonnet-4-5"
+temperature: 0.2
+tools:
+  write: false
+  edit: false
+  bash: false
+  read: true
+  grep: true
+  webfetch: false
+permission:
+  edit: "ask"
+---
+
+You are a senior security auditor with 15 years of experience. Your task is to find security vulnerabilities in code.
+
+**Your methodology:**
+1. Check input validation for injection attacks
+2. Review authentication mechanisms
+3. Examine authorization controls
+4. Look for secrets in code
+5. Verify encryption usage
+
+**Output format for each finding:**
+- **Severity:** Critical/High/Medium/Low
+- **Location:** file:line
+- **Problem:** Clear description
+- **Fix:** Specific code example
+
+Always provide a CWE or OWASP reference when applicable.
+```
+
+The advantages of Markdown format are substantial for day-to-day human editing. Files are readable and editable in any text editor. YAML is much more forgiving than JSON about formatting-you don't need quotes around keys (though you can use them), you can add comments to explain settings, and the structure is visually clear with indentation. Most importantly, the prompt lives in its natural format-you can use proper paragraphs, headings, bullet lists, code examples, and all the formatting that makes instructions clear. You can open the file and immediately understand what the agent does and how it works. Each agent has its own file, so you can edit one agent without worrying about breaking others. This separation also makes it obvious which file corresponds to which agent-the filename is the agent name.
+
+The downsides are having more files to manage and the need to ensure YAML syntax is correct (though YAML is more forgiving than JSON, it still has rules about indentation). If you have dozens of agents, you'll have dozens of files, but in practice most people have only a handful of custom agents, so this isn't a problem. One file per agent also makes collaboration easier-multiple people can edit different agents without merge conflicts.
+
+**A Detailed Comparison**
+
+Let's examine the two formats across several practical dimensions to help you decide which fits your workflow.
+
+| Dimension | JSON Format | Markdown/YAML Format |
+|-----------|-------------|---------------------|
+| **File organization** | Single opencode.json file containing all agents | One .md file per agent in .opencode/agents/ |
+| **Human readability** | Low-dense syntax, hard to scan prompts | High-clean structure, readable prompts with formatting |
+| **Edit safety** | One syntax error breaks all agents | Syntax error only affects that single agent file |
+| **Prompt editing** | Awkward-multi-line strings or concatenation | Natural-just write in Markdown with full formatting |
+| **Version control** | Single file-one commit changes all agents | Multiple files-agents tracked separately |
+| **Comments** | Not supported in JSON | YAML supports comments with # |
+| **Code examples in prompts** | Hard to include cleanly | Easy with Markdown code blocks |
+| **Programmatic generation** | Very easy-JSON is standard data format | Possible but requires YAML + Markdown handling |
+| **Splitting large prompts** | Possible via external file references | Not applicable-prompt is in same file |
+| **Discoverability** | Need to search within the JSON file | Agent name = filename, easy to browse |
+| **Wizard support** | Wizard can create either format | Wizard can create either format |
+| **Migration between formats** | Manual conversion required | Manual conversion required |
+
+**Decision Framework: Which Format Should You Choose?**
+
+Ask yourself these questions to find your best fit.
+
+Choose JSON format if: you plan to generate agent configurations programmatically from scripts or other tools; you strongly prefer having all agent definitions consolidated in one location for easy overview; you're sharing configurations with a team that expects a single file; or you're copying examples from documentation that predominantly uses JSON. JSON also works better if you need to include agent definitions in a repository where you want to minimize file count (though this is rarely a compelling reason).
+
+Choose Markdown format if: you'll be editing prompts frequently and want them to be readable and well-formatted; you prefer the clarity of one file per agent; you want to use Markdown formatting like headings, lists, and code blocks in your prompts; you want to be able to add comments explaining your configuration choices; or you appreciate being able to quickly glance at a file and understand what that agent does without parsing JSON structure. Markdown format is generally more pleasant for human-centered workflows.
+
+**Real-World Implications of Your Choice**
+
+The format you choose affects your everyday workflow in tangible ways. With JSON, when you need to tweak an agent's prompt, you open one file, navigate to the right agent object in the nested structure, find the "prompt" field (which might be a single long line or escaped newlines), and edit within JSON syntax constraints. With Markdown, you open a file named after the agent, scroll past the YAML settings (which are clearly labeled and scannable), and edit the prompt in clean Markdown with proper formatting. The difference in ease-of-use over many small edits is substantial.
+
+With JSON, if you accidentally delete a comma or close brace, none of your agents load and you get a generic error. You have to carefully check the entire file to find the syntax error. With Markdown, if you have a YAML indentation problem in one agent file, only that agent fails to load; the others still work. This isolation keeps you productive rather than bringing everything to a halt.
+
+Collaboration differs too. With JSON, multiple people editing the same file need to coordinate to avoid merge conflicts-if two people add agents to the same opencode.json, they have to manually merge their changes. With Markdown files, two people can add different agents by creating separate files and there's no conflict at all (unless they edit the same agent file, but that's a much more localized conflict).
+
+The prompt presentation itself matters. In JSON, your prompt is a string value. If you want to include examples with code formatting, you need to escape things carefully or include literal newlines that can be hard to read in the JSON file. In Markdown, your prompt is regular text where you can use **bold**, bullet lists, numbered lists, code blocks with triple backticks, and all of Markdown's features. This makes prompts much easier to write and maintain because you can organize them clearly with headings like "Your methodology:", "Output format:", "Important rules:". The agent actually sees the Markdown as plain text, but the structure helps you as the author.
+
+**Mixing Formats: The Best of Both Worlds?**
+
+One pleasant surprise is that OpenCode doesn't force you to choose one format exclusively. You can mix both approaches. You can have your global configuration in opencode.json with some agents defined there, and also have project-specific agents in .opencode/agents/*.md files. OpenCode loads all sources and combines them, with project-level agents overriding global ones when there are conflicts. This means you could start with the wizard using Markdown format for ease of editing, but keep a few stable agents in JSON if you prefer it that way. There's no penalty for mixing.
+
+**Practical Recommendations**
+
+For most users, especially those new to OpenCode, we strongly recommend starting with Markdown format. The human-friendly experience makes it easier to learn, easier to edit, and harder to break. The wizard defaults to Markdown in many installations because it's the more beginner-friendly option. You can always migrate to JSON later if you have a compelling reason, but there's rarely a need-Markdown works perfectly well even for large setups with dozens of agents.
+
+If you do choose JSON, be meticulous about syntax. Use a JSON validator if you're unsure. Consider using an editor with JSON syntax highlighting and validation. Keep your agents' prompt strings separate in external files if they're large; reference them with `"prompt": "{file:./prompts/security-auditor.txt}"` to keep the JSON manageable. And be prepared to deal with escaping and formatting issues when prompts contain quotes or special characters.
+
+Regardless of format, use the wizard to create your first agents. The wizard handles the formatting details correctly and places files in the right locations. You can then edit the generated files, confident that the structure is correct. Once you understand the format, you can edit by hand with confidence.
+
+---
+
+## Your First 10 Minutes with OpenCode Agents
 
 The first option is JSON format, where you put all your agent definitions in a single opencode.json file using JSON syntax with curly braces, quotes, and commas. In this format, you might have a JSON object that contains an agent key, and under that you define your custom agent with its properties. The JSON looks something like this:
 
@@ -334,7 +540,7 @@ You can get quite granular with permissions, specifying different levels for dif
 
 #### The "Steps" Setting: Understanding Agent Thinking Cycles
 
-The steps setting controls how long an agent can work before it must stop. Think of it as giving your agent an allowance for how many thinking turns it can take. Each "step" is one complete cycle of thinking and action—the agent reads information, decides what to do, and takes that action. For example, if you ask an agent to research vacation spots: Step 1 might search for destinations in Mexico; Step 2 reads about the top results; Step 3 checks flight prices; Step 4 writes a summary. Each cycle uses computational resources and counts toward the limit.
+The steps setting controls how long an agent can work before it must stop. Think of it as giving your agent an allowance for how many thinking turns it can take. Each "step" is one complete cycle of thinking and action-the agent reads information, decides what to do, and takes that action. For example, if you ask an agent to research vacation spots: Step 1 might search for destinations in Mexico; Step 2 reads about the top results; Step 3 checks flight prices; Step 4 writes a summary. Each cycle uses computational resources and counts toward the limit.
 
 **What You See During Execution**
 
@@ -350,11 +556,11 @@ There's a balance between thoroughness and responsiveness. More steps mean the a
 
 **When to Adjust the Step Limit**
 
-Increase the step limit when the agent consistently stops before finishing—common with research tasks, analyzing large documents, comparing multiple options, or when the agent itself suggests it needs more time. Decrease the step limit for simple, routine tasks where you want faster responses, or when testing agent behavior to see if it can solve problems efficiently without excessive cycles.
+Increase the step limit when the agent consistently stops before finishing-common with research tasks, analyzing large documents, comparing multiple options, or when the agent itself suggests it needs more time. Decrease the step limit for simple, routine tasks where you want faster responses, or when testing agent behavior to see if it can solve problems efficiently without excessive cycles.
 
 **Troubleshooting**
 
-If the agent stops too early with incomplete results, increase the step limit. If the agent seems to loop without making progress, the issue is usually flawed instructions rather than step count—review the prompt. You can always adjust the limit: start moderate, observe behavior, then fine-tune based on the quality and completeness of results.
+If the agent stops too early with incomplete results, increase the step limit. If the agent seems to loop without making progress, the issue is usually flawed instructions rather than step count-review the prompt. You can always adjust the limit: start moderate, observe behavior, then fine-tune based on the quality and completeness of results.
 
 **Cost Implications**
 
@@ -859,6 +1065,56 @@ Do not overcomplicate your configuration setup. Start with one location - either
 ### Provider and Model Setup
 
 Before you can use AI models from providers like Anthropic or OpenAI, you need to connect your API credentials to OpenCode. You do this by running the /connect command in OpenCode. Follow the prompts to add your API key for the provider you want to use. Once you have connected a provider, you can use models from that provider in your agent configurations by specifying them in the model field.
+
+#### What Is an API Key and Why Is It Needed?
+
+An API key is a unique string of characters that serves as both an identifier and a password for accessing an AI provider's services over the internet. Think of it like a membership card or a key to a clubhouse. The API key tells the provider who is making the request, and it proves that you have permission to use their AI models. Without an API key, you cannot access Anthropic's Claude models, OpenAI's GPT models, or any other cloud-based AI service.
+
+API keys are necessary for several fundamental reasons. First, they enable authentication-the provider needs to know that you're you. When you send a request with your API key, the provider looks up your account, checks that the key is valid, verifies you have an active subscription or billing arrangement, and then processes your request. This prevents unauthorized people from using the service at your expense or accessing your account.
+
+Second, API keys enable billing and usage tracking. Every request you make is associated with your API key, and the provider tracks how many tokens (roughly, words) you process, which models you use, and how much each request costs. At the end of the billing period, you're charged based on your usage. Without API keys, providers would have no way to know who to bill or how much to bill them.
+
+Third, API keys provide security and control. If your API key is compromised (someone steals it), you can revoke it and generate a new one, immediately cutting off unauthorized access. You can also create multiple API keys with different permissions if you want separate keys for different projects or environments. You can monitor usage through your provider's dashboard to see if something looks unusual (like a sudden spike that might indicate abuse).
+
+Fourth, API keys enforce rate limits. Providers typically limit how many requests you can make per minute or per day to prevent abuse and ensure fair usage across all customers. Your API key is how they count and limit your requests. If you exceed your limits, requests will be rejected until the rate limit window resets.
+
+How API keys work in practice is straightforward but important to understand. When you run OpenCode and an agent needs to use an AI model, OpenCode constructs a request containing your prompt, the model you specified, and any other parameters. It then sends this request to the provider's API endpoint (a specific web address), including your API key in the request headers, typically in an Authorization header like `Authorization: Bearer sk-ant-...` for Anthropic or `Authorization: Bearer sk-...` for OpenAI. The provider receives the request, validates the API key, checks your account status and balance, processes the request through their model, and sends back a response that includes the model's output. OpenCode receives this response and presents it to you. The entire process happens transparently-you don't see the API key or the request details unless you look at configuration.
+
+Getting an API key is a separate step from installing OpenCode. OpenCode itself doesn't provide AI models; it's an orchestration layer that connects to various providers. You must have your own accounts with the providers you want to use and obtain API keys from their websites. This typically involves: signing up for an account at the provider's website (like console.anthropic.com or platform.openai.com), providing payment information (most providers require a credit card even for free trial tiers), navigating to the API keys section of the dashboard, and generating a new key. The key will be a long string starting with "sk-" (for secret key) followed by many alphanumeric characters. You copy this key and paste it into OpenCode when prompted by the /connect command.
+
+Security considerations for API keys are critically important because anyone who has your API key can use your AI quota and run up charges on your account. Treat your API keys like passwords or credit card numbers. Never commit them to version control-if a key appears in Git history, it's compromised and you must revoke it immediately. Never share your API keys with others-each person should use their own keys. Never hardcode API keys in your application code-use environment variables or OpenCode's configuration system which stores them securely. Be aware of which providers you've shared your keys with-if you give a key to a third-party tool, that tool can use your quota and you're trusting them not to misuse it.
+
+In OpenCode specifically, API keys are stored securely when you use the /connect command. They're saved in your operating system's credential storage or in encrypted configuration files, depending on your setup. The exact storage mechanism varies by platform, but OpenCode takes care to keep them safe. You should still protect your computer and user account with a strong password, especially if others have physical or remote access.
+
+A practical example of how API keys appear in configuration: when you run `/connect`, OpenCode will ask which provider you want to connect (Anthropic, OpenAI, etc.). You paste your API key for that provider. OpenCode validates it by making a small test request. Once validated, OpenCode can now use any model from that provider. In your agent configuration, you specify `"model": "anthropic/claude-sonnet-4-5"`. When that agent runs, OpenCode looks up your stored Anthropic API key, uses it to access Claude Sonnet, and you get the results. You never need to put the API key directly in your agent configuration files-that's handled centrally by the /connect system.
+
+Common mistakes with API keys include: copying the wrong key (sometimes dash the wrong characters, be careful); using a test or expired key that no longer works; having insufficient balance or hitting spending limits that prevent the provider from fulfilling requests; using a key from the wrong provider (e.g., an OpenAI key won't work for Anthropic models); and exposing keys accidentally through screenshots, chat messages, or by pasting them into shared documents. Always double-check that you're using the right key for the right provider.
+
+If an agent fails with an authentication error, the first thing to check is whether you've run /connect for that provider and whether the API key is still valid (not expired or revoked). You can run /connect again to reconnect or add keys for additional providers. The /connect command also lets you view which providers are currently connected and manage your stored credentials.
+
+#### What Is a "Provider"? (In Depth)
+
+As introduced earlier, a provider is the company or service that creates and hosts AI models. But let's explore what that means more thoroughly and why providers are distinct from models and agents.
+
+The AI landscape has several major providers, each with their own philosophies, model families, strengths, and pricing. Anthropic focuses on safety, constitutional AI principles, and models that are particularly good at following complex instructions and reasoning about ethical considerations. Their model lineup includes Claude Haiku (fast, cheap), Claude Sonnet (balanced), and Claude Opus (their most capable but slow and expensive). OpenAI offers GPT models (GPT-4, GPT-4.5, GPT-5 in various variants like standard, mini, nano, codex) that are widely adopted and have strong all-around capabilities. OpenCode provides its own hosted models, including variants optimized specifically for coding tasks. Google provides Gemini models. Mistral AI and other companies also offer models. Each provider builds and trains their own neural networks, manages their own infrastructure, sets their own pricing, and controls their own API specifications.
+
+When you choose a model for your agent, you're implicitly choosing a provider. The provider name is part of the model identifier: `anthropic/claude-sonnet-4-5` specifies Anthropic as the provider. If you haven't connected to Anthropic via /connect, that model won't work even though it's specified correctly. The provider determines where the request goes, who bills you, and what capabilities are available.
+
+Providers differ in important ways beyond just model names. Pricing models vary-some charge per token, some have monthly subscriptions that include a certain amount of usage, some use a hybrid approach. Speed varies-some models are optimized for fast responses (Haiku, GPT-4o Mini), others for thorough reasoning (Opus, GPT-5 Codex) and take longer. Capability differences-some models excel at code generation, others at creative writing, others at mathematical reasoning, others at multi-modal tasks that include images. Context window sizes differ-the maximum amount of text the model can consider in one request varies by model. API features differ-some providers offer streaming responses (where you see output gradually appear), some offer tool use capabilities built-in, some have special parameters.
+
+Provider choice also affects your agent's behavior in subtle ways. Models from different providers respond differently to the same prompt, even if the prompt is well-crafted. Temperature settings don't have identical meaning across providers-what's "medium creativity" on Claude might feel different on GPT. Output formatting tendencies differ-some models naturally use Markdown, others plain text; some are verbose, others concise. Model-specific quirks exist-some models have certain tokens they overuse, some have biases in their responses, some have limitations around certain tasks.
+
+When you set up OpenCode, you typically connect to one or more providers. Each connection requires its own API key. You might use Anthropic for your primary coding work because you prefer their models' quality, and OpenAI for backup or for specific tasks where GPT models excel. Or you might use OpenCode's hosted models for everything to consolidate billing and simplify configuration.
+
+The provider/model format in agent config is always `provider/model-name`. The provider part must exactly match a connected provider's name as recognized by OpenCode. Common provider names include: `anthropic` for Anthropic models, `openai` for OpenAI models, `opencode` for OpenCode's hosted models, `google` for Gemini, `mistral` for Mistral models, and custom provider names if you set up local or internal AI services.
+
+You can see which models are available from connected providers by running the `/models` command in OpenCode. This lists all models you can use, already formatted with the correct provider/model syntax. When you need to specify a model, you can reference this list rather than trying to remember exact model identifiers.
+
+A practical note: provider names are case-sensitive in configuration files. Use `anthropic/claude-sonnet-4-5` not `Anthropic/Claude-Sonnet-4-5`. Model names must match exactly what the provider uses. Check the `/models` output or provider documentation for the correct identifiers.
+
+In summary, the provider is the source of your AI capability. You connect providers with API keys. You select specific models from connected providers for your agents. Different providers offer different trade-offs in cost, speed, quality, and features. Most users start with one provider (usually Anthropic or OpenAI), connect it with their API key, use the suggested default models, and expand to other providers only if they have specific needs.
+
+### Configuration Merging Example
 
 The format is always provider/model-id. For Anthropic models, you might use anthropic/claude-sonnet-4-5 or anthropic/claude-opus-4. For OpenAI models, openai/gpt-5 or openai/gpt-5-mini. For OpenCode's own hosted models, opencode/gpt-5.1-codex. If you specify a model from a provider that you have not connected, the agent will not load and you will see an error message. So always ensure you have run /connect for any provider whose models you want to use.
 
