@@ -1,4 +1,4 @@
-# OpenCode Agents: Your Complete Guide to Getting Started
+# OpenCode Agents Fundamentals: Create, Configure, Deploy Custom Agents and Automated Workflows
 
 ---
 
