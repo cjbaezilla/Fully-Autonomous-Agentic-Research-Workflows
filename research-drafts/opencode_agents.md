@@ -332,7 +332,49 @@ You can get quite granular with permissions, specifying different levels for dif
 
 ### Other Useful Settings (Learn As Needed)
 
-The steps setting controls how long an agent can work before it must stop. The default is unlimited within overall session limits. What it does is set a maximum number of thinking and acting cycles before the agent must stop and report back. You would use this setting to control costs, to ensure fast responses, or to prevent infinite loops if something goes wrong. Typical values might be 3 to 5 steps for simple tasks, 10 to 20 steps for complex tasks, and 20 to 50 steps for research tasks that involve gathering information from many sources. For most uses, you can leave it blank and let the agent decide when it is done.
+#### The "Steps" Setting: Understanding Agent Thinking Cycles
+
+The steps setting controls how long an agent can work before it must stop. Think of it as giving your agent an allowance for how many thinking turns it can take. Each "step" is one complete cycle of thinking and action—the agent reads information, decides what to do, and takes that action. For example, if you ask an agent to research vacation spots: Step 1 might search for destinations in Mexico; Step 2 reads about the top results; Step 3 checks flight prices; Step 4 writes a summary. Each cycle uses computational resources and counts toward the limit.
+
+**What You See During Execution**
+
+When your agent runs, you'll typically see a progress indicator like "Step 3/10" or "Thinking step 7 of 15." This shows how many steps have been used and how many remain. You might also see brief descriptions like "searching database" or "analyzing results." This transparency helps you track progress and understand if the agent is making headway or appears stuck.
+
+**What Happens When the Limit is Reached**
+
+When an agent hits its step limit, it stops immediately and reports back with whatever it has accomplished so far. It does not throw an error. Instead, it says something like "I've used my allocated thinking turns and here's what I found." This means you might get partial results if the task was more complex than the allowed steps. You can then decide whether to give it more steps to continue or accept the current output.
+
+**The Trade-Off: Speed vs. Thoroughness**
+
+There's a balance between thoroughness and responsiveness. More steps mean the agent can think longer and produce more complete results, but it takes longer and costs more. Fewer steps mean faster, cheaper responses but risk incomplete work. Simple tasks like formatting might need only 3-5 steps. Research with multiple sources often needs 10-20 steps. Deep analysis across many files could require 30-50 steps or more.
+
+**When to Adjust the Step Limit**
+
+Increase the step limit when the agent consistently stops before finishing—common with research tasks, analyzing large documents, comparing multiple options, or when the agent itself suggests it needs more time. Decrease the step limit for simple, routine tasks where you want faster responses, or when testing agent behavior to see if it can solve problems efficiently without excessive cycles.
+
+**Troubleshooting**
+
+If the agent stops too early with incomplete results, increase the step limit. If the agent seems to loop without making progress, the issue is usually flawed instructions rather than step count—review the prompt. You can always adjust the limit: start moderate, observe behavior, then fine-tune based on the quality and completeness of results.
+
+**Cost Implications**
+
+Each step requires computational work, and most AI services charge based on tokens processed. More steps generally mean higher costs, though they also typically yield better results. Think of it like budgeting: you get what you pay for, but avoid overspending on unnecessary thinking cycles. When cost is a concern, start with fewer steps and increase only if needed.
+
+**Important Distinction**
+
+Don't confuse the "steps" setting with the methodology steps the agent might describe in its prompts (like "First I'll search, then analyze"). Those are descriptive planning steps that show the agent's approach. The configured "steps" setting is a hard limit on how many thinking cycles it can actually perform, regardless of its plan.
+
+**Quick Reference Table**
+
+Task Type | Typical Steps | Adjust UP if... | Adjust DOWN if...
+--- | --- | --- | ---
+Simple formatting/Q&A | 3-5 | Answer incomplete | Task truly simple
+Basic research (2-3 sources) | 5-10 | Need more depth | Need faster response
+Complex research (many sources) | 10-20 | Results superficial | Cost/time constraints
+Multi-file analysis | 20-30 | Missing details | Too slow for needs
+Deep investigation | 30-50 | Need exhaustive coverage | Cost too high
+
+For most uses, you can leave it blank (unlimited) and let the agent decide when it's done. Use explicit limits when you need to control costs, ensure fast responses, or prevent infinite loops from flawed instructions.
 
 The color setting sets the agent's color in the OpenCode interface. It helps you quickly identify which agent is active at a glance when you are switching between multiple agents. The value can be a hex color code like #FF5733 or a theme name like primary, success, warning, or error. You might give your security agent a red color to indicate danger, your documentation agent a green color for go, your explorer a blue color, and your builder a yellow color. This visual cue makes it easy to see at a glance what you are working on.
 
