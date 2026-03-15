@@ -1,1754 +1,1551 @@
-# Ethereum Cryptography Demystified: A Beginner's Journey From Signatures to Smart Contracts with Code Examples
+# Understanding Autoresearch: When AI Research Becomes Autonomous
 
-## Introduction: Why Cryptography Matters in Ethereum
+## Introduction: What is Autoresearch?
 
-Imagine you have a very special type of safe. This safe has a lock that only you can open, but there's also a unique window on the front that lets anyone look inside and see a public display. This is the basic idea behind cryptography. Cryptography is the science of creating mathematical locks and keys to protect information. It lets you prove you are who you say you are without ever having to share your secret.
+Imagine you have a robot chef. You give it a kitchen, some ingredients, and a cookbook. You tell it your goal is to make the most delicious chocolate chip cookie possible. You let it experiment overnight. In the morning, you find that the robot chef has tried hundreds of variations, keeping only the ones that improved the taste, discarding the failures, and documenting every change. This is the essence of what Andrej Karpathy calls "autoresearch".
 
-Ethereum needs cryptography because it's a global, open network where anyone can interact. Think of it like a giant international post office that anyone can use, but there are no postal workers to verify identities. When someone wants to send digital money or execute an agreement, the system must be absolutely certain that the person giving approval is the rightful owner. Cryptography provides this certainty through mathematical proof rather than through trusted intermediaries like banks.
+In the world of artificial intelligence, building large language models like GPT-4 involves countless decisions. How many layers should the neural network have? What learning rate works best? Should we use one type of attention mechanism or another? Traditionally, human researchers spend months or years experimenting with these settings, running training runs that can cost millions of dollars in computing power.
 
-At its core, cryptography enables digital ownership. Just as a physical deed proves you own a house, cryptographic keys prove you own digital assets. These keys come in pairs: a private key that you keep secret, and a public key that you can share with the world. The private key is like your personal signature stamp that only you possess. The public key is like your fingerprint that everyone can see and use to verify your stamp. Together they create a system where your secret never leaves your possession, but anyone can verify that you authorized an action.
+Autoresearch flips this process on its head. Instead of a human making decisions, an AI agent takes charge. The agent reads instructions, modifies the training code, launches experiments running for exactly 5 minutes each, checks if the results improved, and repeats this cycle indefinitely. Every experiment is a complete training run of a small but real language model. The agent works completely autonomously, accumulating successful changes like a scientist building on previous discoveries.
 
-## What Are Digital Signatures?
+What makes this project remarkable is its simplicity. The entire autonomous research system fits in just three files totaling under 2000 lines of code. There is no complex infrastructure, no distributed computing setup, no thousand-page configuration files. The human's job becomes crafting the right instructions in a markdown file while the AI agent handles the tedious work of trial and error. This project demonstrates that autonomous AI research is not some far-future concept—it is possible today with the right constraints and clear goals.
 
-Think about signing a check. When you sign your name on a check, you're providing proof that you authorize the payment. The bank can compare that signature to the one they have on file. If they match, they process the transaction. Your handwritten signature is unique to you and very difficult for someone else to copy perfectly.
+## The Big Picture: How Does It Work?
 
-A digital signature works the same way, but instead of a handwritten mark, it's a unique mathematical fingerprint created using your private key. When you sign a digital document or transaction, your wallet uses your private key to perform a special mathematical calculation on the data. This calculation scrambles the information in a way that only your private key could have produced. The result is a signature that is mathematically linked to both the content and your private key.
+Let me explain the autonomous loop using a familiar analogy. Think of training a neural network like teaching a student to recognize cats in pictures. You start with a blank slate, show it examples, correct its mistakes, and gradually it learns. But you also have to decide how fast the student learns (learning rate), how many practice sessions it needs (epochs), and what teaching methods work best (optimizer choice). These decisions are hyperparameters, and finding good ones is more art than science.
 
-Here's the remarkable part: it's virtually impossible for someone to forge your digital signature without having your private key. The mathematics ensures that the signature can only be created by someone who possesses the corresponding private key. The verification process uses only your public key, which is safe to share with anyone. This makes digital signatures incredibly secure for proving identity and authorization in the digital world.
+Autoresearch automates this decision-making process. Here is how the loop works in plain language:
 
-Your private key is essentially your secret identity in the Ethereum world. It's like a master key that proves you control a particular Ethereum address, which is your public identity. Anyone can see your address and send you assets, but only you with your private key can move those assets or sign messages as that address. Losing your private key is like losing the only key to a safe that contains your valuables. No one can help you recover it because the system is designed to have no back doors.
+The AI agent starts with a working version of the training code. It runs an experiment for exactly 5 minutes, measuring how well the model performs on a validation set using a metric called "val_bpb" (validation bits per byte). Lower val_bpb means the model is better at predicting text. After the 5 minutes are up, the agent records the results in a results file.
 
-## Ethereum Signatures (ECDSA with secp256k1)
+Next, the agent uses its intelligence to modify the training code. It might increase the learning rate, add a new type of normalization, change the optimizer settings, or adjust the model architecture. The agent then commits this change to a special git branch and runs another 5-minute experiment.
 
-Ethereum uses a specific type of digital signature called ECDSA, which stands for Elliptic Curve Digital Signature Algorithm. The "secp256k1" part refers to the particular elliptic curve that Ethereum uses. Don't worry about the mathematical details; just think of an elliptic curve as a special shape defined by a mathematical equation that has useful properties for cryptography. Imagine a curve drawn on a graph that loops back on itself in a particular way. This curve defines the playground where all the cryptographic operations happen.
+When the new experiment finishes, the agent compares the val_bpb to the previous best. If it is lower (better), the agent keeps the change and advances the branch, making this new code the starting point for the next experiment. If it is worse or equal, the agent discards the change and resets back to the previous state before trying something else.
 
-Elliptic curve cryptography is like having a special playground where certain games are easy to play in one direction but nearly impossible to reverse. You can easily create a public key from a private key, but going backwards from a public key to find the private key would take thousands of years even with the world's most powerful computers. This one-way function is what makes the system secure. Think of it like mixing paint colors. It's easy to mix red and blue to get purple, but it's nearly impossible to look at purple and figure out exactly which red and blue were used.
+This cycle repeats endlessly. The agent is not just randomly changing things. It looks at the history of what worked and what failed, reads the code to understand what each change does, and plans the next experiment based on patterns it observes. Over 2 days, with approximately 100 experiments (each 5 minutes), the agent discovered about 20 real improvements that stacked together to produce an 11% better model.
 
-When you want to sign a transaction or message in Ethereum, your wallet uses your private key to perform the ECDSA signing operation. The wallet takes the message data and your private key, runs them through the elliptic curve mathematics, and produces a signature. This signature is unique to that specific message and cannot be reused for a different message. Even if you change a single character in the message, the resulting signature will be completely different.
+The genius of this design is the fixed 5-minute time budget. Every experiment runs for exactly 5 minutes regardless of what changes the agent makes. This means all results are directly comparable. If the agent makes the model bigger (which normally would take longer to train), it still stops after 5 minutes, so we are measuring which model configuration makes the fastest Progress. We are not comparing raw final performance, but rather performance achieved within a fixed time investment. This makes the search meaningful: we want the best model we can get after investing exactly 5 minutes of training time.
 
-Anyone in the world can then verify that signature. They take the message, the signature, and your public Ethereum address. Using public mathematical functions, they can confirm whether the signature was created by the private key belonging to that address. This verification happens automatically whenever an Ethereum transaction is processed. The network's computers all perform this check to ensure only valid transactions get recorded.
+## The Three Files: Understanding the Architecture
 
-An Ethereum signature has three parts: v, r, and s. Think of these like different pieces of information that together prove the signature's authenticity. The r and s values are the main mathematical components of the signature, representing coordinates on the elliptic curve. The v value indicates which of several possible elliptic curve curves was used and helps recover the public key from the signature. Together these three values form a complete signature that can be verified by anyone.
+The entire autoresearch system consists of three files, each with a clear and distinct purpose. Think of them as the foundation, the workbench, and the instruction manual.
 
-When wallets sign messages, they add a special prefix to the data before signing. This prefix is the string "\x19Ethereum Signed Message:\n" followed by the message length. This prefix ensures that the signature cannot be accidentally used to sign an Ethereum transaction or some other type of message, preventing potential attacks where a signature for one purpose gets misinterpreted as a signature for another. Think of it like putting a special stamp on a document that says "This signature is only for Ethereum messages" so that no one can reuse it for something else.
+The first file is `prepare.py`. This is the foundation that never changes. It handles all the one-time setup: downloading the training data from the internet, training a tokenizer that breaks text into pieces the model can understand, and providing utility functions for loading data and evaluating the model. Once you run this file, it creates a cache directory with all the necessary data and the tokenizer. The AI agent is not allowed to touch this file. It is read-only infrastructure.
 
-## Comparison of Signature Types
+The second file is `train.py`. This is the workbench where all the action happens. This single file contains the complete definition of the GPT model, the optimizer that trains it, the hyperparameters that control its behavior, and the training loop that runs for 5 minutes. This entire 630-line file is what the AI agent modifies. The agent can change anything: the model architecture, the optimizer settings, the learning rates, the batch size, everything. Every experiment potentially produces a different version of this file.
 
-Different signature systems serve different purposes and have different characteristics. Here's a comparison of the three major types you might encounter:
+The third file is `program.md`. This is the instruction manual for the AI agent. The human researcher writes and iterates on this file. It contains the step-by-step instructions for how the agent should conduct its autonomous research. It explains the setup process, what the agent can and cannot modify, what metric to optimize for, how to log results, and the endless loop of experiment, evaluate, keep or discard. The human might improve these instructions over time to make the agent more effective at finding improvements.
 
-| Name | Where Used | Key Size | Speed | Security Level | Real World Analogy |
-|------|------------|----------|-------|----------------|-------------------|
-| ECDSA (secp256k1) | Ethereum native transactions, Bitcoin | Private: 256 bits, Public: 512 bits, Signature: 65 bytes | Very fast | Very high | A specialized high-security lock designed specifically for cryptocurrency vaults |
-| P256 (secp256r1) | Web browsers, smartphones, passports, TLS certificates | Same as ECDSA: 256-bit private keys | Fast | Very high | The standard government-issued passport that's recognized worldwide for identity |
-| RSA | Governments, corporations, SSL certificates, email signing | 2048 to 4096 bits (much larger) | Slower | High (but needs larger keys for same security) | A traditional combination lock that's been around for decades, trusted by institutions |
+When you put these three files together, you have a complete autonomous research system. The human sets up the data once with prepare.py, writes the initial instructions in program.md, and then lets the AI agent loose on train.py. The agent runs experiments, modifies the code, tests the modifications, and accumulates successful changes. You wake up in the morning to a git repository full of commits and a results file showing all the discoveries made overnight.
 
-Let's explore each type in more detail.
+## Deep Dive: prepare.py - The Foundation That Never Changes
 
-ECDSA with secp256k1 is Ethereum's native signature scheme. It was chosen specifically for Bitcoin and then carried over to Ethereum because it offers a good balance of security and efficiency. The "k" in secp256k1 stands for a specific mathematical parameter that makes this curve distinct from other elliptic curves. This signature type produces signatures that are 65 bytes long, broken into the v, r, and s components we discussed earlier. It's extremely fast to verify, which is important for a blockchain where every transaction must be checked by all nodes.
-
-P256, also known as secp256r1, is a different elliptic curve that's widely used outside of cryptocurrencies. The "r" in secp256r1 indicates it uses a different set of parameters chosen by standards organizations. This curve is used in web browsers for HTTPS connections, in smartphones for secure storage, and in electronic passports for digital identity. P256 matters for Ethereum because RIP-7212 is a precompile that allows smart contracts to verify P256 signatures directly on-chain. This means Ethereum can interoperate with the existing world of digital certificates and traditional security infrastructure.
-
-RSA is the oldest of the three, invented in 1977. It works on a completely different mathematical principle than elliptic curves. RSA's security relies on the difficulty of factoring large numbers. You generate an RSA key pair by choosing two large prime numbers and multiplying them together. The product becomes part of your public key, while the prime numbers themselves form your private key. The mathematical fact is that multiplying two numbers is easy, but taking a large product and figuring out which two primes created it is practically impossible with current computers.
-
-RSA keys need to be much larger than elliptic curve keys to achieve the same security level. A 256-bit elliptic curve key provides roughly the same security as a 3072-bit RSA key. That's twelve times larger! Because RSA keys are so much bigger, the signatures are also larger, and the mathematical operations are slower. However, RSA has decades of real-world deployment, extensive standards, and widespread trust in government and enterprise settings. Some organizations prefer RSA for regulatory or compatibility reasons, even though elliptic curves are more efficient.
-
-## Signature Verification in Practice with OpenZeppelin
-
-Smart contracts on Ethereum can verify digital signatures directly on the blockchain. This means that a program running on the network can check whether a signature is valid without needing any external data or trusted third parties. The verification happens through the EVM's built-in cryptographic operations or through precompiled contracts that perform the mathematical computations.
-
-OpenZeppelin provides a library called SignatureChecker that creates a unified way to verify signatures from different sources. Let's examine some code snippets and explain them line by line. Imagine we have a function that needs to verify that a particular Ethereum address signed some data.
-
-First, let's look at how basic ECDSA signature verification works for a regular Ethereum account:
-
-```solidity
-function verifyMessage(
-    bytes memory message,
-    bytes memory signature,
-    address expectedSigner
-) internal pure returns (bool) {
-    // Step 1: We need to reconstruct the message that was signed
-    // Ethereum adds a special prefix to prevent signature reuse attacks
-    bytes32 messageHash = keccak256(
-        abi.encodePacked("\x19Ethereum Signed Message:\n", message.length, message)
-    );
-    
-    // Step 2: Recover the address that created this signature
-    address recoveredSigner = ECDSA.recover(messageHash, signature);
-    
-    // Step 3: Check if the recovered address matches the expected signer
-    return recoveredSigner == expectedSigner;
-}
-```
-
-Let's break this down very carefully. The function `verifyMessage` takes three things: the original message, the signature, and the address we expect to have signed it. It returns true if the signature is valid and matches that address, false otherwise.
-
-The first step is crucial. Ethereum doesn't sign the raw message directly. Instead, it adds a prefix "\x19Ethereum Signed Message:\n" followed by the message length. This prefix prevents what's called "signature malleability" and "cross-protocol attacks." Without this prefix, a signature created for one purpose could be reused for a different purpose. The `abi.encodePacked` function efficiently packs these three items together into a single byte array. Then `keccak256` computes a hash of that byte array. This hash is what actually gets signed. So we need to recreate the same hash from our message to verify against.
-
-The second step uses OpenZeppelin's `ECDSA.recover` function. This function performs the elliptic curve mathematics to recover the public key from the signature and the message hash. Once we have the public key, we can derive the Ethereum address from it. This `recover` function does all the complex math for us, handling the v, r, and s components of the signature to figure out which private key could have created it.
-
-The third step is simple: compare the recovered address with the address we expected to have signed. If they match, the signature is valid. If they don't match, either the signature was created by a different private key, or the signature is invalid.
-
-Now let's look at how the SignatureChecker library unifies verification for different wallet types. Smart contract wallets that implement ERC-1271 need different handling:
-
-```solidity
-function verify(
-    bytes memory data,
-    bytes memory signature,
-    address signer
-) internal view returns (bool) {
-    // First, check if the signer is a regular Ethereum account (EOA)
-    // If so, use the standard ECDSA verification
-    if (isContract(signer) == false) {
-        return ECDSA.recover(ECDSA.toEthSignedMessageHash(keccak256(data)), signature) == signer;
-    }
-    
-    // If the signer is a smart contract wallet, call its isValidSignature function
-    // This follows the ERC-1271 standard
-    (bool success, bytes memory result) = signer.staticcall(
-        abi.encodeWithSelector(
-            ERC1271.isValidSignature.selector,
-            keccak256(data),
-            signature
-        )
-    );
-    
-    // The return value should be the bytes4 magic value 0x1626ba7e if valid
-    return success && result.length == 32 && result[31] == 0x16 && result[30] == 0x26 && result[29] == 0xba && result[28] == 0x7e;
-}
-```
-
-This function is more sophisticated because it handles both regular accounts and smart contract wallets. Let's go through it carefully.
-
-First, we check whether the `signer` address is a contract or a regular externally owned account (EOA). The `isContract` function determines this by checking if there's actually code deployed at that address. Regular accounts have no code, while smart contract wallets have code. This check is important because different verification methods apply to each type.
-
-If the signer is a regular account, we verify the signature using the standard ECDSA method. Notice we use `ECDSA.toEthSignedMessageHash` to add the Ethereum prefix automatically, then `ECDSA.recover` to get back the address. This is the same as our first example but using OpenZeppelin's helper functions that handle the prefix properly.
-
-If the signer is a smart contract, we need to check if it implements ERC-1271. We do this by calling the `isValidSignature` function on the contract. The `staticcall` is important: it's a type of call that cannot modify state. We're only reading data, not changing anything. The `abi.encodeWithSelector` packs the function selector and arguments into the correct format for the call.
-
-The ERC-1271 standard specifies that if a signature is valid, the function should return the magic bytes `0x1626ba7e`. If invalid, it returns `0xffffffff`. We check that the call was successful, that the result has the correct length (32 bytes), and that the last four bytes match the success magic value. This careful checking prevents false positives from failed calls or malformed returns.
-
-For EOA verification only, OpenZeppelin also provides a simpler `SignatureChecker.isValidSignatureNow` function that uses the `block.timestamp` to ensure signatures are not replayed across different block times, adding an extra layer of security against certain types of attacks.
-
-## Merkle Trees in Detail
-
-A Merkle tree is a clever way to organize a large list of items. Imagine you have a long list of people who are eligible for an airdrop of tokens. You could put the entire list on the blockchain, but that would be expensive and inefficient. Storing thousands of addresses would cost significant gas fees. Instead, you can create a Merkle tree from that list.
-
-The tree works like a family tree but in reverse, and it uses cryptography to create a compact representation. Each person's address is at the bottom level, called the leaves. Each pair of addresses gets combined mathematically to create a parent node. This combination involves hashing the two child hashes together. The process continues, pairing up nodes at each level and hashing them together, until you reach a single root at the top. The root is a single 32-byte hash that represents the entire list. You can think of the root like a fingerprint of the whole dataset. Any change to even a single address would completely change the root hash.
-
-Now, if someone claims they are on the list, you don't need to show them the entire list. Instead, you can provide a Merkle proof. The proof consists of just a few other pieces of data from the tree that, together with the person's address, can recreate the root fingerprint. Here's how it works: starting from the person's leaf hash, you combine it with the proof elements, hashing at each level, until you reach the root. If your calculated root matches the root stored on the blockchain, you've proven your membership without revealing anyone else's information.
-
-This is incredibly efficient. Instead of storing thousands of names on-chain, you store just one root hash. A verification might require checking only about ten hash operations, regardless of whether the original list had ten items or ten thousand. Each additional level adds roughly one hash operation, so the proof size grows logarithmically, not linearly. If you have 1,024 addresses, you'd need only about 10 hash operations to verify. If you have 1,048,576 addresses, you'd still need only about 20 hash operations.
-
-Beyond efficiency, Merkle proofs enable privacy. The proof reveals only that a particular item is in the list, but not which other items exist. The verifier learns nothing about other participants. It also enables what's called stateless verification: you don't need to hold the entire dataset in memory to verify a single claim. This property is valuable for light clients and applications that need to verify many different claims without storing everything.
-
-OpenZeppelin provides the MerkleProof library that makes verification easy:
-
-```solidity
-function verify(
-    bytes32[] memory proof,
-    bytes32 root,
-    bytes32 leaf
-) internal pure returns (bool) {
-    bytes32 computedHash = leaf;
-    
-    for (uint256 i = 0; i < proof.length; i++) {
-        bytes32 proofElement = proof[i];
-        
-        // Determine if this proof element should be on the left or right
-        // The order matters because hashing is not commutative
-        if (computedHash <= proofElement) {
-            // Hash(left || right) where left is smaller
-            computedHash = keccak256(abi.encodePacked(computedHash, proofElement));
-        } else {
-            // Hash(right || left) where right is smaller
-            computedHash = keccak256(abi.encodePacked(proofElement, computedHash));
-        }
-    }
-    
-    // After processing all proof elements, our computed hash should equal the root
-    return computedHash == root;
-}
-```
-
-Let's walk through this code carefully. The function takes three inputs: the proof array (the sibling hashes needed for verification), the root hash that's stored on-chain, and the leaf hash representing the item being proven. It returns whether the proof is valid.
-
-We start with `computedHash` equal to the leaf we're trying to prove. Then we loop through each element in the proof array. Each proof element is a sibling hash that the verifier needs. At each step, we combine our current computed hash with the next proof element by hashing them together. The order matters: we always put the smaller hash first. This consistent ordering ensures that everyone can reconstruct the same tree path regardless of local choices. The comparison `computedHash <= proofElement` determines which one goes first.
-
-As we loop through all the proof elements, we're essentially climbing up the Merkle tree, level by level. Each hash operation combines two nodes into their parent. After processing all proof elements, we should have reached the root. We compare our final computed hash with the expected root. If they match, the proof is valid and the leaf is indeed in the tree that produced that root.
-
-OpenZeppelin also provides an on-chain MerkleTree library that can build and manage trees directly in smart contracts. This is useful for applications that need to update the tree dynamically, such as tracking changing membership or maintaining history. The library handles the tree structure, provides efficient insertion and deletion operations, and can generate proofs automatically.
-
-## Other Useful Tools and Data Structures
-
-Beyond signature verification, OpenZeppelin provides many other utilities that solve common problems in smart contract development. Understanding these tools helps you write more efficient, secure, and maintainable code.
-
-### Storage Optimization
-
-The Ethereum Virtual Machine stores data in 32-byte chunks called storage slots. Each slot has a unique address. When you declare state variables in a contract, they get assigned to these slots automatically. Storage is expensive: modifying a slot costs gas, and reading it also costs gas. Smart contracts that need to store many small values can save significant gas by packing multiple variables into a single storage slot.
-
-For example, if you have three boolean variables (which each take 1 byte), they naturally would occupy three separate storage slots, using 96 bytes. But you can pack them into a single 32-byte slot, using only 3 bytes and leaving the rest empty. This packing requires careful bit manipulation: you need to shift and mask bits to position each variable correctly. OpenZeppelin's `StorageSlot` library makes this easier:
-
-```solidity
-// Packing multiple booleans into one storage slot
-bool private flag1;
-bool private flag2;
-bool private flag3;
-
-function setFlags(bool _flag1, bool _flag2, bool _flag3) public {
-    // Each flag occupies 1 byte in the same storage slot
-    bytes32 slot = 0; // This reads the storage slot where these booleans live
-    assembly {
-        slot := sload(0) // Load the current slot value
-    }
-    
-    // Clear the first 3 bytes (0x000000) and set new values
-    // Each boolean is 1 byte (8 bits)
-    bytes32 newSlot = 0;
-    if (_flag1) newSlot |= (1 << 0); // Set bit 0 if flag1 is true
-    if (_flag2) newSlot |= (1 << 8); // Set bit 8 if flag2 is true  
-    if (_flag3) newSlot |= (1 << 16); // Set bit 16 if flag3 is true
-    
-    assembly {
-        sstore(0, newSlot) // Store the updated slot
-    }
-}
-```
-
-The OpenZeppelin `StorageSlot` library provides a higher-level interface:
-
-```solidity
-using StorageSlot for bytes32;
-
-// Get a boolean value from a packed slot
-bool flag1 = bytes32.storage(0).boolVal(0);  // Read at byte 0
-bool flag2 = bytes32.storage(0).boolVal(8);  // Read at byte 8
-bool flag3 = bytes32.storage(0).boolVal(16); // Read at byte 16
-
-// Set a boolean value at a specific bit offset
-bytes32.storage(0).setBool(0, newFlag1);
-bytes32.storage(0).setBool(8, newFlag2);
-bytes32.storage(0).setBool(16, newFlag3);
-```
-
-This approach makes packing readable and less error-prone. The `boolVal` function reads a boolean from the specified byte offset within the 32-byte slot. The `setBool` function sets or clears the appropriate bit. This can pack up to 32 booleans in a single slot, saving enormous amounts of gas when you have many flags.
-
-OpenZeppelin also provides `ERC7201` for namespaced storage. This standard helps prevent storage collisions between different libraries or contracts that might otherwise accidentally use the same storage slots. It creates unique, deterministic slot positions based on a namespace identifier. This is like assigning each contract component its own numbered locker to avoid mix-ups.
-
-### Math Utilities
-
-Smart contracts need to perform arithmetic operations, but they must do so safely because overflow and underflow can cause serious bugs. For example, if you subtract a large number from a small number, you might get a huge positive number due to underflow (since unsigned integers wrap around). OpenZeppelin's `Math` library provides functions that handle these edge cases:
-
-```solidity
-// Safe addition that returns false on overflow instead of wrapping
-function safeAdd(uint256 a, uint256 b) internal pure returns (uint256) {
-    uint256 c = a + b;
-    require(c >= a, "Math: addition overflow");
-    return c;
-}
-
-// The tryAdd version returns a bool instead of reverting
-function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-    unchecked {
-        uint256 c = a + b;
-        if (c < a) return (false, 0);
-        return (true, c);
-    }
-}
-```
-
-The `tryAdd` function uses `unchecked` to disable Solidity's built-in overflow checks (since Solidity 0.8.0 automatically reverts on overflow), then manually checks if overflow occurred. If `c < a`, it means wrapping happened and overflow occurred. The function returns a tuple: a boolean indicating success, and the result (or zero if failure). This pattern allows callers to handle errors gracefully instead of reverting the entire transaction.
-
-The `Math` library also provides `average` for finding the mean of two numbers without overflow: `(a + b) / 2` would overflow if both numbers are near the maximum, so `average` does `(a & b) + (a ^ b) / 2` which is mathematically equivalent but avoids overflow.
-
-For signed integers (which can be positive or negative), OpenZeppelin provides `SignedMath`. Since Solidity's signed integers use two's complement representation, operations like absolute value and division rounding need care:
-
-```solidity
-function abs(int256 n) internal pure returns (int256) {
-    // If n is negative, return -n; otherwise return n
-    // The expression n < 0 ? -n : n works but can overflow
-    // This implementation is safe:
-    return n < 0 ? ~n + 1 : n; // ~n is bitwise NOT
-}
-```
-
-### Safe Type Conversions
-
-Converting between different integer types can be dangerous. Converting a large `uint256` to a smaller `uint128` will fail if the value doesn't fit. OpenZeppelin's `SafeCast` library provides safe conversion functions:
-
-```solidity
-function safeCastTo128(uint256 value) internal pure returns (uint128) {
-    require(value <= type(uint128).max, "SafeCast: value does not fit in uint128");
-    return uint128(value);
-}
-
-function safeCastTo16(int256 value) internal pure returns (int16) {
-    require(value >= type(int16).min && value <= type(int16).max, "SafeCast: value does not fit in int16");
-    return int16(value);
-}
-```
-
-These checks prevent silent truncation that would otherwise produce incorrect values. This is especially important when dealing with user-provided values, token amounts, or timestamps that might exceed the target type's range.
-
-### Arrays and Collections
-
-OpenZeppelin provides efficient data structures for managing collections. `EnumerableSet` is like a mathematical set: it stores unique values and provides iteration capabilities. Unlike a regular Solidity array that would require scanning to check for duplicates, `EnumerableSet` uses a mapping for O(1) existence checks and maintains an array for iteration:
-
-```solidity
-using EnumerableSet for EnumerableSet.AddressSet;
-
-EnumerableSet.AddressSet private members;
-
-function addMember(address member) public {
-    members.add(member); // O(1) operation, no duplicates allowed
-}
-
-function getMember(uint256 index) public view returns (address) {
-    return members.at(index); // Get item by index for iteration
-}
-
-function getTotalMembers() public view returns (uint256) {
-    return members.length(); // Get total count
-}
-```
-
-`EnumerableMap` works similarly but stores key-value pairs while maintaining iteration order. Both structures are crucial for applications like token allow lists, governance participant lists, or any situation where you need to track unique items and potentially iterate through them.
-
-`BitMaps` provide a memory-efficient way to store large sets of boolean flags. Instead of using a mapping where each address takes 32 bytes, a BitMap packs 256 boolean values into 32 bytes (8 bits per byte). OpenZeppelin's `BitMap` library manages this packing automatically:
-
-```solidity
-using BitMap for BitMap.BitMap256;
-
-BitMap.BitMap256 private flags;
-
-function setFlag(uint256 flagIndex) public {
-    flags.set(flagIndex); // Sets bit at position flagIndex
-}
-
-function getFlag(uint256 flagIndex) public view returns (bool) {
-    return flags.get(flagIndex); // Returns true if bit is set
-}
-
-function clearFlag(uint256 flagIndex) public {
-    flags.unset(flagIndex); // Clears the bit
-}
-```
-
-### Time and Block Operations
-
-OpenZeppelin's `Time` library provides type-safe operations for dealing with timestamps and block numbers. The `Delay` type helps implement time-locked operations, common in governance and vesting contracts:
-
-```solidity
-Delay private governanceDelay;
-
-function scheduleAction(uint256 timestamp, bytes memory data) public {
-    // Ensure action cannot execute before timestamp
-    require(timestamp > block.timestamp, "Action must be in the future");
-    governanceDelay.setDelay(3 days); // Minimum 3 day delay
-    require(timestamp >= block.timestamp + governanceDelay.delay(), "Delay too short");
-    // Schedule the action...
-}
-
-function executeAction(uint256 timestamp, bytes memory data) public {
-    require(block.timestamp >= timestamp, "Action not yet executable");
-    // Execute the scheduled action...
-}
-```
-
-The `Delay` type enforces that certain actions cannot happen immediately, requiring a waiting period. This prevents hasty decisions and gives participants time to react or exit if they disagree.
-
-The `Blockhash` library extends Ethereum's native `blockhash` function, which only provides hashes for the most recent 256 blocks. EIP-2935 extended this to 8191 blocks for smart contract usage, enabling applications like verifiable delay functions or randomness beacons that need historical block hashes:
-
-```solidity
-function getHistoricalBlockhash(uint256 blockNumber) public view returns (bytes32) {
-    require(blockNumber < block.number && block.number - blockNumber <= 8191,
-            "Blockhash not available");
-    return Blockhash.getBlockhash(blockNumber);
-}
-```
-
-## Hash Functions: Understanding Keccak-256 and the SHA-3 Family
-
-Let's begin with a fundamental question: what exactly is a hash function? Imagine you have a magical kitchen blender. You can put any food item into it, whether it's a carrot, an apple, or a whole chicken. The blender always produces the same smoothie if you put in the same ingredients in the same order. But here's the magical part: if you only taste the smoothie, you could never figure out exactly what went into it. You might guess it contains carrots, but you can't be sure if it was one carrot or two, or whether it came from a carrot grown in California or France. The blender transforms the original ingredients into a fixed-size, unique mixture that represents them but doesn't reveal them. That's essentially what a cryptographic hash function does.
-
-A hash function takes any amount of data as input and produces a fixed-size output. For Ethereum, that output is always 256 bits, or 32 bytes, which we usually write as 64 hexadecimal characters prefixed with "0x". The hash is deterministic: the same input always produces exactly the same output. Change even a single character in the input, and you get a completely different hash. This property is called the avalanche effect: a tiny change causes massive differences in the output.
-
-Hash functions have three crucial properties that make them useful for cryptography. First, preimage resistance: given a hash output, it should be computationally impossible to find any input that produces that output. Second, second-preimage resistance: given a specific input, it should be impossible to find a different input that produces the same hash. Third, collision resistance: it should be extremely difficult to find any two different inputs that produce the same hash. While collisions must exist mathematically (since there are infinite inputs but only finite hash values), finding them should be practically impossible with current technology.
-
-Now, why does Ethereum use keccak-256 specifically? To understand this, we need to know about the SHA-3 competition. In the early 2000s, cryptographers realized that while SHA-2 was widely used, it had some potential vulnerabilities. The US National Institute of Standards and Technology (NIST) launched a competition to find a new secure hash algorithm that would become SHA-3. Keccak was one of the submissions, and it won the competition in 2012. The final SHA-3 standard is very similar to the original Keccak, but with some parameter tweaks.
-
-Here's where things get interesting: Ethereum adopted Keccak in 2015, before the SHA-3 standard was finalized. Ethereum used the original Keccak parameters, not the final SHA-3 parameters. As a result, Ethereum's keccak-256 is NOT the same as NIST's SHA3-256, even though they come from the same family and are very similar. The difference lies in the padding and internal parameters. For most purposes they're interchangeable, but if you're implementing something that must match Ethereum exactly, you need to use the original Keccak parameters, not the NIST SHA3-256.
-
-Let's look at a comparison:
-
-| Hash Function | Used By | Output Size | Status | How Different from Ethereum's Keccak |
-|---------------|---------|-------------|--------|--------------------------------------|
-| keccak-256 | Ethereum (original params) | 256 bits | Ethereum's native hash | This is what Ethereum uses |
-| SHA3-256 | NIST standard, not Ethereum | 256 bits | Official SHA-3 standard | Uses different padding than Ethereum |
-| SHA-256 | Bitcoin, many systems | 256 bits | Widely adopted | Completely different algorithm family |
-
-It's important to note that SHA-256 (without the "3") is a different hash function entirely, part of the SHA-2 family. Bitcoin uses SHA-256 for its hashing needs. So when you're working with Ethereum, always use keccak-256, not SHA-256, and not SHA3-256 either unless you specifically want the NIST variant.
-
-In Solidity, you use the built-in `keccak256()` function. Here's a simple example:
-
-```solidity
-// Hash a simple string
-bytes32 hash1 = keccak256("Hello, Ethereum!");
-
-// Hash two pieces of data together
-address user = msg.sender;
-uint256 amount = 100 ether;
-bytes32 hash2 = keccak256(abi.encodePacked(user, amount));
-
-// Hash an entire struct
-struct Transaction {
-    address to;
-    uint256 value;
-    uint256 nonce;
-}
-Transaction memory tx = Transaction(msg.sender, 1 ether, 42);
-bytes32 hash3 = keccak256(abi.encode(tx));
-```
-
-The first example hashes a simple string. The second shows how to combine multiple values: we use `abi.encodePacked` to concatenate the bytes of a user address and an amount, then hash the result. The third example shows how to hash a structured type: we use `abi.encode` to properly encode the struct with its type information, then hash it. These patterns are everywhere in Ethereum applications.
-
-Let's revisit our blender analogy. The hash function is like that magical blender. You put in whatever you want (text, numbers, a whole contract) and it always produces the same 32-byte smoothie. But from that smoothie, you cannot recover the original ingredients. If I give you a hash and ask you to find the input that produces it, you would have to try every possible input until you find one that matches. For a 256-bit hash, there are so many possible outputs that this is effectively impossible. That's preimage resistance.
-
-If you change even one character in the input, the hash changes completely. That's the avalanche effect. For example, `keccak256("Hello")` and `keccak256("hello")` (just changing the capital H to lowercase) produce entirely different 32-byte results. This sensitivity to tiny changes is what makes hash functions unpredictable and secure.
-
-Hash functions are the unsung heroes of Ethereum. They're used for addresses (the last 20 bytes of the keccak hash of a public key), for transaction IDs (the hash of the transaction data), for Merkle trees (hashing leaves and combining them), and for signature verification (hashing the message before signing). Every time you see a long string starting with 0x, that's often a keccak-256 hash representing something uniquely.
-
-## From Public Key to Ethereum Address: The Full Derivation Path
-
-Now let's trace the magical transformation from a secret number to a publicly shareable address. This is the journey every Ethereum user undertakes, usually without knowing the details because the wallet software handles it all. But understanding this path is crucial for grasping how identity works on Ethereum.
-
-We start with the private key. Your private key is simply a random number between 1 and 115792089237316195423570985008687907852837564279074904382605163141518161494337. That's the order of the secp256k1 elliptic curve. To put it in perspective, if you could generate one trillion private keys per second, it would take you about 50 trillion years to go through all of them. And the odds of randomly generating someone else's private key are astronomically lower than winning the lottery every day for a year. So randomness is key: the security comes from the sheer number of possibilities.
-
-From this private key, we derive the public key using elliptic curve point multiplication. Think of the elliptic curve as a giant mathematical playing field with specific rules. There's a special starting point on the curve called the generator point G. To get your public key, you multiply G by your private key. That multiplication is not simple arithmetic; it's a specific operation defined on elliptic curves. The result is another point on the curve, which becomes your public key. This operation is easy to do (your wallet does it instantly), but going backwards (given a public key, figuring out which private key created it) would require solving the elliptic curve discrete logarithm problem, which is computationally infeasible. That's the mathematical trap door.
-
-The public key is a point on the curve, which means it has two coordinates, x and y. Each coordinate is a 32-byte number. The uncompressed public key format is 65 bytes: it starts with a 0x04 prefix byte to indicate it's uncompressed, followed by the 32-byte x coordinate, then the 32-byte y coordinate. The compressed format is 33 bytes: it starts with either 0x02 or 0x03 depending on whether the y coordinate is even or odd, followed by the x coordinate. Ethereum uses the uncompressed format when deriving addresses.
-
-Here's the exact computation in pseudocode:
-
-```
-privateKey = random 256-bit number (never share this)
-publicKey = secp256k1.multiply(G, privateKey)
-# publicKey is now a point (x, y) on the curve
-# In bytes: 0x04 || x (32 bytes) || y (32 bytes)
-uncompressedPubKey = 0x04 + xBytes + yBytes
-```
-
-Now we apply keccak-256 to this public key:
-
-```
-hash = keccak256(uncompressedPubKey)
-```
-
-The result is a 32-byte hash. Here's the crucial part: Ethereum takes the LAST 20 bytes (the rightmost 40 hex characters) of this hash, skipping the first 12 bytes. Why 20 bytes? That's an arbitrary choice inherited from Bitcoin's address design. Bitcoin uses RIPEMD-160 after SHA-256, which also produces 20-byte addresses. The 20-byte size is a compromise: it's short enough to be convenient and displayable, but long enough that collisions (two different public keys producing the same address) are astronomically unlikely. With 160 bits, you'd need to generate about 2^80 keys to have a 50% chance of a collision, which is beyond any conceivable computation.
-
-So the address derivation looks like:
-
-```
-address = last20Bytes(keccak256(uncompressedPubKey))
-```
-
-We then prefix it with "0x" for human readability. The full address is 20 bytes, or 40 hex characters, plus the "0x" prefix makes it 42 characters total.
-
-Let's see an example table with each step:
-
-| Step | Input | Operation | Output (hex, abbreviated) |
-|------|-------|-----------|-------------------------|
-| 1 | Random entropy | Generate private key | 0xf93dd... (64 hex chars) |
-| 2 | privateKey + G | Elliptic curve multiply | 0x04a34... (130 hex chars, 65 bytes) |
-| 3 | uncompressedPubKey | keccak256 hash | 0x28ef5... (64 hex chars) |
-| 4 | hash | Take last 20 bytes | 0x28ef56... (40 hex chars) |
-| 5 | addressHash | Add "0x" prefix | 0x28ef56... (42 hex chars) |
-
-Now about checksum encoding (EIP-55). The raw hexadecimal address we just derived is case-sensitive only in the sense that hex digits can be uppercase or lowercase, but there's no inherent validation. If someone makes a typo in an address, there's no way to detect it. EIP-55 introduced a clever checksum scheme that mixes uppercase and lowercase letters in a deterministic way that allows error detection. The checksum is computed by taking the keccak-256 hash of the address (without the 0x prefix), then for each character in the address: if the corresponding nibble (4 bits) in the hash is 8 or higher, that character is uppercase; otherwise it stays lowercase. This doesn't change the underlying address; it's just a visual encoding. Wallets display the checksummed version and can verify that the case pattern matches the checksum. If you type an address with wrong case or a typo, the checksum will fail and the wallet will warn you.
-
-Here's how to compute EIP-55 checksum in plain English:
-
-1. Start with your lowercase hex address (without 0x).
-2. Compute keccak-256 of that address (as raw bytes).
-3. For each character position i in the address:
-   - Look at the i-th nibble (half-byte) of the hash.
-   - If that nibble is 8 or higher (that is, 8, 9, a, b, c, d, e, or f), make the i-th character of the address uppercase.
-   - Otherwise leave it lowercase.
-4. Add the "0x" prefix.
-
-For example, the address 0x28ef56... might become 0x28Ef56... if certain nibbles are high. Your wallet automatically does this check.
-
-Now let's tie it all together with a concrete analogy. Your private key is your secret identity number, like your social security number but even more secret. Your public key is like your fingerprint: anyone can see it, it uniquely identifies you, but they can't figure out your secret number from it. Your Ethereum address is like your street address: it's what people use to send you things. Anyone can see your address and send you cryptocurrency, but only you (with your private key) can authorize moving anything out of that address. The derivation process transforms your secret into a public destination in a one-way journey that cannot be reversed.
-
-One more important note: the address is derived solely from the public key, which comes from the private key. Different private keys always produce different public keys and thus different addresses. There is no practical chance of collision. This means your address is effectively unique in the universe.
-
-## The ecrecover Precompile: Ethereum's Built-in Signature Recovery
-
-Now we get to one of Ethereum's hidden gems: the ecrecover precompile. To understand why it exists, let's first explain what a precompile is. The Ethereum Virtual Machine (EVM) normally executes smart contract bytecode. But some operations are so commonly needed and so computationally intensive that Ethereum implements them as built-in functions with native code, not as Solidity code. These built-ins are called precompiles. They live at special addresses: the first few addresses from 0x01 upward are reserved for precompiles. The ecrecover precompile is at address 0x01. Because it's implemented in native code, it's much faster and cheaper (in gas) than implementing the same elliptic curve mathematics in pure Solidity.
-
-What does ecrecover actually do? It takes four arguments: a message hash (bytes32), and the three signature components v (uint8), r (bytes32), and s (bytes32). It performs the elliptic curve public key recovery operation, which means it figures out which public key on the secp256k1 curve could have produced that signature for that message hash. It then returns the Ethereum address corresponding to that public key. If the signature is invalid, or if recovery fails, it returns the zero address (0x0000000000000000000000000000000000000000).
-
-The function signature is:
-
-```solidity
-function ecrecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address)
-```
-
-Notice the return type is just an address, not the full public key. Ethereum recovers the public key internally but then derives the address from it, skipping the intermediate result.
-
-Using ecrecover directly (the raw precompile) looks like this:
-
-```solidity
-// Direct low-level call to the precompile
-function recoverAddressDirect(
-    bytes32 hash,
-    uint8 v,
-    bytes32 r,
-    bytes32 s
-) internal pure returns (address) {
-    bytes memory payload = abi.encodePacked(hash, v, r, s);
-    bool success;
-    address recovered;
-    assembly {
-        // Call the precompile at address 1
-        success := staticcall(
-            gas(), // Use all remaining gas
-            0x01, // Precompile address
-            add(payload, 0x20), // Pointer to payload
-            mload(payload), // payload length
-            0, // No return buffer yet
-            0, // No return buffer length yet
-        )
-        // Copy the 32-byte return value into memory
-        retrieved := mload(0)
-    }
-    require(success, "ecrecover failed");
-    return address(uint160(uint256(recovered)));
-}
-```
-
-That assembly code is complex and error-prone. That's why OpenZeppelin's `ECDSA.recover` function wraps ecrecover with safety checks and a clean interface:
-
-```solidity
-function recover(bytes32 hash, bytes memory signature) internal pure returns (address) {
-    // Check signature length
-    require(signature.length == 65, "Invalid signature length");
-    
-    // Split signature into components
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
-    assembly {
-        r := mload(add(signature, 0x20))
-        s := mload(add(signature, 0x40))
-        v := byte(0, mload(add(signature, 0x60)))
-    }
-    
-    // Handle chain-id-related v values (EIP-155)
-    if (v < 27) {
-        if (isValidChainId(recoveryId)) {
-            // v = recoveryId + 2*chainId + 35
-            v += 2 * chainId + 8;
-        }
-    }
-    
-    return ecrecover(hash, v, r, s);
-}
-```
-
-Behind the scenes, the actual heavy lifting happens in the ecrecover precompile. The gas cost for a single ecrecover call is 3,000 gas on Ethereum mainnet. That's relatively cheap considering what it does: elliptic curve operations are expensive, but doing them in native code is much faster than Solidity loops. The EVM charges 3,000 gas as a flat fee for the precompile call, regardless of the specific r, s, v values (as long as they're properly formed).
-
-Why does ecrecover matter so much? Because it's the fundamental primitive that makes on-chain signature verification possible. Without it, smart contracts couldn't verify that an off-chain signature was created by a specific private key. With ecrecover, any contract can take a message hash and a signature, run the recovery, and get the signer's address. This enables use cases like signed orders, meta-transactions, governance signatures, and pretty much any off-chain signing pattern.
-
-Now, let's compare the different ways to verify signatures on Ethereum:
-
-| Method | How It Works | Gas Cost | Supports Contracts | Use Case |
-|--------|--------------|----------|--------------------|----------|
-| Raw ecrecover precompile | Direct call to 0x01 | ~3000 | No (only EOA) | Basic EOA signature verification |
-| OpenZeppelin ECDSA.recover | Wrapper with safety checks | ~3000 + overhead | No | Standard EOA verification with type safety |
-| SignatureChecker.isValidSignatureNow | Checks EOA or ERC-1271 wallet | ~3000-5000 | Yes | Unified verification for all signer types |
-| ERC-1271 wallet's isValidSignature | Contract wallet's own logic | Variable | Yes | Smart contract wallets with custom logic |
-
-Common pitfalls when using ecrecover directly include: using invalid v values (must be 27, 28, or the EIP-155 chain-adjusted values), dealing with malleable signatures where the same signature can be represented with different r, s, and v values, and handling the zero address return for recovery failure. The OpenZeppelin library handles these issues for you, so always prefer it over raw ecrecover.
-
-Let's use an analogy to make ecrecover concrete. Imagine you have a magical machine at the post office. You feed this machine a piece of paper with a signature on it, plus the original document that was signed. The machine hums and whirs, doing complex computations. Then it spits out a card with an address on it. That address belongs to the person who signed the document. The machine never sees any private keys; it only sees the signature and the document. Yet through mathematical magic, it can tell you exactly which address's private key created that signature. That's ecrecover: a signature-to-address converter. It doesn't tell you the private key (that would be bad). It just tells you which Ethereum address is associated with the public key that signed the message. If the signature doesn't match any address's private key, it returns zero.
-
-## EIP-712: Typed Structured Data Signing
-
-One of the biggest usability problems in early Ethereum was that when users signed messages off-chain, their wallets showed them a meaningless hex blob. They had no idea what they were signing. A malicious dApp could trick users into signing something that looked like "I approve 0.001 ETH" but was actually "I approve transferring all my assets to attacker." This is a phishing attack vector. EIP-712 solves this by creating a standard for signing typed, structured data that wallets can display in human-readable form.
-
-Let's explore the problem more deeply. Before EIP-712, there was only `eth_sign`. That method takes a raw byte array, hashes it with the Ethereum message prefix, and signs the hash. The user sees only hex: something like `0xa366...`. They can't tell what the hex represents. Is it a message? A transaction? A contract call? They have to trust the dApp completely. Many users lost money because they signed malicious data.
-
-EIP-712 introduces typed structured data signing. Instead of signing a raw hash, you sign a structured message that has named fields with specific types. Wallets can then display those field names and values to the user. So instead of seeing "0xa366...", the user sees:
-
-```
-Uniswap v3 Permit
-Account: 0x...your address...
-Spender: 0x...router address...
-Amount: 1000 USDC
-Deadline: 2026-03-15 12:00:00 UTC
-```
-
-Now the user knows exactly what they're approving. They can see the spender address, the amount, and the deadline. If they see something suspicious, they can reject the signature. This dramatically reduces the attack surface for phishing.
-
-How does EIP-712 work under the hood? It's a clever scheme that creates a domain separator and a type hash, then combines everything into a structured hash that gets signed.
-
-First, the domain separator uniquely identifies your application. It includes:
-- The contract address (if applicable)
-- The chain ID (so signatures can't be replayed on different chains)
-- The contract's name (for display)
-- The contract's version (for upgrades)
-
-The domain separator is computed as:
-
-```
-domainSeparator = keccak256(
-    abi.encode(
-        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-        keccak256(name),
-        keccak256(version),
-        chainId,
-        verifyingContract
-    )
-)
-```
-
-That header string is the type hash of the EIP712Domain struct. It's always the same constant. The type hashes for all structs are constants that identify the structure's layout. This prevents two different structs that happen to have the same hash contents from being interpreted as each other.
-
-Second, the type hash of your message struct. Suppose you have a struct like:
-
-```
-struct Permit {
-    address owner;
-    address spender;
-    uint256 value;
-    uint256 deadline;
-    uint256 nonce;
-}
-```
-
-You compute its type hash as:
-
-```
-typeHash = keccak256(
-    "Permit(address owner,address spender,uint256 value,uint256 deadline,uint256 nonce)"
-)
-```
-
-The string must exactly match the Solidity struct declaration, with field names and types in order. This type hash uniquely identifies this struct layout.
-
-Third, the struct hash of the actual data:
-
-```
-structHash = keccak256(
-    abi.encode(
-        typeHash,
-        owner,
-        spender,
-        value,
-        deadline,
-        nonce
-    )
-)
-```
-
-Note that the type hash is the first parameter. This binds the data to the structure.
-
-Fourth, the final hash that gets signed:
-
-```
-hashToSign = keccak256(
-    "\x19Ethereum Signed Message:\n32",
-    keccak256(abi.encode(domainSeparator, structHash))
-)
-```
-
-So the signed message is a hash of the concatenation of the domain separator and the struct hash, with the Ethereum message prefix. This ensures the signature is bound to both the data and the domain.
-
-On the verifying contract side, you must implement the same hashing logic to reconstruct what should have been signed. OpenZeppelin's EIP712 contract makes this easier:
-
-```solidity
-contract MyContract is EIP712 {
-    bytes32 public constant PERMIT_TYPEHASH =
-        keccak256("Permit(address owner,address spender,uint256 value,uint256 deadline,uint256 nonce)");
-
-    constructor() EIP712("MyApp", "1") {}
-    
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint256 nonce,
-        bytes memory signature
-    ) public {
-        bytes32 structHash = keccak256(
-            abi.encode(
-                PERMIT_TYPEHASH,
-                owner,
-                spender,
-                value,
-                deadline,
-                nonce
-            )
-        );
-        bytes32 hash = _hashTypedDataV4(structHash);
-        
-        address signer = ECDSA.recover(hash, signature);
-        require(signer == owner, "Invalid signature");
-        // ... execute the permit
-    }
-}
-```
-
-The `_hashTypedDataV4` function (from EIP712) adds the domain separator and the Ethereum prefix automatically. It's crucial that the structHash matches exactly between signer and verifier. The typeHash must be the same string. The field order must match.
-
-Let's compare eth_sign (raw) vs EIP-712 (typed):
-
-| Feature | eth_sign (raw) | EIP-712 (typed) |
-|---------|----------------|-----------------|
-| User sees | Hex blob | Human-readable fields |
-| Replay protection | Manual (chainId in signature) | Automatic via domain separator |
-| Struct collision safety | None | Type hashes prevent collisions |
-| Wallet support | Universal | Widely supported (MetaMask, etc.) |
-| Implementation complexity | Very simple | Moderate (need struct hashing) |
-| Use cases | Simple messages | Structured data, complex approvals |
-
-Real-world usage of EIP-712 is everywhere in DeFi. Uniswap v3 uses it for permits: users sign a Permit struct that allows the router to spend their tokens without an on-chain approval transaction. OpenSea uses it for orders: users sign a struct containing the NFT address, token ID, price, and buyer. DAI uses it for the DAI permit pattern. Any protocol that wants users to sign off-chain approvals should use EIP-712.
-
-The security benefits are substantial. With raw eth_sign, a user might approve an ERC-20 token spend, and the signature could be used for other purposes if the dApp is malicious. With EIP-712, the domain separator ensures the signature is only valid on the intended chain and for the intended contract. The type hash ensures the signature is bound to the exact struct layout. This prevents signature replay across applications and across chains (within the same chain ID). And most importantly, users see what they're signing.
-
-## Key Storage and Encryption: Protecting Your Private Keys
-
-We've talked a lot about how signatures work, but we haven't addressed the fundamental problem: where do you keep your private key? The private key must exist somewhere to sign transactions. But if you store it in plaintext on your computer, malware could steal it. If you write it on paper and lose it, your funds are gone forever. This is one of the hardest problems in cryptocurrency because cryptography only works if the private key remains secret. The key storage problem is about balancing convenience, security, and recoverability.
-
-Let's examine the various approaches.
-
-### Software Wallets and Key Files
-
-Many software wallets store your private key in an encrypted file on your computer. The most common format is the keystore file, a JSON structure that contains an encrypted version of your private key. The encryption process works as follows:
-
-1. Start with your private key (32 bytes).
-2. Derive an encryption key from your password using a Key Derivation Function (KDF). The KDF is deliberately slow and memory-hard to resist brute force attacks. Common choices are scrypt and PBKDF2.
-3. Use that derived key to encrypt the private key with AES-128-CTR symmetric encryption.
-4. Compute a MAC (Message Authentication Code) over the ciphertext to detect tampering.
-5. Store everything in a JSON file.
-
-Here's what a typical keystore JSON looks like:
-
-```json
-{
-  "address": " Your Ethereum address, e.g., 0x28ef56...",
-  "crypto": {
-    "cipher": "aes-128-ctr",
-    "ciphertext": "The encrypted private key as hex",
-    "cipherparams": {
-      "iv": "Initialization vector for CTR mode"
-    },
-    "kdf": "scrypt",
-    "kdfparams": {
-      "dklen": 32,
-      "n": 262144,
-      "p": 1,
-      "r": 8,
-      "salt": "Random salt for the KDF"
-    },
-    "mac": "MAC of ciphertext for integrity"
-  },
-  "id": "uuid for the file",
-  "version": 3
-}
-```
-
-The KDF parameters are crucial. The `n` parameter controls the number of iterations, making the derivation slow. Scrypt is memory-hard, meaning it requires a lot of RAM, which attacks GPUs or ASICs can't optimize as easily. A good implementation might take a second or two to derive the key on your computer but would be prohibitively slow for an attacker trying millions of password guesses. The salt is a random value that ensures the same password produces different derived keys, preventing rainbow table attacks.
-
-When you unlock your wallet, the software:
-1. Reads the keystore file.
-2. Asks for your password.
-3. Runs the KDF with the stored salt and parameters to derive the encryption key.
-4. Decrypts the ciphertext with AES-128-CTR.
-5. Verifies the MAC to ensure the ciphertext wasn't tampered with.
-6. Uses the decrypted bytes as your private key.
-
-If your password is weak, an attacker could brute force it by trying common passwords, dictionary words, or using a GPU to speed up KDF computations. That's why strong passwords matter: a 12-character random password is vastly more secure than "password123". The encryption is only as good as the password entropy.
-
-### HD Wallets (BIP-39 and BIP-44)
-
-Most modern wallets don't generate a single private key. They use a hierarchical deterministic (HD) wallet scheme defined in BIP-32, extended by BIP-39 and BIP-44. This system allows you to back up your wallet with just a set of English words, and from that seed you can generate an infinite number of private keys and addresses across many blockchains.
-
-Let's break it down.
-
-**BIP-39: Mnemonic Seed Phrases**
-
-First, the wallet generates random entropy: usually 128 bits (16 bytes) for a 12-word phrase, or 256 bits (32 bytes) for a 24-word phrase. The entropy is hashed and used to generate a checksum. The entropy plus checksum is split into chunks of 11 bits each, and each chunk indexes into a word list of 2048 carefully chosen English words. This produces a sequence of words that is both memorable and has enough entropy to be secure.
-
-The word list has words that avoid confusion: no two words sound alike or look alike (no "see" and "sea" for example). The mnemonic is designed so that a human can reliably write it down and later recover it accurately.
-
-The mnemonic phrase is then converted to a 512-bit seed using PBKDF2 with the mnemonic as the password and the string "mnemonic" plus an optional passphrase as the salt. The passphrase is an extra security layer: if someone steals your written-down 12 words but doesn't know your additional passphrase, they can't derive the seed. But if you lose the passphrase, your funds are lost forever. This is a tradeoff.
-
-Here's the mapping:
-
-| Entropy bits | Checksum bits | Total bits | Words | Security level |
-|--------------|---------------|------------|-------|----------------|
-| 128 | 4 | 132 | 12 | 128-bit security |
-| 256 | 8 | 264 | 24 | 256-bit security |
-
-The 12-word phrase gives 128 bits of entropy, which is already astronomically strong. The 24-word phrase is overkill for almost anyone but gives peace of mind.
-
-**BIP-44: Derivation Paths**
-
-From that seed, you derive a tree of keys using a hierarchical deterministic scheme. The derivation path is a slash-separated list of indices:
-
-`m / purpose' / coin_type' / account' / change / address_index`
-
-Each component is a number. The apostrophe indicates hardened derivation, which means the private key at that level cannot be derived from the public key alone (important for security).
-
-For Ethereum:
-- purpose = 44' (BIP-44 standard)
-- coin_type = 60' (Ethereum's registered coin type)
-- account = 0' or 1' etc. (you can have multiple accounts)
-- change = 0 for external addresses (receiving), 1 for internal addresses (change in transactions)
-- address_index = 0, 1, 2... (each generates a new address)
-
-So the first Ethereum address in the first account is m/44'/60'/0'/0/0.
-
-The derivation process uses elliptic curve point multiplication at each step, with different chain codes to separate the branches. The beauty is that you only need to store the master seed (the 12 or 24 words). From that, you can derive any address in any branch. Your wallet software does this automatically when you create a new address. And if you lose your device but recover the seed phrase on a new device, all your addresses reappear.
-
-This scheme is why you often see the same Ethereum address across multiple wallets when you restore from seed: they're all using the same derivation path.
-
-### Hardware Wallets
-
-A hardware wallet is a physical device, like a small USB stick or a dedicated gadget with a screen and buttons. Its sole purpose is to store your private keys (or seed phrase) and perform signing operations internally, never exposing the private key to the host computer. The device communicates with your computer over USB or Bluetooth, but the private key never leaves the secure element inside the hardware wallet.
-
-Here's how a hardware wallet works in practice:
-
-1. You connect the hardware wallet to your computer and open your wallet software (like MetaMask, Ledger Live, or Trezor Suite).
-2. The software sends an unsigned transaction to the hardware wallet.
-3. The hardware wallet displays the transaction details on its own screen. This is crucial: the screen is on the device, not your computer. So even if your computer is infected with malware that tries to trick you, you can see exactly what you're signing on the device's screen.
-4. You physically press buttons on the device to confirm or reject the transaction.
-5. If confirmed, the device signs the transaction internally using the private key and returns only the signature to the computer.
-6. The software broadcasts the signed transaction to the Ethereum network.
-
-The private key never leaves the device. Even if your computer is compromised, the attacker cannot extract the private key because it's stored in a tamper-resistant secure element. They might try to trick you into signing a malicious transaction, but you'd see the malicious details on the device's screen.
-
-Hardware wallets also support the BIP-39/BIP-44 HD wallet scheme. Your single seed phrase (12 or 24 words) can generate unlimited accounts and addresses across many blockchains. The seed phrase is generated by the device itself, so it's never exposed to the computer during setup.
-
-Popular hardware wallets include Ledger (Nano S, Nano X) and Trezor (Model T, One). Both follow similar principles but have different security models and software ecosystems.
-
-The analogy: a hardware wallet is like a safe deposit box that can sign checks. The private key is the checkbook, locked inside the box. You can't reach in and grab it. But you can hand the box a check to sign, and if the check looks correct (as shown on the box's display), you turn a key (press buttons), and the box signs it with its internal pen and returns it. The checkbook never leaves the box.
-
-### Security Best Practices
-
-Given the importance of key storage, here are some hard-won best practices:
-
-- Never share your seed phrase with anyone. Not support staff, not friends, not even family. Anyone with the seed phrase has complete control of your wallet. Legitimate services will never ask for your seed phrase.
-
-- Never type your seed phrase into a website. Phishing sites lure victims with fake wallet unlock pages. Store your seed phrase offline, on paper or metal, and only enter it into official wallet software you've verified.
-
-- Store seed phrases offline. Write them on paper or engrave on metal. Keep multiple copies in secure locations (like a safe). Take photos of your seed phrase? That's risky because your phone could be lost or hacked. A physical copy that's never connected to the internet is safest.
-
-- Use hardware wallets for significant amounts. If you have more than a few hundred dollars' worth of cryptocurrency, a hardware wallet is worth the investment. The cost of the device is tiny compared to the potential loss.
-
-- Consider Shamir secret sharing for very high net worth. Split your seed phrase into multiple shards that require, say, 3 out of 5 to reconstruct. Store shards in different geographic locations.
-
-- Use strong passwords for software wallets and encrypted key files. A weak password renders the encryption useless. Use a password manager to generate and store long, random passwords.
-
-- Keep your wallet software up to date. Security vulnerabilities are discovered and patched. Update regularly.
-
-- Be aware of the relationship: Seed phrase → master private key → derived private keys → public keys → addresses. If any link is compromised, the chain is broken. The seed phrase is the root. Protect it with your life.
-
-Let's visualize the full relationship with a table:
-
-| Item | What It Is | Where It Lives | Public or Secret? |
-|------|------------|----------------|-------------------|
-| Seed phrase | 12 or 24 English words | Written on paper/metal, or stored in your brain | Secret |
-| Master private key | Derived from seed, never exposed | Inside wallet software or hardware wallet | Secret |
-| Derived private key | Individual keys for each address | Wallet software derives them on the fly, may cache | Secret |
-| Public key | Point on curve, derived from private key | Can be computed anytime from private key, not stored | Public |
-| Ethereum address | Last 20 bytes of keccak(publicKey) | Shared with others to receive funds | Public |
-
-Notice that public keys and addresses are public by nature. Anyone can have them. The secrets are everything from the seed phrase down to the private keys. The wallet software manages all this complexity. The user's job is to secure the seed phrase.
-
-## Practical Examples and Use Cases
-
-Now let's see how these cryptographic tools come together in real-world scenarios. These examples show why signatures and Merkle proofs are essential for building useful applications on Ethereum.
-
-### Airdrops with Merkle Proofs
-
-A project wants to distribute tokens to 10,000 early supporters. Storing all 10,000 addresses in the contract would cost thousands of dollars in gas. Instead, they create a Merkle tree from the eligible addresses off-chain, compute the root hash, and store only that root in the contract. The contract has a function like this:
-
-```solidity
-bytes32 public merkleRoot;
-
-function claimTokens(bytes32[] memory merkleProof) public {
-    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-    require(MerkleProof.verify(merkleProof, merkleRoot, leaf), "Not eligible");
-    // Transfer tokens to msg.sender...
-}
-```
-
-When claiming, a user provides their address and a Merkle proof (which might be 10-15 hashes). The contract verifies the proof against the stored root. If valid, the claim succeeds. This pattern is used by almost every token airdrop because it's so much cheaper than storing a full list.
-
-### Multi-Signature Wallets
-
-A company wants a treasury that requires approval from 3 out of 5 directors before any funds move. This is a multi-signature wallet. The contract stores multiple authorized signer addresses and requires a threshold of signatures. Here's how it might work:
-
-```solidity
-address[] public signers;
-uint256 public requiredSignatures = 3;
-
-function executeTransaction(
-    address to,
-    uint256 value,
-    bytes calldata data,
-    bytes[] calldata signatures
-) public {
-    require(signatures.length >= requiredSignatures, "Insufficient signatures");
-    
-    bytes32 messageHash = keccak256(abi.encodePacked(to, value, data, nonce));
-    bytes32 signedMessageHash = ECDSA.toEthSignedMessageHash(messageHash);
-    
-    address[] memory recovered = new address[](signatures.length);
-    for (uint256 i = 0; i < signatures.length; i++) {
-        recovered[i] = ECDSA.recover(signedMessageHash, signatures[i]);
-    }
-    
-    // Check that we have enough unique signers
-    uint256 uniqueCount = countUnique(recovered);
-    require(uniqueCount >= requiredSignatures, "Not enough unique signers");
-    
-    // Ensure signers are authorized
-    for (uint256 i = 0; i < recovered.length; i++) {
-        require(isAuthorizedSigner(recovered[i]), "Unauthorized signer");
-    }
-    
-    // Execute the transaction
-    (bool success, ) = to.call{value: value}(data);
-    require(success, "Transaction failed");
-}
-```
-
-This contract collects multiple signatures on the same transaction data, recovers the addresses that signed, verifies they're authorized, and checks that enough unique signers approved. The `nonce` prevents replay attacks. This pattern allows shared control of funds without any single point of failure.
-
-### Governance Voting
-
-A decentralized autonomous organization (DAO) needs to let token holders vote on proposals. Each token holder's voting power is proportional to their token balance at a snapshot time. But having everyone vote on-chain would be prohibitively expensive. Instead, the DAO uses off-chain voting with on-chain tallying, or uses signatures to let participants submit votes efficiently:
-
-```solidity
-struct Proposal {
-    uint256 voteCount;
-    bytes32[] canceledVotes; // To prevent double voting
-}
-
-mapping(bytes32 => Proposal) public proposals; // Proposal ID to data
-
-function castVote(
-    bytes32 proposalId,
-    uint256 weight,
-    bytes memory signature
-) public {
-    // Create the message that was signed off-chain
-    bytes32 messageHash = keccak256(abi.encodePacked(msg.sender, proposalId, weight, nonce));
-    bytes32 signedHash = ECDSA.toEthSignedMessageHash(messageHash);
-    
-    address voter = ECDSA.recover(signedHash, signature);
-    require(voter == msg.sender, "Signature does not match caller");
-    
-    // Record the vote
-    proposals[proposalId].voteCount += weight;
-    
-    // Track that this voter's nonce was used to prevent replay
-    usedNonces[voter][nonce] = true;
-}
-```
-
-This approach keeps voting lightweight: voters sign their votes off-chain and submit only the signature and parameters. The contract verifies the signature, extracts the vote details, and tallies. This dramatically reduces gas costs compared to having each voter make a separate transaction with their vote directly.
-
-### NFT Whitelisting and Minting
-
-A popular NFT project wants to offer early access to a whitelisted community. They can use a Merkle tree to efficiently verify whitelist membership during the mint:
-
-```solidity
-bytes32 public merkleRoot;
-
-function mintWhitelisted(bytes32[] memory merkleProof) public {
-    bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-    require(MerkleProof.verify(merkleProof, merkleRoot, leaf), "Not whitelisted");
-    
-    require(!minted[msg.sender], "Already minted");
-    minted[msg.sender] = true;
-    
-    // Mint the NFT to the user
-    _safeMint(msg.sender, tokenId);
-}
-```
-
-Users provide their Merkle proof to prove they're on the whitelist. The contract verifies the proof quickly using only a few hash operations. This is much more efficient than storing thousands of booleans to track whitelist membership.
-
-### Smart Contract Wallet Verification
-
-A decentralized exchange needs to support both regular accounts and smart contract wallets for signing orders. Using the unified SignatureChecker approach:
-
-```solidity
-function verifyOrderSignature(
-    bytes32 orderHash,
-    bytes memory signature,
-    address expectedSigner
-) public view returns (bool) {
-    return SignatureChecker.isValidSignatureNow(
-        ECDSA.toEthSignedMessageHash(orderHash),
-        signature,
-        expectedSigner
-    );
-}
-```
-
-This single function works for any signer type. If the signer is a regular account, it uses ECDSA recovery. If the signer is a smart contract wallet, it calls the wallet's `isValidSignature` function. The `isValidSignatureNow` variant also checks that the signature wasn't created in the future, preventing certain replay attacks.
-
-### Cross-Chain Bridges
-
-When assets move between Ethereum and another chain, messages need to be signed and verified on both sides. The source chain produces a signed message that validators on the destination chain verify before releasing assets. These signatures often use multiple signer keys for security:
-
-```solidity
-function processBridgedMessage(
-    bytes32 message,
-    bytes[] memory signatures,
-    bytes32[] memory signerPublicKeys
-) public {
-    require(signatures.length == signerPublicKeys.length, "Mismatched arrays");
-    
-    uint256 validCount = 0;
-    for (uint256 i = 0; i < signatures.length; i++) {
-        if (ECDSA.recover(message, signatures[i]) == address(uint160(signerPublicKeys[i]))) {
-            validCount++;
-        }
-    }
-    
-    // Require threshold of valid signatures (e.g., 2 out of 3)
-    require(validCount >= requiredValidSignatures, "Insufficient valid signatures");
-    
-    // Process the bridged message...
-}
-```
-
-This batch verification pattern uses multiple independent signatures to control sensitive operations like bridge asset releases. The signers are typically a set of trusted validators, and the threshold prevents any single validator from misbehaving.
-
-## How It All Connects: The User Journey
-
-Let's trace what happens from the moment a user interacts with a dApp to the cryptographic verification on Ethereum. This end-to-end view shows how all the pieces work together.
-
-Imagine Alice wants to send 1 ETH to Bob using a popular wallet interface like MetaMask. Here's the complete flow:
-
-First, Alice enters the transaction details: Bob's address, amount 1 ETH, and clicks Send. Her wallet needs to create a valid transaction signature. The wallet constructs the transaction data, including the nonce (transaction count), gas price, gas limit, recipient address, amount, and optional data. This data structure is what Ethereum nodes understand as a transaction.
-
-The wallet takes this transaction data and feeds it into the signing algorithm. It uses Alice's private key, which is stored securely in her wallet (often encrypted and protected by a password or biometric). The wallet performs ECDSA signing with the secp256k1 curve, producing a signature composed of v, r, and s values. This signature is mathematically bound to both the transaction data and Alice's private key. The wallet attaches this signature to the transaction, creating a signed transaction ready for the network.
-
-The signed transaction then broadcasts to the Ethereum peer-to-peer network. Miners or validators (depending on whether it's proof-of-work or proof-of-stake) receive the transaction and begin processing it. Every node that receives this transaction will independently verify it before propagating it further or including it in a block.
-
-Now the verification begins. The node extracts the sender address from the transaction, the signature, and the transaction data. It reconstructs the message hash exactly as specified by Ethereum's signing standard. This reconstruction must be precise: the node must include all transaction fields in the exact order and format that Ethereum specifies. Any deviation would produce a different hash, and the verification would fail.
-
-The node then performs ECDSA recovery using the signature and the message hash. This mathematical operation yields the public key that corresponds to the private key that created the signature. From this public key, the node derives the Ethereum address. This recovered address should match the sender address field in the transaction. If they don't match, the transaction is immediately rejected as invalid.
-
-Assuming the addresses match, the node continues checking other transaction validity conditions: does Alice have enough balance? Is her nonce correct? Is the gas price sufficient? Are there any other contract-level restrictions? But the cryptographic signature check comes first: without a valid signature, the transaction never proceeds.
-
-If the signature passes verification and all other checks pass, the node accepts the transaction. It might propagate it to other peers, and eventually a miner or validator includes it in a block. When other nodes receive that block, they repeat the same verification process on every transaction in the block, ensuring only valid transactions make it into the blockchain.
-
-For smart contract wallets, the flow differs slightly. The transaction is actually a call to the wallet contract, which then contains its own signature verification logic. The wallet might check multiple signatures, verify timelocks, or consult governance before executing the user's intended action. The outer transaction still needs a signature from the wallet's own signing mechanism, but that's handled by the wallet's internal logic.
-
-For applications using Merkle proofs, like claiming an airdrop, the user obtains their Merkle proof from the project's website or API. This proof contains the sibling hashes needed to reconstruct the path from their leaf to the root. They submit this proof along with their claim transaction. The contract verifies the proof by hashing through the path and comparing to the stored root. If the proof is valid, the claim succeeds. The cryptographic verification here is Merkle proof validation rather than signature recovery, but it serves the same purpose: proving that something is true without requiring the full data to be on-chain.
-
-In all cases, the underlying principle is the same: cryptographic proof replaces trust. No one needs to trust that Alice is who she says she is. The mathematics guarantees that if the signature verifies, the corresponding private key authorized the action. The decentralized network collectively enforces these rules, making Ethereum a trustless system where verification is automatic and guaranteed by cryptography.
-
-## Glossary of Terms
-
-Let's collect and define all the technical terms we've encountered, organized alphabetically for easy reference.
-
-**Blockhash**: The hash of a block header at a particular block number. Ethereum provides access to recent block hashes, which can be used for randomness or as timestamps in cryptographic protocols.
-
-**Boolean**: A data type that can be either true or false. In storage packing, many booleans can be combined into a single slot to save space.
-
-**ECDSA (Elliptic Curve Digital Signature Algorithm)**: The digital signature algorithm used by Ethereum and Bitcoin. It creates signatures using elliptic curve mathematics with the secp256k1 curve.
-
-**ERC-1271**: A standard interface for smart contract wallets to verify signatures. Instead of using private key recovery, the wallet's `isValidSignature` function determines validity.
-
-**ERC-7913**: A standard for verifying signatures from keys that do not have Ethereum addresses, enabling support for traditional cryptographic keys.
-
-**ERC-7201**: A standard for namespaced storage that prevents collisions between different contracts or libraries using the same storage slots.
-
-**Gas**: The fee paid to execute operations on Ethereum. Storage operations, including packing and unpacking, consume gas. Efficient code saves gas.
-
-**Hash**: A mathematical function that takes input data of any size and produces a fixed-size output (e.g., 32 bytes). Hashes are deterministic: same input always produces same output. They're used to create unique fingerprints of data.
-
-**Keccak-256**: The specific hash function used by Ethereum. It's part of the SHA-3 family but with slight differences. It produces a 256-bit (32-byte) hash.
-
-**Key Pair**: A set of two cryptographic keys: a private key (kept secret) and a public key (shared). The private key can create signatures that the public key can verify, but the private key cannot be derived from the public key.
-
-**Merkle Tree**: A binary tree where each parent node is the hash of its children. The root hash represents the entire dataset. Merkle proofs allow efficient verification of membership without storing all data.
-
-**Merkle Proof**: A set of sibling hashes that, combined with a leaf, can reproduce the Merkle root. If the calculated root matches the expected root, the leaf is proven to be in the tree.
-
-**Nonce**: A number used once. In Ethereum, each transaction from an account has a unique nonce (transaction count). Reusing a nonce or using the wrong nonce makes a transaction invalid. Nonces also prevent signature reuse in off-chain signing.
-
-**PKCS#1 v1.5**: A padding scheme used with RSA signatures to add structure and prevent certain attacks. RSA signatures require this padding for security.
-
-**Precompile**: A special function built into the Ethereum Virtual Machine that performs complex operations efficiently. Signatures for ECDSA, P256, and other curves use precompiles for verification.
-
-**Private Key**: A secret number that proves ownership of an address. It must be kept safe because anyone with it can control the associated assets. Typically a random 256-bit number.
-
-**Public Key**: A point on an elliptic curve derived from the private key. It can verify signatures created by the private key. The Ethereum address is derived from the public key.
-
-**RIP-7212**: A precompile that adds support for verifying P256 (secp256r1) signatures in Ethereum. This enables interoperability with traditional PKI systems.
-
-**Secp256k1**: The elliptic curve used by Ethereum and Bitcoin. It has a 256-bit key size and special mathematical properties that make it efficient and secure.
-
-**Secp256r1 (P256)**: Another elliptic curve, standardized by NIST and widely used in TLS, passports, and other systems. RIP-7212 brings this curve to Ethereum.
-
-**Signature**: A value produced by signing data with a private key. It proves that the holder of the private key authorized the data without revealing the private key itself.
-
-**Signature Components (v, r, s)**: The three parts of an ECDSA signature. The r and s values are the mathematical signature. The v value indicates chain ID and helps recover the public key.
-
-**Smart Contract Wallet**: A wallet that is itself a smart contract deployed to an Ethereum address, rather than a simple account controlled by a private key. It can have custom logic for who can authorize transactions.
-
-**Solidity**: The primary programming language for Ethereum smart contracts. The code snippets shown above are written in Solidity.
-
-**Storage Slot**: A 32-byte chunk of persistent storage in Ethereum. Contracts store state variables in these slots. Packing multiple variables into one slot reduces storage costs.
-
-**Timestamp**: The time when a block is mined, recorded in the block header. Contracts can access `block.timestamp` to enforce time-based conditions.
-
-**Transaction**: An operation that changes the state of Ethereum. Transactions must be signed by the sender's private key to be valid.
-
-**Unchecked**: A Solidity keyword that disables automatic overflow checking. Used in math libraries where overflow is handled manually.
-
-**Verify**: The process of checking that a signature or proof is valid. Verification uses public information (message, signature, public key or root) and does not require the private key.
-
-## Extending the Foundations: More Depth and Analogies
-
-Let's deepen our understanding with additional analogies and explanations of core concepts.
-
-### The Magic of Public Key Cryptography
-
-The foundation of everything we've discussed is public key cryptography. Let's build intuition for how it works. Think of a special type of box that has two locks: a red lock and a blue lock. Anyone can close the box with the blue lock, but only the person with the red key can open it. If Alice wants to send a secret message to Bob, she puts her message in the box, closes it with Bob's blue lock, and sends it. Only Bob has the red key that can open that blue lock, so only Bob can read the message. This is encryption.
-
-But signatures work differently. Imagine instead a special type of red wax seal. Alice has a unique stamp that only she possesses. When she wants to sign a document, she melts her special red wax and presses her stamp into it, creating a unique imprint. Anyone can look at that imprint and see that it matches Alice's stamp pattern, and they can verify that the wax was applied to that specific document. The stamp itself never leaves Alice's possession, but the resulting seal can be widely verified. This is the essence of digital signatures: private key creates, public key verifies.
-
-The elliptic curve mathematics is just the technical implementation of this idea. The private key is a number that selects a specific point on the elliptic curve. The public key is another point calculated from it. The signature is a proof of knowledge of the private key that doesn't reveal it. The hardness of the elliptic curve discrete logarithm problem ensures that knowing the public point doesn't let anyone calculate the private number.
-
-### Why Different Curves?
-
-You might wonder: if elliptic curves work, why have different ones? Think of curves like different brands of locks. Some locks are designed for specific applications. The secp256k1 curve was chosen for Bitcoin and Ethereum partly because it had some properties that made efficient implementation possible and because it wasn't controlled by US standards bodies (though this is less of a concern today). Secp256r1 (P256) is a NIST standard, widely supported in hardware security modules, operating systems, and browsers. RSA is a completely different mechanism.
-
-From a practical standpoint, interoperability matters. If your company uses Yubikeys that implement P256 for signing, you'd want to be able to verify those signatures on Ethereum without asking users to generate new keys. Having multiple curve support in Ethereum widens the ecosystem and makes bridging between Web2 and Web3 easier.
-
-### The Importance of the Message Prefix
-
-The Ethereum signed message prefix is more than a formality. Without it, signatures could be reused across different contexts, a problem called "signature malleability" or "signature confusion." Let's illustrate why this matters.
-
-Imagine your wallet signs a message saying "I authorize 1 ETH to be sent to Bob." Without the prefix, that signature might also be interpreted by a malicious contract as authorization to do something else entirely, like "I approve spending my entire balance." The prefix binds the signature to Ethereum's message format, ensuring it can't be misinterpreted as a transaction signature or as authorization for another contract.
-
-The prefix also includes the message length, which prevents an attacker from extending a short message into a longer one that produces a different hash but somehow reuses the signature. The hash computation includes the explicit length, so changing the length changes the hash completely.
-
-### Batch Verification: Efficiency at Scale
-
-When you have many signatures to verify, say 100 signatures in a multisig transaction, verifying each one individually would be expensive. Batch verification techniques can verify many signatures together in a single operation, often faster than the sum of individual verifications. OpenZeppelin's batch verification functions exploit mathematical properties to combine verification equations.
-
-Think of batch verification like checking multiple signatures on a petition all at once rather than one by one. The mathematics allows you to combine the equations so that you essentially check a weighted sum of all signatures simultaneously. If the combined equation holds, then all individual signatures are valid. If any one is invalid, the combined check fails.
-
-This isn't just about speed; it's also about gas costs. Each individual signature verification consumes gas. A batch verification that checks 10 signatures might cost nearly the same as 2 or 3 individual verifications, saving significant gas on-chain.
-
-### The Programming Interface: Solidity Libraries
-
-OpenZeppelin's libraries are written in Solidity and can be imported into your contracts. When you use `using ECDSA for bytes;`, you're attaching functions to the `bytes` type so you can write `signature.toEthSignedMessageHash()` instead of a more verbose function call. This pattern makes code cleaner.
-
-Important: these libraries are often called as `internal` or `pure` functions, meaning they execute entirely within your contract's context and don't make external calls (except when verifying contract wallets via `staticcall`). This keeps gas costs predictable and avoids reliance on external contracts that might change.
-
-### Storage Patterns
-
-The storage utilities address a common pain point: Solidity automatically packs variables only when they are declared sequentially in the contract. If you have gap between variables, or if you're adding to an existing contract, you need manual packing. The `StorageSlot` library lets you read and write arbitrary slot contents, giving you fine-grained control.
-
-The namespaced storage standard (ERC-7201) is crucial for libraries that need their own persistent storage without conflicting with the main contract's variables. It uses a deterministic slot calculation: `slot = keccak256("namespace")`. This means any contract using the same namespace will access the same slot, but different namespaces won't collide. Libraries can define their own namespace and safely store their state.
-
-## Security Considerations Revisited
-
-We've touched on security, but let's reinforce with specific advice based on OpenZeppelin's best practices.
-
-Never implement cryptographic primitives yourself. Even if you understand elliptic curve mathematics, implementing ECDSA correctly requires handling many edge cases: hash malleability, signature validation, recovery of public keys, handling the v value correctly across chain IDs, precomputation attacks, and more. The OpenZeppelin libraries have been audited and used in thousands of contracts. Using them is non-negotiable for production code.
-
-Always use the Ethereum signed message prefix when verifying off-chain signatures. If a user signs a message off-chain (not a transaction) and you verify it on-chain, you must reconstruct the prefixed hash. OpenZeppelin's `toEthSignedMessageHash` does this correctly. Never hash the raw message directly.
-
-Be aware of signature malleability. A valid signature might have multiple representations (different but mathematically equivalent r, s values). Some bugs arose from treating a signature as unique when it wasn't. OpenZeppelin's recovery functions normalize signatures internally to handle this.
-
-For smart contract wallets, always use the ERC-1271 interface and its expected return value (`0x1626ba7e`). Don't just call an arbitrary function and assume success. Check the return data matches the specification. Also be aware of forward compatibility: future wallet implementations might return different values for certain edge cases.
-
-When using Merkle trees, ensure the leaf encoding matches between off-chain tree construction and on-chain verification. A common mistake is to encode the leaf differently (different abi.encodePacked ordering or different hashing order), causing valid proofs to fail. Standardize on a single method.
-
-For storage packing, be mindful of the storage layout. If you manually pack into slots that Solidity also uses for state variables, you'll cause collisions that corrupt data. Use a consistent layout where you know exactly which slot holds what. Using namespaced storage via ERC-7201 helps segregate packed data from regular variables.
-
-Finally, remember that cryptography only protects what it's designed to protect. A signature proves that a specific private key signed specific data. It doesn't guarantee that the signer intended to sign that data in good faith (they might have been tricked). It doesn't protect against phishing where users sign malicious transactions thinking they're doing something else. It doesn't help if the private key itself is compromised. Cryptography is a tool; using it wisely requires broader security thinking.
-
-## BLS Signatures: Aggregating Signatures on the Beacon Chain
-
-Ethereum's transition to proof-of-stake introduced a new cryptographic player to the ecosystem: BLS signatures. While regular Ethereum transactions still use ECDSA, the consensus layer, known as the beacon chain, relies heavily on BLS signatures. This section explores what makes BLS special and why it's essential for Ethereum's scalability.
-
-### What Is BLS and Why Does It Exist
-
-BLS stands for Boneh-Lynn-Shacham, named after the three cryptographers who invented it. At its core, BLS is a digital signature scheme just like ECDSA, but it has a unique superpower: signature aggregation. To understand why this matters, we need to first understand the difference between how BLS and ECDSA work mathematically.
-
-Imagine you have a locked treasure chest. With ECDSA, each signature is like a unique key that opens the chest, but you need to check each key individually. If you have 100 keys, you must try each one separately. With BLS, all those keys can be combined mathematically into a single master key. You check that one master key, and if it works, you know all 100 original keys were valid. This aggregation is the game-changing feature.
-
-The mathematical difference lies in how the signature is generated and verified. ECDSA signatures consist of two numbers (r and s) that are derived from the private key and the message. The verification process involves elliptic curve point multiplication and checking equations. BLS signatures, on the other hand, are points on a pairing-friendly elliptic curve. The signature is a single point on the curve, and verification uses a mathematical operation called a pairing, which can check multiple signatures simultaneously.
-
-This pairing operation is the magic. It allows what's called "linear combination": you can add multiple signatures together (in a cryptographically secure way) to create an aggregate signature. The verification equation for the aggregate signature holds if and only if all individual signatures were valid. You don't need to check each one separately.
-
-### Why Ethereum's Beacon Chain Chose BLS
-
-The beacon chain is Ethereum's consensus layer, responsible for organizing validators, assigning tasks, and finalizing blocks. Validators are the participants who stake 32 ETH each to secure the network. As of 2024, there are over 900,000 validators. Each validator needs to sign various messages: attestations about block validity, block proposals, slashings, and more.
-
-If Ethereum used ECDSA for all these signatures, the verification burden would be astronomical. Every node would need to verify potentially hundreds of thousands of individual signatures for each block. The storage and computation costs would be prohibitive. BLS aggregation solves this elegantly.
-
-Here's how it works in practice: When validators produce their individual signatures on a message (like an attestation), these signatures can be combined into a single aggregate signature. Instead of storing and verifying 100,000 separate signatures, the network stores and verifies one. The aggregation happens in layers: signatures are first aggregated within committees, then further aggregated at the block level. The final block contains just a handful of aggregate signatures, not individual ones.
-
-The impact cannot be overstated. Without BLS aggregation, Ethereum's proof-of-stake consensus would be impractical at scale. The beacon chain could support only a few thousand validators before verification overhead became unmanageable. With BLS, it can support hundreds of thousands, and potentially millions, of validators. More validators mean more decentralization, better security, and a healthier network.
-
-### BLS vs ECDSA: A Detailed Comparison
-
-Let's compare the two signature schemes across important dimensions:
-
-| Feature | ECDSA (secp256k1) | BLS (BLS12-381) |
-|---------|-------------------|-----------------|
-| Signature size | 65 bytes (r, s, v) | 96 bytes (single point on curve) |
-| Individual verification speed | Very fast (~3000 gas on EVM) | Slower (~400,000 gas for pairing) |
-| Aggregation capability | No (each signature independent) | Yes (many signatures into one) |
-| Aggregate verification cost | N × individual cost | Roughly same as single verification |
-| Deterministic signatures | Yes (RFC 6979) | Yes (hash-to-curve) |
-| Key structure | Single public key | Single public key |
-| Use case on Ethereum | Transaction signatures, EOAs | Consensus signatures, beacon chain |
-| Malleability | Can be malleable (needs care) | Non-malleable by design |
-| Pairing required | No | Yes (for verification) |
-
-The table reveals the tradeoff: BLS is much slower to verify a single signature compared to ECDSA. But that individual speed is misleading because the real advantage is aggregation. When you have 100,000 validators, verifying 100,000 ECDSA signatures would cost hundreds of millions of gas. Verifying one aggregated BLS signature costs about the same as verifying one BLS signature individually. The aggregation makes BLS vastly more efficient at scale.
-
-### The BLS12-381 Curve
-
-BLS signatures require a special type of elliptic curve called a "pairing-friendly" curve. Not all curves support the pairing operations needed for BLS. Ethereum uses BLS12-381, which is part of the BLS12 family of curves.
-
-The "12" in BLS12-381 refers to the embedding degree: a mathematical property that determines how efficiently pairings can be computed. The "381" refers to the size of the field (prime modulus) in bits. This curve provides about 128 bits of security, which is considered strong enough for the foreseeable future.
-
-BLS12-381 was chosen after extensive discussion in the Ethereum research community. It's a safe curve that resists known attacks, has efficient pairing implementations, and produces reasonably sized signatures (96 bytes). Earlier proposals used BLS12-377 or other curves, but BLS12-381 struck the right balance.
-
-### Signature Aggregation: How It Works
-
-Let's explore the aggregation concept with a concrete example. Suppose the beacon chain needs validators to sign an attestation message. Each validator has a private key `sk_i` and a public key `pk_i`. They all sign the same message `M`. The individual signatures are `σ_i = Sign(sk_i, M)`.
-
-To aggregate, you compute:
-
-```
-σ_agg = σ_1 + σ_2 + ... + σ_n
-```
-
-That's it. You simply add the signature points together on the elliptic curve. This addition is a well-defined operation on points. The resulting `σ_agg` is a valid signature for the same message `M`, but now it represents all `n` signers collectively.
-
-The aggregate public key is computed similarly:
-
-```
-PK_agg = pk_1 + pk_2 + ... + pk_n
-```
-
-The verification equation checks that `σ_agg` is a valid signature from `PK_agg` on message `M`. If the equation holds, it mathematically guarantees that each individual `σ_i` was a valid signature from `pk_i` on `M`. The beauty is that the verifier doesn't need to know any of the individual public keys or signatures. The single aggregate signature and aggregate public key suffice.
-
-This property is called " aggregatable" or "linear" signatures, and it's rare. Most signature schemes, including ECDSA, are not linear and cannot be combined this way.
-
-### Conceptual Code Example
-
-Here's some pseudocode that demonstrates the aggregation idea:
+Let me walk you through `prepare.py` line by line, explaining what each part does in simple terms. This file is like the kitchen setup before cooking begins.
 
 ```python
-# Simplified BLS aggregation concept
+"""
+One-time data preparation for autoresearch experiments.
+Downloads data shards and trains a BPE tokenizer.
 
-class BLSKeyPair:
-    def __init__(self, private_key):
-        self.private_key = private_key
-        self.public_key = multiply_generator(private_key)  # Point on curve
-    
-    def sign(self, message):
-        # Hash message to a point on the curve
-        message_point = hash_to_curve(message)
-        # Signature is private_key * message_point
-        signature = multiply_point(self.private_key, message_point)
-        return signature
-    
-    def verify(self, message, signature):
-        # Check that e(signature, generator) == e(hash_to_curve(message), public_key)
-        # where e is the pairing function
-        lhs = pairing(signature, generator)
-        rhs = pairing(hash_to_curve(message), self.public_key)
-        return lhs == rhs
-    
-def aggregate_signatures(signatures):
-    # Simply add all signature points together
-    aggregate = signatures[0]
-    for sig in signatures[1:]:
-        aggregate = add_points(aggregate, sig)
-    return aggregate
+Usage:
+    python prepare.py                  # full prep (download + tokenizer)
+    python prepare.py --num-shards 8   # download only 8 shards (for testing)
 
-def aggregate_public_keys(public_keys):
-    # Add all public key points together
-    aggregate = public_keys[0]
-    for pk in public_keys[1:]:
-        aggregate = add_points(aggregate, pk)
-    return aggregate
-
-# Example: 3 validators sign the same message
-validators = [BLSKeyPair(sk) for sk in [secret1, secret2, secret3]]
-message = "attestation for block 12345"
-
-individual_signatures = [v.sign(message) for v in validators]
-aggregate_sig = aggregate_signatures(individual_signatures)
-
-individual_pubkeys = [v.public_key for v in validators]
-aggregate_pk = aggregate_public_keys(individual_pubkeys)
-
-# Verifier only needs aggregate_sig, aggregate_pk, and message
-is_valid = verify_aggregate(message, aggregate_sig, aggregate_pk)
-# Returns True if all 3 signatures were valid
+Data and tokenizer are stored in ~/.cache/autoresearch/.
+"""
 ```
 
-Of course, real implementations use optimized pairing libraries and handle many details (like hash-to-curve, signature normalization, and proof of knowledge), but the core concept is additive aggregation.
-
-### The Beacon Chain in Practice
-
-In Ethereum's beacon chain, aggregation happens at multiple levels:
-
-1. Within a committee of 128 validators assigned to a slot, attestations are aggregated into a single signature.
-2. At the block level, multiple aggregated attestation signatures are further aggregated or batched.
-3. Block proposals and other consensus messages also use aggregation.
-
-The result is that a typical beacon block contains only a few aggregate signatures rather than thousands of individual ones. This dramatically reduces the data that must be stored, transmitted, and verified by all nodes.
-
-Aggregation also benefits light clients and stateless verification. A node that wants to verify the chain doesn't need to store all individual validator public keys. It can work with the aggregate public keys and a smaller set of data.
-
-### Tradeoffs and Challenges
-
-BLS is not without drawbacks:
-
-- Slower individual verification: Pairing operations are computationally expensive compared to ECDSA's elliptic curve operations.
-- More complex implementation: Pairing-based cryptography requires careful implementation to avoid vulnerabilities.
-- Larger public keys and signatures: 96 bytes for BLS vs 33/65 bytes for compressed/uncompressed ECDSA.
-- Fewer implementations: ECDSA is decades old with battle-tested libraries. BLS12-381 implementations are newer.
-- Transition complexity: Ethereum's execution layer still uses ECDSA. Having two crypto systems increases code complexity.
-
-But these tradeoffs are worth it for the aggregation capability. The beacon chain could not function at scale without BLS.
-
-### Summary
-
-BLS signatures are a cornerstone of Ethereum's consensus mechanism. Their ability to aggregate thousands of validator signatures into a single signature is what makes the beacon chain's high validator count feasible. Without aggregation, the overhead of verifying so many signatures would overwhelm the network. BLS12-381 provides the right balance of security, efficiency, and signature size. While ECDSA remains essential for transaction signing, BLS enables the scalable, decentralized consensus that underpins Ethereum's proof-of-stake design. The pairing mathematics that make aggregation possible are complex, but the benefits are concrete: hundreds of thousands of validators, reduced bandwidth and storage requirements, and a more secure network.
-
-## Verkle Trees: The Next Generation of Ethereum's State Storage
-
-Ethereum's state, the complete set of accounts, balances, contract storage, and code, must be stored and verified efficiently. Currently, Ethereum uses a data structure called the Merkle Patricia Trie. But as the state grows, now exceeding 100 gigabytes, this structure is becoming a bottleneck. Verkle trees promise to revolutionize how Ethereum stores and proves its state. Let's explore what Verkle trees are, how they differ from current technology, and why they matter for Ethereum's future.
-
-### The Problem with Ethereum's Current State Structure
-
-Ethereum's state is organized as a Merkle Patricia Trie. Think of it as a sophisticated dictionary that maps keys (like account addresses or storage slots) to values (account data or contract storage). The trie is a tree structure where each node represents a part of the key. The root hash of the trie is stored in each block header, allowing anyone to verify that they have the correct state.
-
-But the Merkle Patricia Trie has some drawbacks as the state grows:
-
-- It stores many intermediate nodes that are necessary for building proofs but don't contain meaningful data themselves.
-- Each node is hashed independently, and the hash algorithm requires a separate operation for each node.
-- Proofs (witnesses) that show a particular piece of data is in the state can be quite large. A proof for a single account or storage slot might require dozens of hash operations and many intermediate node values.
-- Light clients and stateless nodes need these proofs to verify state transitions without storing the entire state. Large proofs mean more data to download and verify.
-- New nodes syncing to Ethereum must download and verify the entire state, which is becoming increasingly burdensome.
-
-The fundamental issue is that each node in the Merkle Patricia Trie is essentially a hash of its children. To prove that a particular leaf exists, you must reveal all the sibling branches along the path, and the verifier must recompute all the hashes. The proof size is proportional to the tree depth, which is logarithmic in the number of entries, but the constants are significant.
-
-### What Are Verkle Trees
-
-Verkle trees are a new type of cryptographic commitment scheme that aims to replace Merkle Patricia Tries. The name "Verkle" combines "vector" and "Merkle" because it uses vector commitments instead of simple hashes.
-
-The key innovation is the use of polynomial commitments. Instead of hashing child nodes to get parent nodes, Verkle trees use polynomial evaluation techniques. A polynomial commitment allows you to commit to a polynomial (which can represent an array of values) with a single value, and later prove that a particular evaluation is correct without revealing the entire polynomial.
-
-Here's the simplest explanation: think of a polynomial as a mathematical function like `y = x^2 + 2x + 1`. If you commit to this polynomial (by evaluating it at a secret point and keeping that value hidden), you can later prove that `f(2) = 9` without revealing what the polynomial actually is. The proof is much smaller than sending the entire polynomial.
-
-Verkle trees apply this idea to trees. Each node commits to its children using a polynomial commitment rather than a hash. These commitments are "homomorphic," meaning you can combine them in clever ways to create a single root commitment that represents the whole tree.
-
-### The Magic of Smaller Proofs
-
-The main advantage of Verkle trees is dramatically smaller proofs. For a Merkle Patricia Trie, a proof that shows a particular key exists might require 20-30 nodes or more, each 32 bytes, plus the leaf data. That's maybe 600-1000 bytes.
-
-A Verkle tree proof for the same data might be just 200-300 bytes, or even less. The exact size depends on the tree parameters, but it's typically 3-5 times smaller. How is this possible?
-
-The reduction comes from two sources:
-
-1. Vector commitments can prove multiple children at once. A Merkle tree node has to reveal separate hashes for each branch. A Verkle node can reveal a single commitment that proves all children simultaneously.
-2. The proof structure is more efficient. You don't need to reveal every intermediate node; instead, you provide a small set of evaluation queries that the verifier can check against the root commitment.
-
-For light clients that need to verify many different state accesses, these smaller proofs matter enormously. Less data to download, less computation to verify, lower latency. This makes stateless Ethereum, where nodes verify blocks without storing the entire state, much more practical.
-
-### Understanding Witnesses and Proofs
-
-In the context of Verkle trees, a "witness" or "proof" is the extra data needed to convince someone that a particular key-value pair exists in the tree. Let's be concrete.
-
-Suppose you want to prove to someone that account 0x742d35... has a balance of 100 ETH and a nonce of 42, without showing them the entire state. The tree has a root commitment stored on-chain. You provide:
-
-- The key and value you're claiming (address, balance, nonce)
-- A Verkle proof that this key-value pair is correctly included in the tree
-
-The verifier uses the root commitment and your proof to check everything. If the proof is valid, the verifier is convinced that the state root would not be what it is unless your claim is true.
-
-The proof consists of polynomial evaluations at certain points. The prover has the full tree data. For each node along the path to your leaf, the prover needs to provide enough information to convince the verifier that the node's children are correct. This involves computing the polynomial that represents those children, evaluating it at some points, and providing the evaluations. The verifier can check these evaluations against the parent commitment.
-
-The mathematical details involve finite fields, commitment schemes like Kate commitments (using trusted setup), or alternatives like bulletproofs (without trusted setup). But the intuition is: you can commit to a large set of values with a single number, and a small proof can show that one particular value in that set has a certain property.
-
-### Stateless Clients and the Future
-
-The smaller proof sizes make "stateless clients" much more feasible. A stateless client is a node that does not store the entire Ethereum state. Instead, it stores only the state root and verifies each block by requesting proofs for any state accesses that block contains. The block itself would ideally contain all necessary proofs (this is called "prover-friendly" block design).
-
-With Verkle trees, the block proposer would need to generate the Verkle proofs for all state modifications in the block. These proofs would be included in the block or available alongside it. A stateless node receiving the block can verify the state transition by:
-
-1. Starting with the previous state root.
-2. Verifying the proofs for all accessed state entries.
-3. Applying the changes to produce the new state root.
-4. Checking that the new state root matches what's in the block header.
-
-If all proofs are valid and the root matches, the block is valid. The node never needed to store the full state; it just needed to verify the proofs.
-
-This architecture would greatly reduce the hardware requirements for running an Ethereum node. Instead of needing hundreds of gigabytes of fast storage, you could run a node with minimal storage and just enough memory to verify proofs. This would increase decentralization by enabling more people to run nodes.
-
-### EIP-6800 and the Roadmap
-
-Verkle trees are being introduced through EIP-6800 (and related EIPs). The implementation is complex and will happen in phases:
-
-1. State conversion: Existing Merkle Patricia Trie state must be converted to Verkle format. This is a one-time operation that will take significant time and gas. The plan is to do it gradually as state is modified, using a hybrid approach where both data structures coexist for a while.
-2. Execution layer changes: The EVM and consensus rules will need to understand Verkle roots and proofs. The block structure will change to accommodate Verkle proofs instead of Merkle Patricia nodes.
-3. Client updates: All execution and consensus clients (Geth, Nethermind, Besu, Prysm, Lighthouse, etc.) must implement Verkle tree logic.
-4. Rollout: The network will switch to Verkle trees at a predetermined block, once clients are ready and the state conversion is sufficiently complete.
-
-The Ethereum core developers are actively working on this, but there is no firm timeline yet. It's a major upgrade that requires extensive testing.
-
-### Verkle Trees vs Merkle Patricia Tries: Comparison
-
-Let's compare the two approaches:
-
-| Characteristic | Merkle Patricia Trie | Verkle Tree |
-|-----------------|----------------------|-------------|
-| Underlying cryptography | Cryptographic hash (Keccak-256) | Polynomial commitment (e.g., Kate, bulletproofs) |
-| Node representation | Hash of RLP-encoded children | Commitment to polynomial of children |
-| Proof size | Medium to large (500-1500 bytes) | Small (200-400 bytes) |
-| Number of hash operations for verification | Many (one per node) | Few (polynomial evaluations) |
-| Verification cost | Moderate | Low |
-| Stateless support | Possible but heavy | Practical and efficient |
-| Trusted setup required | No | Possibly (depending on commitment scheme) |
-| Current status | Live on Ethereum mainnet | Research, EIP stage, not deployed |
-| State size overhead | Moderate | Similar or slightly larger due to commitment values |
-| Transition complexity | N/A | High (must convert existing state) |
-
-The table shows Verkle trees' advantages in proof size and verification cost. The main downside is the transition complexity: Ethereum has years of state that must be converted. The Merkle Patricia Trie works well enough for now, albeit with growing pains.
-
-### Polynomial Commitments Explained
-
-The concept of polynomial commitments is central to Verkle trees. Let's build an intuitive understanding.
-
-Imagine you have a polynomial `P(x) = x^2 + 3x + 5`. This polynomial can be evaluated at any point: `P(1) = 1 + 3 + 5 = 9; P(2) = 4 + 6 + 5 = 15`. The polynomial implicitly defines an infinite sequence of values: at every integer, every rational number, every element of a finite field.
-
-A commitment scheme lets you take that polynomial and commit to it in a way that:
-- The commitment is a fixed-size value (like a hash).
-- You can later prove that `P(a) = b` for any specific a and b, without revealing the polynomial itself.
-- The proof is small.
-- It's binding: once you commit, you can't change the polynomial.
-- It's hiding: the commitment doesn't reveal the polynomial (though for Verkle, we often use commitments that reveal some structure, which is okay because the children are public anyway).
-
-One simple (but inefficient) commitment is just the list of coefficients. But that's large. A polynomial commitment like the Kate commitment uses elliptic curves and pairings. The idea: evaluate the polynomial at a secret point `s` known only to a trusted setup, and multiply by a generator point: `Commitment = P(s) * G`. Because `s` is secret, you can't derive the polynomial from the commitment.
-
-Later, to prove that `P(a) = b`, you provide the quotient polynomial `Q(x) = (P(x) - b) / (x - a)` and evaluate it at `s`: `Q(s) * G`. The verifier can check an equation involving the commitment, this evaluation, and a precomputed value `(s - a) * G`. This works because of the polynomial identity: if `P(a) = b`, then `(x - a)` divides `(P(x) - b)` evenly, so `Q(x)` is a polynomial. If `P(a) ≠ b`, no such polynomial exists.
-
-The trusted setup creates the secret `s` and the corresponding generator points. Everyone must trust that the secret was destroyed after setup. This is similar to ZK-SNARK trusted setups, though some polynomial commitment schemes like bulletproofs avoid trusted setup at the cost of slightly larger proofs.
-
-In Verkle trees, each node's children are thought of as the coefficients of a polynomial. The node commitment is the polynomial commitment. To prove a child at index `i` has a certain value, you show that evaluating the polynomial at `i` gives that value. Because you can combine commitments, you can aggregate proofs for multiple children efficiently.
-
-### Visualizing the Difference
-
-Let's sketch a simple tree with 4 leaves to show the structural difference. We'll use text art.
-
-**Merkle Patricia Trie (simplified)**
-
-```
-    Root Hash = H(H(A,B), H(C,D))
-       /        \
-    H(A,B)     H(C,D)
-    /   \      /   \
-  A     B    C     D
-```
-
-Each node stores a hash of its children. To prove leaf A exists, you need to provide B, H(C,D), and the root hash? Actually you'd need the sibling at each level: B and H(C,D). The verifier hashes A and B to get H(A,B), then hashes that with H(C,D) to get root.
-
-**Verkle Tree (simplified)**
-
-```
-    Root Commitment = Commit([A,B,C,D] as polynomial)
-         |
-    Node Commitment = Commit([A,B])
-         |
-    Leaf values: A, B, C, D
-```
-
-In a Verkle tree, the root is a commitment to all leaf values, typically as coefficients of a polynomial evaluated at successive indices. The node at the first level might commit to subsets. To prove leaf A is at position 0, you provide A itself plus some evaluations that prove the polynomial committed to by the root evaluates to A at 0.
-
-The proof is smaller because you're not sending entire hashes of sibling subtrees; you're sending just the evaluations needed to check consistency.
-
-### Real-World Impact on Ethereum
-
-If Ethereum adopts Verkle trees, the effects will be felt by everyone:
-
-- **Light clients and wallets**: They can sync much faster and with less data. Verkle proofs could be a few hundred bytes vs thousands. This improves decentralization.
-- **Stateless execution**: The vision of nodes that hold no state but verify everything via proofs becomes practical. This could radically lower the barrier to running a node.
-- **State providers and services**: Companies that index Ethereum state (like Alchemy, Infura) would need less storage and bandwidth. They could serve state proofs efficiently.
-- **DApp developers**: Some patterns like state channels or layer-2 systems that rely on state proofs become cheaper and easier.
-- **Network bandwidth**: Less data to propagate when syncing new nodes or serving light client requests.
-- **Security**: Smaller proofs mean less surface for attacks on proof verification code. But new crypto means new potential bugs, so caution is warranted.
-
-### Implementation Challenges
-
-Transitioning to Verkle trees is not trivial:
-
-- **State migration**: Ethereum has over 100 GB of state. Converting it to Verkle format requires rewriting the entire database. This will be done gradually as state keys are accessed, but still a massive operation.
-- **Client complexity**: All execution clients must implement both Merkle Patricia Trie and Verkle tree logic for a transition period, doubling the code surface and testing burden.
-- **EVM changes**: The EVM's state access opcodes (SLOAD, SSTORE) remain the same from a developer perspective, but the underlying storage layout changes. Some gas costs might need adjustment.
-- **Ecosystem adaptation**: Indexers, explorers, wallet providers, and other tools must update their code to understand Verkle proofs.
-- **Cryptographic risk**: Polynomial commitments are newer than hashes. While they've been studied extensively, there's less real-world battle testing compared to SHA-256/Kecak. A flaw could be catastrophic.
-
-Despite these challenges, the long-term benefits are compelling. Ethereum needs to maintain its decentralization as state grows. Verkle trees appear to be the most promising path forward.
-
-### Summary
-
-Verkle trees represent a major evolution in how Ethereum stores and proves its state. By replacing hash-based Merkle nodes with polynomial commitments, Verkle trees achieve significantly smaller proof sizes and more efficient verification. This makes stateless clients practical and lightens the burden of running a node. The transition, codified in EIP-6800, will be complex and take years, but it's necessary for Ethereum's long-term viability. The core idea, using homomorphic vector commitments instead of hashes, opens the door to a more scalable, decentralized network where anyone can verify Ethereum's state without downloading hundreds of gigabytes. While Merkle Patricia Tries have served Ethereum well, Verkle trees are the next step in the blockchain's cryptographic evolution.
-
-## Zero-Knowledge Proofs: Proving Without Revealing
-
-Zero-knowledge proofs are one of the most astonishing cryptographic inventions. They allow you to prove you know something or that some statement is true, without revealing any information beyond the fact that it's true. This concept seems like magic, but it's based on solid mathematics. Zero-knowledge proofs, often abbreviated as ZKPs, are becoming increasingly important for Ethereum, enabling privacy and scalability solutions that were previously impossible.
-
-### The Core Concept: Magic Knowledge
-
-Let's start with a classic analogy that captures the essence of zero-knowledge proofs. Imagine your friend is color-blind. You have two balls that are identical in shape and size but different colors: one red, one green. To your friend, they look exactly the same. You want to prove to your friend that the balls are actually different colors, without revealing which is red and which is green. How can you do this?
-
-Here's the protocol: Your friend takes the balls behind their back and either swaps them or not. Then they bring them back and ask you: did I swap them? If you can tell correctly every time (with high probability), you must actually see the colors, proving they're different. But you never said which color is which. Your friend is convinced the balls are different colors but learns nothing about which ball is which color.
-
-That's a zero-knowledge proof. You proved a statement ("these two balls have different colors") without revealing the specific colors. You didn't leak any information about which ball is red or green.
-
-Another analogy: Imagine you're playing "Where's Waldo?" with a friend. You've found Waldo in a picture, but your friend hasn't. Your friend covers the entire picture with a large cardboard sheet that has a small window they can move around. They move the window to where they think Waldo is. You look through the window and tell them if Waldo is visible. You repeat this many times with the window in different locations. Eventually, your friend becomes convinced you really know where Waldo is, because if you were just guessing, you'd eventually be caught lying. But your friend never actually saw Waldo; they only learned that you know his location.
-
-In cryptography, a zero-knowledge proof is a protocol between a prover and a verifier. The prover knows some secret (like a password, a private key, or a witness to a computation). The verifier is skeptical. The prover interacts with the verifier in a way that:
-1. Completeness: If the statement is true, an honest prover can convince an honest verifier.
-2. Soundness: If the statement is false, no cheating prover can convince an honest verifier (except with negligible probability).
-3. Zero-knowledge: The verifier learns nothing beyond the truth of the statement.
-
-These properties are mathematically defined and proven. The proofs are often non-interactive: the prover creates a single message that the verifier can check. This is important for blockchain because you can't have back-and-forth interaction on-chain.
-
-### Why Zero-Knowledge Proofs Matter for Ethereum
-
-Zero-knowledge proofs address two major challenges for Ethereum: privacy and scalability.
-
-**Privacy**: Ethereum is a public ledger. All transactions, all smart contract interactions, all storage is visible to anyone. Sometimes you want privacy: you might want to send tokens without revealing your address balance, or prove you meet some criteria (like being over 18) without revealing your birthdate. ZKPs can hide transaction amounts, sender/receiver identities, or contract state while still proving validity.
-
-**Scalability**: Ethereum can only process about 15-30 transactions per second. To handle more usage, we need to move computation off-chain but still secure it with Ethereum. Zero-knowledge proofs let you do computation off-chain and then post a proof on Ethereum that the computation was done correctly. Everyone can verify the proof quickly, without redoing the work. This is the core idea behind ZK-rollups.
-
-### The Two Main Families: SNARKs and STARKs
-
-There are two dominant types of zero-knowledge proofs used in Ethereum: zk-SNARKs and zk-STARKs. Let's break down those acronyms:
-
-**zk-SNARK** stands for "Zero-Knowledge Succinct Non-Interactive Argument of Knowledge."
-
-- Zero-Knowledge: The verifier learns nothing beyond the statement's truth.
-- Succinct: The proof is small (often a few hundred bytes) and verification is fast.
-- Non-Interactive: The proof is a single message; no back-and-forth.
-- Argument: It's a computational proof, not necessarily a mathematical proof; soundness holds against computationally bounded provers.
-- of Knowledge: The prover actually possesses the witness (the secret), not just that the statement is true.
-
-**zk-STARK** stands for "Zero-Knowledge Scalable Transparent ARgument of Knowledge."
-
-- Zero-Knowledge: Same meaning.
-- Scalable: Verification time grows much more slowly than computation time. If a computation takes 1 hour, the proof might verify in milliseconds, and the proof size grows slowly.
-- Transparent: No trusted setup required. The setup is public and doesn't involve secret parameters that could compromise security.
-- ARgument: Same as SNARK: computational proof.
-- of Knowledge: The prover knows the witness.
-
-The key differences: SNARKs require a trusted setup (more on that later), produce smaller proofs (typically ~200 bytes), and have faster verification. STARKs avoid trusted setup, produce larger proofs (maybe 10-100 KB), and rely on hash functions rather than elliptic curves. STARKs are also quantum-resistant, while most SNARKs are not.
-
-### SNARKs vs STARKs: Detailed Comparison
-
-| Aspect | zk-SNARK | zk-STARK |
-|--------|-----------|-----------|
-| Proof size | Very small (~200 bytes) | Larger (~2-20 KB) |
-| Verification time | Very fast (~1-5 ms) | Fast (~10-50 ms) |
-| Trusted setup | Required (multi-party ceremony) | Not required (transparent) |
-| Quantum resistance | No (based on elliptic curves) | Yes (based on hashes) |
-| Prover time | Moderate (seconds to minutes) | Slower (minutes to hours) |
-| Cryptographic assumptions | Bilinear pairings, knowledge of exponent | Hash functions, information theory |
-| Maturity | More battle-tested (Zcash since 2016) | Newer, but gaining adoption |
-| Ethereum verification cost | ~500,000-1,000,000 gas | ~1,000,000-5,000,000 gas |
-
-The table shows tradeoffs. SNARKs are more efficient for verification, which matters because every on-chain verification costs gas. STARKs avoid the trusted setup risk but are more expensive to verify and produce larger proofs. Which is better depends on the application. Many projects use SNARKs because of their small size and speed, accepting the trusted setup as a necessary risk that can be mitigated via ceremonies. Others choose STARKs for transparency and quantum resistance.
-
-### What is Trusted Setup and Why It's Controversial
-
-Trusted setup is the most controversial aspect of SNARKs. It's a one-time ceremony that creates cryptographic parameters used in proof creation and verification. The parameters involve secret randomness that must be generated and then securely destroyed. If that secret randomness were ever recovered, an attacker could create false proofs that verify as valid.
-
-The ceremony goes like this: multiple participants (often dozens) each contribute their own random entropy. They each receive an intermediate artifact. They then destroy their secret inputs. The final setup parameters are published. As long as at least one participant securely destroyed their contribution, the setup is safe. The idea is that a coalition of all participants would need to collude to cheat, which is unlikely if participants are diverse and independent.
-
-But it's still a risk. If someone keeps their randomness and later gets compromised, or if the ceremony was faked, the whole system's security could be undermined. This is why transparency is important: the parameters are public, so anyone can audit the process. But the secret entropy must truly be gone.
-
-ZK-STARKs avoid this entirely. Their setup is transparent: the parameters are derived from nothing; they're just constants. No secrets, no ceremony, no risk of backdoors. This is a major advantage for those who distrust trusted setups.
-
-### ZK-Rollups: Scaling Ethereum with Proofs
-
-ZK-rollups are the most prominent application of zero-knowledge proofs on Ethereum. They work by batching many transactions off-chain, executing them on a separate chain or execution environment, and then posting a ZK proof to Ethereum that verifies the correctness of the entire batch.
-
-Here's how a ZK-rollup works step by step:
-
-1. Users send transactions to a rollup operator (sequencer) off-chain. This could be a centralized sequencer initially, with plans to decentralize.
-2. The operator batches hundreds or thousands of transactions and applies them to an off-chain state.
-3. The operator generates a ZK proof that shows: 
-   - All transactions in the batch were valid (signatures checked, balances sufficient, no double spends)
-   - The new state root is correctly computed from the previous state root and the transactions
-   - The operator cannot cheat; the proof binds to the specific batch
-4. The operator posts the new state root and the ZK proof to an Ethereum contract.
-5. The contract verifies the proof on-chain. If valid, it accepts the new state root.
-6. Users can withdraw from the rollup by providing a Merkle proof that their account exists in the rollup's state tree; the contract checks that and releases funds.
-
-From Ethereum's perspective, only the proof and state update need to be verified. The heavy computation happened off-chain. The proof size is small, so the cost is mostly verification gas, not storage or transaction data. This makes ZK-rollups about 10-100x cheaper than processing transactions directly on Ethereum, depending on the complexity.
-
-**Optimistic rollups** are a different approach: they post transaction batches without proofs, but allow anyone to challenge the batch by computing it themselves and showing a discrepancy. They rely on economic incentives and a challenge period rather than cryptographic proofs. ZK-rollups provide immediate finality and stronger security guarantees because the proof verifies correctness instantly. A comparison:
-
-| Feature | ZK-Rollup | Optimistic Rollup |
-|---------|-----------|-------------------|
-| Proof requirement | Yes (ZK proof) | No (optimistic) |
-| Withdrawal delay | Short (minutes to hours) | Long (7 days challenge period) |
-| Verification cost | Higher (prove computation) | Lower (just post data) |
-| Security model | Cryptography guarantees | Economic guarantees + fraud proofs |
-| Scalability | Very high (proves thousands) | High (thousands, but larger data) |
-| Maturity | Newer (2021+) | More mature (2020+) |
-
-### Major ZK-Rollup Projects
-
-Several teams are building ZK-rollups for Ethereum:
-
-- **zkSync**: One of the first ZK-rollups, developed by Matter Labs. It uses custom SNARKs optimized for EVM compatibility. zkSync Era is a ZK-rollup that supports general smart contracts.
-- **StarkNet**: Developed by StarkWare, it uses STARKs. StarkNet is a permissionless ZK-rollup that allows arbitrary contracts. It focuses on high throughput and uses its own programming language, Cairo.
-- **Polygon zkEVM**: Polygon's ZK-rollup that aims for full EVM equivalence. It uses custom SNARKs and aims to be compatible with existing Ethereum tooling. The recent Polygon zkEVM uses a version of PLONK, a SNARK variant with universal trusted setup.
-- **Scroll**: A ZK-EVM that uses a decentralized prover network. Scroll aims for high decentralization and uses custom ZK circuits.
-- **Linea**: Developed by ConsenSys, Linea uses a ZK-EVM based on PLONK. It aims for full Ethereum equivalence and integrates with MetaMask.
-
-These rollups differ in their underlying cryptography (SNARK vs STARK), EVM compatibility level (some require slight modifications, others are fully equivalent), decentralization approach, and performance characteristics. But they all share the core idea: off-chain execution, on-chain proof verification.
-
-### Beyond Rollups: Other ZK Use Cases
-
-Zero-knowledge proofs have many applications beyond scaling:
-
-- **Private transactions**: Projects like Tornado Cash (now sanctioned) used ZK proofs to break the link between deposits and withdrawals, enabling privacy on Ethereum. Newer protocols aim to provide privacy in a regulatory-compliant way.
-- **Identity and credentials**: You could prove that you're over 18 without revealing your birthdate, or that you're a citizen of a certain country without revealing your passport number. ZKPs enable selective disclosure.
-- **Anonymous voting**: DAOs could implement voting where your vote is valid but your identity is hidden, preventing vote-buying or retaliation.
-- **Verifiable computation**: You could outsource a computation to a cloud server, get a ZK proof that the computation was done correctly, and verify it on-chain without redoing the work.
-- **Cross-chain bridges**: ZK proofs can verify that something happened on another chain. A ZK bridge could prove that funds were locked on Ethereum L1 to mint wrapped tokens on L2, without needing a validator set.
-- **Encrypted data queries**: You could prove that you correctly decrypted or processed encrypted data without revealing the plaintext.
-
-The possibilities are vast. Any situation where you need to prove something without revealing the underlying data can benefit from ZKPs.
-
-### Conceptual ZK Proof Workflow
-
-Let's walk through a simplified abstract ZK proof process. Imagine you want to prove you know a preimage `x` such that `sha256(x) = y`, without revealing `x`.
-
-The prover has `x` and computes `y = sha256(x)`. The verifier knows `y` and wants to be convinced the prover knows some `x` with that hash.
-
-In a SNARK system, this would involve:
-
-1. **Circuit construction**: The statement "exists x such that sha256(x) = y" is translated into an arithmetic circuit. The circuit takes `x` as a private input and `y` as a public input, and computes `sha256(x)` and checks equality with `y`. The circuit has many gates implementing the SHA-256 algorithm.
-2. **Trusted setup**: The setup ceremony generates parameters for the SNARK: proving key and verification key. These depend on the circuit structure but not on specific `x` or `y`.
-3. **Proving**: The prover, using the proving key and the witness (`x`), executes the SNARK algorithm to produce a proof `π`. This proof attests that there exists some private input that makes the circuit output true for the given public input `y`.
-4. **Verification**: The verifier, using the verification key, the public input `y`, and the proof `π`, runs the verification algorithm. It returns true if the proof is valid, false otherwise.
-
-The verifier never sees `x`. The proof `π` is small and quick to verify.
-
-In an STARK system, the process is similar but uses a different proving mechanism based on low-degree testing and hash-based commitments. No trusted setup is needed.
-
-### Code-Like Example
-
-Here's a highly simplified pseudocode illustration:
+At the top, we have a docstring, which is just a comment that explains what this file does. Anyone reading this code immediately understands its purpose. The file handles one-time preparation: downloading data and training a tokenizer. It tells us that data gets stored in a hidden folder in the user's home directory called `.cache/autoresearch/`.
 
 ```python
-# Simplified ZK rollup concept (not real code)
+MAX_SEQ_LEN = 2048       # context length
+TIME_BUDGET = 300        # training time budget in seconds (5 minutes)
+EVAL_TOKENS = 40 * 524288  # number of tokens for val eval
+```
 
-class ZKRollup:
-    def __init__(self):
-        self.state_root = initial_state_root
-        self.verifier = SNARKVerifier(verification_key)
-    
-    def process_batch(self, transactions, state_root_prev):
-        # Step 1: Check batch consistency
-        if state_root_prev != self.state_root:
-            raise InvalidBatch("Wrong previous state")
-        
-        # Step 2: Execute transactions off-chain (the prover does this)
-        new_state, logs, receipts = execute_off_chain(transactions)
-        
-        # Step 3: Prove execution
-        # The circuit checks:
-        #   - Each transaction signature valid
-        #   - Balance updates correct
-        #   - No double spends
-        #   - State transition from state_root_prev to new_state_root is correct
-        proof, new_state_root = generate_zk_proof(
-            transactions, 
-            state_root_prev, 
-            new_state
-        )
-        
-        # Step 4: Submit proof on-chain
-        submit_batch(proof, new_state_root)
-        
-        # Step 5: On-chain verification
-        is_valid = self.verifier.verify(
-            public_inputs=(state_root_prev, new_state_root, batch_hash),
-            proof=proof
-        )
-        
-        if is_valid:
-            self.state_root = new_state_root
-            apply_logs(logs)
+These are constants—values that stay fixed throughout the entire autoresearch process. MAX_SEQ_LEN is 2048, which means the model looks at sequences of 2048 tokens at a time. Think of this as the model's working memory. TIME_BUDGET is 300 seconds, which is exactly 5 minutes. Every training experiment stops after this time. EVAL_TOKENS determines how much data we use to evaluate whether the model is good; it uses 20 million tokens for validation.
+
+```python
+CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "autoresearch")
+DATA_DIR = os.path.join(CACHE_DIR, "data")
+TOKENIZER_DIR = os.path.join(CACHE_DIR, "tokenizer")
+BASE_URL = "https://huggingface.co/datasets/karpathy/climbmix-400b-shuffle/resolve/main"
+MAX_SHARD = 6542
+VAL_SHARD = MAX_SHARD
+VOCAB_SIZE = 8192
+```
+
+Here we define where files live on disk. CACHE_DIR points to `~/.cache/autoresearch/` on any operating system. Inside that, DATA_DIR holds downloaded data shards, and TOKENIZER_DIR will store the trained tokenizer. BASE_URL tells us where to download the training data from—it is a specific dataset called "climbmix-400b-shuffle" hosted on Hugging Face, which is a popular platform for sharing machine learning datasets. MAX_SHARD is 6542, meaning there are 6543 shard files numbered from 0 to 6542. We designate the last shard as the validation shard, which we use to evaluate model performance. VOCAB_SIZE is 8192, meaning our tokenizer will learn 8192 different tokens (pieces of words or characters).
+
+```python
+SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,2}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
+SPECIAL_TOKENS = [f"<|reserved_{i}|>" for i in range(4)]
+BOS_TOKEN = "<|reserved_0|>"
+```
+
+These control how text gets broken into tokens. SPLIT_PATTERN is a regular expression that determines how words are split. It is quite complex but basically follows the GPT-4 style of splitting, which handles punctuation, numbers, and whitespace intelligently. SPECIAL_TOKENS defines four special tokens, and BOS_TOKEN is the "beginning of sequence" token that marks the start of each training example. This token helps the model know when a new piece of text begins.
+
+Now let's look at the data download functions:
+
+```python
+def download_single_shard(index):
+    """Download one parquet shard with retries. Returns True on success."""
+    filename = f"shard_{index:05d}.parquet"
+    filepath = os.path.join(DATA_DIR, filename)
+    if os.path.exists(filepath):
+        return True
+
+    url = f"{BASE_URL}/{filename}"
+    max_attempts = 5
+    for attempt in range(1, max_attempts + 1):
+        try:
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+            temp_path = filepath + ".tmp"
+            with open(temp_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        f.write(chunk)
+            os.rename(temp_path, filepath)
+            print(f"  Downloaded {filename}")
+            return True
+        except (requests.RequestException, IOError) as e:
+            print(f"  Attempt {attempt}/{max_attempts} failed for {filename}: {e}")
+            for path in [filepath + ".tmp", filepath]:
+                if os.path.exists(path):
+                    try:
+                        os.remove(path)
+                    except OSError:
+                        pass
+            if attempt < max_attempts:
+                time.sleep(2 ** attempt)
+    return False
+```
+
+This function downloads one data shard. Let's break it down. It constructs the filename like `shard_00042.parquet` using zero-padded numbers. It checks if the file already exists, and if so, returns True immediately because we don't need to download it again.
+
+If we need to download it, the function constructs the full URL and attempts the download up to 5 times. The download streams the file in 1-megabyte chunks to avoid memory issues. It writes to a temporary file first (`filepath + ".tmp"`) and only renames it to the final filename when the download completes successfully. This prevents corrupted partial downloads from being mistaken for complete files.
+
+If an attempt fails, it cleans up any temporary or partial files and waits with exponential backoff—2 seconds, then 4, then 8, and so on. This is polite to the server and gives transient network issues time to resolve.
+
+```python
+def download_data(num_shards, download_workers=8):
+    """Download training shards + pinned validation shard."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    num_train = min(num_shards, MAX_SHARD)
+    ids = list(range(num_train))
+    if VAL_SHARD not in ids:
+        ids.append(VAL_SHARD)
+
+    existing = sum(1 for i in ids if os.path.exists(os.path.join(DATA_DIR, f"shard_{i:05d}.parquet")))
+    if existing == len(ids):
+        print(f"Data: all {len(ids)} shards already downloaded at {DATA_DIR}")
+        return
+
+    needed = len(ids) - existing
+    print(f"Data: downloading {needed} shards ({existing} already exist)...")
+
+    workers = max(1, min(download_workers, needed))
+    with Pool(processes=workers) as pool:
+        results = pool.map(download_single_shard, ids)
+
+    ok = sum(1 for r in results if r)
+    print(f"Data: {ok}/{len(ids)} shards ready at {DATA_DIR}")
+```
+
+This function downloads multiple shards in parallel. It creates the data directory if needed, then determines which shards need to be downloaded. It always includes the validation shard (6542) even if the user only asked for a subset of training shards. It counts existing files to avoid re-downloading, then uses a pool of worker processes to download multiple shards simultaneously. Parallel downloading speeds up the process significantly, especially for slow networks.
+
+Now the tokenizer training:
+
+```python
+def train_tokenizer():
+    """Train BPE tokenizer using rustbpe, save as tiktoken pickle."""
+    tokenizer_pkl = os.path.join(TOKENIZER_DIR, "tokenizer.pkl")
+    token_bytes_path = os.path.join(TOKENIZER_DIR, "token_bytes.pt")
+
+    if os.path.exists(tokenizer_pkl) and os.path.exists(token_bytes_path):
+        print(f"Tokenizer: already trained at {TOKENIZER_DIR}")
+        return
+
+    os.makedirs(TOKENIZER_DIR, exist_ok=True)
+
+    parquet_files = list_parquet_files()
+    if len(parquet_files) < 2:
+        print("Tokenizer: need at least 2 data shards (1 train + 1 val). Download more data first.")
+        sys.exit(1)
+```
+
+This function checks if we already have a trained tokenizer by looking for two files: `tokenizer.pkl` (the actual tokenizer) and `token_bytes.pt` (a lookup table we'll explain later). If both exist, it returns immediately. Otherwise, it creates the tokenizer directory and checks that we have at least 2 data shards—one for training and one for validation.
+
+```python
+    tokenizer = rustbpe.Tokenizer()
+    vocab_size_no_special = VOCAB_SIZE - len(SPECIAL_TOKENS)
+    tokenizer.train_from_iterator(text_iterator(), vocab_size_no_special, pattern=SPLIT_PATTERN)
+```
+
+Here we create a BPE tokenizer using the `rustbpe` library, which is a fast implementation written in Rust. BPE stands for Byte Pair Encoding, a method for building a vocabulary of tokens. The algorithm starts with individual characters and repeatedly merges the most frequent pairs until we reach the desired vocabulary size. The `train_from_iterator` method reads text from the `text_iterator()` function and learns merges. We reserve 4 special tokens, so the actual learned vocabulary size is 8192 minus 4 equals 8188.
+
+```python
+    pattern = tokenizer.get_pattern()
+    mergeable_ranks = {bytes(k): v for k, v in tokenizer.get_mergeable_ranks()}
+    tokens_offset = len(mergeable_ranks)
+    special_tokens = {name: tokens_offset + i for i, name in enumerate(SPECIAL_TOKENS)}
+    enc = tiktoken.Encoding(
+        name="rustbpe",
+        pat_str=pattern,
+        mergeable_ranks=mergeable_ranks,
+        special_tokens=special_tokens,
+    )
+```
+
+After training, we need to convert the rustbpe tokenizer into a format that OpenAI's `tiktoken` library can use. This is because tiktoken is widely used and well-optimized for tokenization. We extract the pattern (the splitting rules), the mergeable ranks (the learned token pairs), and add our special tokens with IDs that come after all the normal tokens. The `tiktoken.Encoding` object represents a complete tokenizer that we can save.
+
+```python
+    with open(tokenizer_pkl, "wb") as f:
+        pickle.dump(enc, f)
+
+    t1 = time.time()
+    print(f"Tokenizer: trained in {t1 - t0:.1f}s, saved to {tokenizer_pkl}")
+```
+
+We save the tokenizer using Python's pickle module, which serializes the object to disk. Later, `train.py` will load this pickle file to get the tokenizer.
+
+```python
+    token_bytes_list = []
+    for token_id in range(enc.n_vocab):
+        token_str = enc.decode([token_id])
+        if token_str in special_set:
+            token_bytes_list.append(0)
         else:
-            revert_batch()
+            token_bytes_list.append(len(token_str.encode("utf-8")))
+    token_bytes_tensor = torch.tensor(token_bytes_list, dtype=torch.int32)
+    torch.save(token_bytes_tensor, token_bytes_path)
 ```
 
-The real implementation is vastly more complex, involving custom circuits, optimized proving systems, and careful handling of state differences. But conceptually, the ZK rollup is about taking many off-chain state changes and letting the prover convince the on-chain verifier that the changes follow all rules without needing to re-execute them individually.
+This section creates the `token_bytes.pt` file. For each token in the vocabulary, we compute how many bytes it takes to represent that token as UTF-8 text. Special tokens get 0 bytes because they don't represent actual text. This lookup table is crucial for the evaluation metric. Bits per byte (BPB) measures how many bits of information the model needs to predict each actual byte of text. When computing the loss, we exclude special tokens from both the numerator and denominator. Having this precomputed lookup makes evaluation efficient.
 
-### Concrete Example: zk-SNARK for a Transfer
+The training and validation data comes from Parquet files, which is a columnar storage format efficient for reading large datasets. The `text_iterator()` function yields documents from the training shards, and `make_dataloader()` creates an infinite stream of tokenized batches with a clever best-fit packing algorithm that minimizes padding and maximizes GPU utilization. The key insight is that documents have different lengths, and we want to pack them into fixed-length sequences (2048 tokens) without waste. The algorithm maintains a buffer of documents and for each row of the batch, it tries to fill the remaining space with the largest document that fits. If no document fits, it crops the shortest document to fill exactly the remaining space. This achieves 100% utilization with no padding.
 
-Let's be slightly more concrete. Suppose we want to prove a transfer from Alice to Bob on a rollup.
+The `evaluate_bpb()` function is the fixed evaluation metric that the agent cannot change. It runs the model on the validation set without updating weights, computes the cross-entropy loss (in nats, which are natural logarithm units), multiplies by the byte lengths of the target tokens, and converts to bits per byte by dividing by log(2). This metric is vocabulary-size-independent, which is important because the agent might change the vocabulary size in theory, and this ensures comparisons remain fair.
 
-The circuit would have as private inputs:
-- Alice's private key (or signature)
-- Alice's balance in the rollup state
-- Bob's balance
-- The transfer amount
+## Deep Dive: train.py - The File the AI Agent Modifies
 
-Public inputs:
-- Alice's address
-- Bob's address
-- The new state root (or delta)
-- The transfer amount (to be checked)
+The `train.py` file is where the magic happens. This 630-line file contains everything needed to train a GPT model, and the AI agent is free to modify any part of it. Let me walk through it section by section, explaining each concept in simple terms.
 
-The circuit checks:
-1. Signature: verify that Alice signed this transfer using her private key. This involves hashing the transaction data and checking the signature against Alice's public key (which might be derived from her address).
-2. Balance sufficiency: Alice's balance >= transfer amount.
-3. Balance updates: new_Alice_balance = old_Alice_balance - amount; new_Bob_balance = old_Bob_balance + amount.
-4. State root consistency: The new state root should reflect the updated account balances.
+```python
+"""
+Autoresearch pretraining script. Single-GPU, single-file.
+Cherry-picked and simplified from nanochat.
+Usage: uv run train.py
+"""
+```
 
-The prover, who knows the private inputs, runs the circuit to compute the outputs. The SNARK proves that such private inputs exist that satisfy all constraints. The verifier only sees the public inputs and the proof; it doesn't learn Alice's private key, the exact balances (only that they were sufficient), or the intermediate state.
+The docstring explains this is a simplified version of a larger project called nanochat. It is designed for single GPU training, making it accessible without complex distributed computing setups.
 
-### Conclusion of the Three Sections
+```python
+import os
+os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 
-Together, BLS signatures, Verkle trees, and zero-knowledge proofs represent the cutting edge of Ethereum's cryptographic evolution. BLS enables scalable consensus with signature aggregation. Verkle trees promise more efficient state storage and verification, enabling stateless clients. Zero-knowledge proofs unlock privacy and scaling through rollups and other applications. These technologies are complex but are being built into Ethereum's roadmap to ensure the network remains secure, decentralized, and capable of serving millions of users. Understanding them gives insight into where Ethereum is headed and the mathematical foundations that make it possible.
+import gc
+import math
+import time
+from dataclasses import dataclass, asdict
 
-## Conclusion
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-Cryptography is the bedrock of Ethereum's trustless model. Digital signatures establish identity and authorization without central authorities. ECDSA with secp256k1 forms the foundation, while support for P256 and RSA enables interoperability with existing systems. Merkle trees provide efficient proofs for large datasets. Smart contract wallets extend authorization logic beyond simple private keys.
+from kernels import get_kernel
+cap = torch.cuda.get_device_capability()
+repo = "varunneal/flash-attention-3" if cap == (9, 0) else "kernels-community/flash-attn3"
+fa3 = get_kernel(repo).flash_attn_interface
+```
 
-OpenZeppelin's utilities bring these concepts together with production-ready implementations. They handle the complex mathematics, edge cases, and standards compliance so developers can focus on application logic. By understanding how signatures work, how to verify them, and when to use different patterns, you can build secure, efficient decentralized applications that leverage cryptography's power without falling into common pitfalls.
+The imports set up the environment. The first two lines set environment variables for PyTorch to use expandable memory segments (helps avoid fragmentation) and to disable Hugging Face progress bars (to keep logs clean). Then we import standard libraries: `gc` for garbage collection, `math` for math operations, `time` for timing, and `dataclass` for convenient configuration classes.
 
-The key insights are simple: private keys create signatures, public keys verify them, and the underlying mathematics makes forgery impossible. Everything else, including packing storage, batch verification, Merkle proofs, and unified interfaces, builds on this foundation to make Ethereum practical, efficient, and interoperable. Armed with this knowledge and the right tools, you're ready to implement cryptographic patterns correctly and confidently.
+The PyTorch imports are the core neural network framework. We use `torch.nn` for neural network modules and `torch.nn.functional` for functions like activation functions.
+
+The next few lines are important: they load a special kernel called Flash Attention 3. Attention is the key operation in transformer models, and Flash Attention is an optimized implementation that runs much faster by using GPU memory more efficiently. The code checks the GPU capability; if it's an H100 (capability 9.0), it uses one repository, otherwise it uses a community version that works on other GPUs. This abstraction means the agent doesn't have to worry about the low-level CUDA details—the kernel is loaded and available.
+
+```python
+from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evaluate_bpb
+```
+
+Here we import the fixed components from `prepare.py`: the constants and functions that the training script uses. The agent can modify everything else, but these are off-limits.
+
+Now we come to the model configuration:
+
+```python
+@dataclass
+class GPTConfig:
+    sequence_len: int = 2048
+    vocab_size: int = 32768
+    n_layer: int = 12
+    n_head: int = 6
+    n_kv_head: int = 6
+    n_embd: int = 768
+    window_pattern: str = "SSSL"
+```
+
+A dataclass is a convenient Python class that automatically generates boilerplate code like initialization and representation. The `GPTConfig` class holds all the architectural hyperparameters that define the model structure. `sequence_len` is the context window (2048 tokens). `vocab_size` is the size of the token vocabulary—default is 32768, though the tokenizer actually uses 8192; note the discrepancy, but the code below will overwrite this with the actual tokenizer vocab size. `n_layer` is the number of transformer blocks (12). `n_head` is the number of attention heads (6). `n_kv_head` is the number of key-value heads (6)—this differs from regular GPT where they would be the same; this allows for grouped query attention which is more efficient. `n_embd` is the embedding dimension (768), which is the size of the hidden representations throughout the model. `window_pattern` is "SSSL" which determines sliding window attention patterns—S means short window (half context), L means long window (full context), alternating SSSL means first three layers use short window, last layer uses long.
+
+Now the building blocks:
+
+```python
+def norm(x):
+    return F.rms_norm(x, (x.size(-1),))
+```
+
+This is a normalization function. Normalization is a technique that stabilizes neural network training by keeping activation values in a reasonable range. This particular function uses RMSNorm (Root Mean Square Normalization), which is simpler than LayerNorm and has become popular in recent models. It normalizes each vector independently by dividing by its root mean square.
+
+```python
+def has_ve(layer_idx, n_layer):
+    """Returns True if layer should have Value Embedding (alternating, last always included)."""
+    return layer_idx % 2 == (n_layer - 1) % 2
+```
+
+This helper function determines which layers get Value Embeddings, which are an advanced feature from the ResFormer paper. Value Embeddings are additional embeddings added to the attention values. The pattern is alternating: if we have an even number of layers, the decision alternates between even and odd indices. The last layer always gets one. This function implements that pattern concisely.
+
+```python
+def apply_rotary_emb(x, cos, sin):
+    assert x.ndim == 4
+    d = x.shape[3] // 2
+    x1, x2 = x[..., :d], x[..., d:]
+    y1 = x1 * cos + x2 * sin
+    y2 = x1 * (-sin) + x2 * cos
+    return torch.cat([y1, y2], 3)
+```
+
+This function applies Rotary Position Embeddings (RoPE). Position embeddings give the model information about where tokens appear in the sequence. Traditional positional embeddings are added directly to token embeddings. Rotary embeddings use a rotation in the vector space to encode position information in a way that is more computationally efficient and extrapolates to longer sequences. The math here rotates the query and key vectors by amounts determined by the precomputed cosine and sine values for each position. The operation splits the last dimension in half, applies the rotation formula, and concatenates back.
+
+Now the core attention mechanism:
+
+```python
+class CausalSelfAttention(nn.Module):
+    def __init__(self, config, layer_idx):
+        super().__init__()
+        self.n_head = config.n_head
+        self.n_kv_head = config.n_kv_head
+        self.n_embd = config.n_embd
+        self.head_dim = self.n_embd // self.n_head
+        assert self.n_embd % self.n_head == 0
+        assert self.n_kv_head <= self.n_head and self.n_head % self.n_kv_head == 0
+        self.c_q = nn.Linear(self.n_embd, self.n_head * self.head_dim, bias=False)
+        self.c_k = nn.Linear(self.n_embd, self.n_kv_head * self.head_dim, bias=False)
+        self.c_v = nn.Linear(self.n_embd, self.n_kv_head * self.head_dim, bias=False)
+        self.c_proj = nn.Linear(self.n_embd, self.n_embd, bias=False)
+        self.ve_gate_channels = 32
+        self.ve_gate = nn.Linear(self.ve_gate_channels, self.n_kv_head, bias=False) if has_ve(layer_idx, config.n_layer) else None
+```
+
+This class implements the causal self-attention mechanism. Causal means each token can only attend to previous tokens (including itself), not future ones. This is essential for language modeling where we predict the next token.
+
+The attention module has linear layers that project the input to queries (Q), keys (K), and values (V). The query and key projections go to `n_head * head_dim` dimensions, while the value projection only goes to `n_kv_head * head_dim`. This difference enables grouped query attention where multiple query heads share the same key-value heads, reducing computation. The `head_dim` is derived from embedding dimension divided by number of heads. The assertions ensure the dimensions divide evenly.
+
+`c_proj` is an output projection that combines the attention outputs back to the model dimension. All these linear layers are bias-free (bias=False), a common practice in modern transformers.
+
+The `ve_gate` implements the Value Embedding gate if this layer has value embeddings. It is a linear layer that takes the first 32 channels of the input and produces a gating scalar for each key-value head. If this layer doesn't have value embeddings, the gate is None.
+
+```python
+    def forward(self, x, ve, cos_sin, window_size):
+        B, T, C = x.size()
+        q = self.c_q(x).view(B, T, self.n_head, self.head_dim)
+        k = self.c_k(x).view(B, T, self.n_kv_head, self.head_dim)
+        v = self.c_v(x).view(B, T, self.n_kv_head, self.head_dim)
+
+        # Value residual (ResFormer): mix in value embedding with input-dependent gate per head
+        if ve is not None:
+            ve = ve.view(B, T, self.n_kv_head, self.head_dim)
+            gate = 2 * torch.sigmoid(self.ve_gate(x[..., :self.ve_gate_channels]))
+            v = v + gate.unsqueeze(-1) * ve
+
+        cos, sin = cos_sin
+        q, k = apply_rotary_emb(q, cos, sin), apply_rotary_emb(k, cos, sin)
+        q, k = norm(q), norm(k)
+
+        y = fa3.flash_attn_func(q, k, v, causal=True, window_size=window_size)
+        y = y.contiguous().view(B, T, -1)
+        y = self.c_proj(y)
+        return y
+```
+
+The forward method is where the computation happens. Input `x` has shape (B, T, C) for batch size, sequence length, and channel dimension. We compute Q, K, V by applying the linear projections and reshaping to separate the head dimension.
+
+Value residual (ResFormer) adds value embeddings if present. The `ve` argument is the value embedding lookup: it is a tensor of shape (B, T, n_kv_head * head_dim) that gets reshaped to (B, T, n_kv_head, head_dim). The gate is computed as 2 * sigmoid(ve_gate(...)). Why 2? Because sigmoid outputs values between 0 and 1, multiplying by 2 gives a range of 0 to 2, with 1 as the neutral point. The gate is applied per head and added to the values.
+
+Then we apply rotary embeddings to Q and K using the precomputed cosine and sine tensors. After rotary, we apply RMS normalization to both Q and K. This is the QK normalization mentioned in the author's notes.
+
+Then we call the Flash Attention function. The arguments are: `q`, `k`, `v` tensors, `causal=True` (restricts attention to previous tokens), and `window_size` which controls the sliding window pattern. If window_size is negative, it means full attention; if positive, it limits attention to that window. The result `y` has shape (B, T, n_head * head_dim). We call `.contiguous()` to ensure memory is contiguous before reshaping, then project through `c_proj`.
+
+```python
+class MLP(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd, bias=False)
+        self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=False)
+
+    def forward(self, x):
+        x = self.c_fc(x)
+        x = F.relu(x).square()
+        x = self.c_proj(x)
+        return x
+```
+
+The MLP (Multi-Layer Perceptron) is the feedforward network in each transformer block. It expands the embedding dimension by a factor of 4 (a common ratio), applies ReLU activation, then squares the result (ReLU squared), and projects back to the original dimension. The squaring is an unusual but effective activation function that produces non-negative outputs with a different shape than regular ReLU.
+
+```python
+class Block(nn.Module):
+    def __init__(self, config, layer_idx):
+        super().__init__()
+        self.attn = CausalSelfAttention(config, layer_idx)
+        self.mlp = MLP(config)
+
+    def forward(self, x, ve, cos_sin, window_size):
+        x = x + self.attn(norm(x), ve, cos_sin, window_size)
+        x = x + self.mlp(norm(x))
+        return x
+```
+
+A Block combines attention and MLP with residual connections. Note the normalization: both attention and MLP operate on normalized inputs, but the residual connection adds the original unnormalized input. This is different from the standard transformer where normalization comes after the residual. This "pre-norm" structure has become common because it stabilizes training for deep networks.
+
+Now the full GPT model:
+
+```python
+class GPT(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.window_sizes = self._compute_window_sizes(config)
+        self.transformer = nn.ModuleDict({
+            "wte": nn.Embedding(config.vocab_size, config.n_embd),
+            "h": nn.ModuleList([Block(config, i) for i in range(config.n_layer)]),
+        })
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.resid_lambdas = nn.Parameter(torch.ones(config.n_layer))
+        self.x0_lambdas = nn.Parameter(torch.zeros(config.n_layer))
+        # Value embeddings
+        head_dim = config.n_embd // config.n_head
+        kv_dim = config.n_kv_head * head_dim
+        self.value_embeds = nn.ModuleDict({
+            str(i): nn.Embedding(config.vocab_size, kv_dim)
+            for i in range(config.n_layer) if has_ve(i, config.n_layer)
+        })
+        # Rotary embeddings
+        self.rotary_seq_len = config.sequence_len * 10
+        cos, sin = self._precompute_rotary_embeddings(self.rotary_seq_len, head_dim)
+        self.register_buffer("cos", cos, persistent=False)
+        self.register_buffer("sin", sin, persistent=False)
+```
+
+The GPT class ties everything together. ModuleDict and ModuleList are PyTorch containers that properly register submodules so parameters are found during training.
+
+`wte` is the token embedding table that maps token IDs to vectors. `h` is the list of transformer blocks. `lm_head` is the output layer that predicts the next token; it is tied to the input embeddings in some models, but here it is separate.
+
+`resid_lambdas` and `x0_lambdas` are learnable scalar parameters that control the residual pathways. In the forward pass, `x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0`. These allow the model to learn how much of the original input to preserve at each layer—a form of adaptive residual scaling.
+
+`value_embeds` is a dictionary of embedding tables for layers that have value embeddings. The embedding dimension is `kv_dim` (key-value dimension), not the full `n_embd`.
+
+Rotary embeddings are precomputed for a much longer sequence length (`rotary_seq_len = sequence_len * 10`) than we actually use, allowing the model to handle longer contexts than it was trained on by leveraging the rotary extrapolation property. These are registered as buffers—they are part of the model state but not trainable parameters.
+
+```python
+    @torch.no_grad()
+    def init_weights(self):
+        # Embedding and unembedding
+        torch.nn.init.normal_(self.transformer.wte.weight, mean=0.0, std=1.0)
+        torch.nn.init.normal_(self.lm_head.weight, mean=0.0, std=0.001)
+```
+
+Weight initialization is critical for training stability. This method initializes all parameters carefully. Token embeddings are initialized with normal distribution mean 0 std 1. The output head (`lm_head`) gets a much smaller std of 0.001.
+
+```python
+        # Transformer blocks
+        n_embd = self.config.n_embd
+        s = 3**0.5 * n_embd**-0.5
+        for block in self.transformer.h:
+            torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
+            torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
+            torch.nn.init.uniform_(block.attn.c_v.weight, -s, s)
+            torch.nn.init.zeros_(block.attn.c_proj.weight)
+            torch.nn.init.uniform_(block.mlp.c_fc.weight, -s, s)
+            torch.nn.init.zeros_(block.mlp.c_proj.weight)
+```
+
+For the attention and MLP linear layers, the initializations follow specific schemes. `s = 3**0.5 * n_embd**-0.5` computes a uniform distribution bound. This comes from the LeCun initialization for ReLU activations, adapted for the square activation. The first linear layer in each branch (c_q, c_k, c_v, mlp.c_fc) get uniform weights in `[-s, s]`. The second projection layers (c_proj in both attention and MLP) are initialized to zero. This creates an identity-like behavior at initialization: initially, the residual branches just pass through the input without transforming it, which helps with gradient flow in deep networks.
+
+```python
+        # Per-layer scalars
+        self.resid_lambdas.fill_(1.0)
+        self.x0_lambdas.fill_(0.1)
+```
+
+The residual scaling parameters start with `resid_lambdas` at 1.0 (full residual) and `x0_lambdas` at 0.1 (small skip connection from the original input). This provides a stable initialization for the adaptive residual scheme.
+
+```python
+        # Value embeddings
+        for ve in self.value_embeds.values():
+            torch.nn.init.uniform_(ve.weight, -s, s)
+        # Gate weights init to zero (sigmoid(0)=0.5, scaled by 2 -> 1.0 = neutral)
+        for block in self.transformer.h:
+            if block.attn.ve_gate is not None:
+                torch.nn.init.zeros_(block.attn.ve_gate.weight)
+```
+
+Value embeddings get the same uniform initialization. The gate weights are initialized to zero because the gate computes `2 * sigmoid(ve_gate(...))`. When weights are zero, sigmoid(0) = 0.5, times 2 equals 1.0, which is neutral—the value embedding does not alter the original values initially. This allows the model to gradually learn whether to use value embeddings.
+
+```python
+        # Rotary embeddings
+        head_dim = self.config.n_embd // self.config.n_head
+        cos, sin = self._precompute_rotary_embeddings(self.rotary_seq_len, head_dim)
+        self.cos, self.sin = cos, sin
+        # Cast embeddings to bf16
+        self.transformer.wte.to(dtype=torch.bfloat16)
+        for ve in self.value_embeds.values():
+            ve.to(dtype=torch.bfloat16)
+```
+
+The rotary embeddings are precomputed. Then we convert the token embedding and value embedding weights to bfloat16 precision. This is a memory optimization: bfloat16 (Brain Floating Point 16) uses half the memory of float32 while maintaining good numerical range. The model will run in mixed precision during training.
+
+```python
+    def _precompute_rotary_embeddings(self, seq_len, head_dim, base=10000, device=None):
+        if device is None:
+            device = self.transformer.wte.weight.device
+        channel_range = torch.arange(0, head_dim, 2, dtype=torch.float32, device=device)
+        inv_freq = 1.0 / (base ** (channel_range / head_dim))
+        t = torch.arange(seq_len, dtype=torch.float32, device=device)
+        freqs = torch.outer(t, inv_freq)
+        cos, sin = freqs.cos(), freqs.sin()
+        cos, sin = cos.bfloat16(), sin.bfloat16()
+        cos, sin = cos[None, :, None, :], sin[None, :, None, :]
+        return cos, sin
+```
+
+This computes the Rotary Position Embedding frequencies. The formula uses an exponential base (default 10000) and computes inverse frequencies for channel pairs. For each position, we compute cosine and sine values. The dimensions are arranged for broadcasting during the apply_rotary_emb operation. The result has shapes (1, seq_len, 1, head_dim/2) which broadcast across batch and head dimensions.
+
+```python
+    def _compute_window_sizes(self, config):
+        pattern = config.window_pattern.upper()
+        assert all(c in "SL" for c in pattern)
+        long_window = config.sequence_len
+        short_window = long_window // 2
+        char_to_window = {"L": (long_window, 0), "S": (short_window, 0)}
+        window_sizes = []
+        for layer_idx in range(config.n_layer):
+            char = pattern[layer_idx % len(pattern)]
+            window_sizes.append(char_to_window[char])
+        window_sizes[-1] = (long_window, 0)
+        return window_sizes
+```
+
+This computes the sliding window attention pattern. The pattern string like "SSSL" means first three layers use short window (half sequence length), last layer uses full sequence. The window return value is a tuple (window_size, something) where the second element might be used for additional parameters but is zero here. The last layer is forced to full attention regardless of pattern, ensuring the model can always attend to the full context at the final layer.
+
+```python
+    def setup_optimizer(self, unembedding_lr=0.004, embedding_lr=0.2, matrix_lr=0.02,
+                        weight_decay=0.0, adam_betas=(0.8, 0.95), scalar_lr=0.5):
+        model_dim = self.config.n_embd
+        matrix_params = list(self.transformer.h.parameters())
+        value_embeds_params = list(self.value_embeds.parameters())
+        embedding_params = list(self.transformer.wte.parameters())
+        lm_head_params = list(self.lm_head.parameters())
+        resid_params = [self.resid_lambdas]
+        x0_params = [self.x0_lambdas]
+```
+
+This method creates the optimizer with carefully separated parameter groups, each with different learning rates. Different parts of the model benefit from different learning rates. The method collects parameters from different components: `matrix_params` are all the weight matrices in the transformer blocks, `value_embeds_params` are the value embedding tables, `embedding_params` are the token embeddings, `lm_head_params` are the output layer weights, and `resid_params` and `x0_params` are the scalar parameters.
+
+```python
+        assert len(list(self.parameters())) == (len(matrix_params) + len(embedding_params) +
+            len(lm_head_params) + len(value_embeds_params) + len(resid_params) + len(x0_params))
+```
+
+This assertion verifies that we have accounted for all parameters in the model—nothing is missing or double-counted.
+
+```python
+        dmodel_lr_scale = (model_dim / 768) ** -0.5
+        print(f"Scaling AdamW LRs by 1/sqrt({model_dim}/768) = {dmodel_lr_scale:.6f}")
+```
+
+This computes a scaling factor that adjusts learning rates based on model dimension. The formula says: if your model is larger than 768 dimensions, scale learning rates down proportionally to the square root of the ratio. This accounts for the fact that larger models need smaller learning rates for stability. The base of 768 is the default model dimension.
+
+```python
+        param_groups = [
+            dict(kind='adamw', params=lm_head_params, lr=unembedding_lr * dmodel_lr_scale, betas=adam_betas, eps=1e-10, weight_decay=0.0),
+            dict(kind='adamw', params=embedding_params, lr=embedding_lr * dmodel_lr_scale, betas=adam_betas, eps=1e-10, weight_decay=0.0),
+            dict(kind='adamw', params=value_embeds_params, lr=embedding_lr * dmodel_lr_scale, betas=adam_betas, eps=1e-10, weight_decay=0.0),
+            dict(kind='adamw', params=resid_params, lr=scalar_lr * 0.01, betas=adam_betas, eps=1e-10, weight_decay=0.0),
+            dict(kind='adamw', params=x0_params, lr=scalar_lr, betas=(0.96, 0.95), eps=1e-10, weight_decay=0.0),
+        ]
+```
+
+We create parameter groups for the AdamW optimizer. Each group specifies which parameters it contains, the learning rate, betas (momentum coefficients), epsilon for numerical stability, and weight decay. Notice the different learning rates: unembedding (lm_head) gets 0.004, embeddings get 0.2, value embeddings same as embeddings, residual lambdas get 0.5% of scalar_lr (0.005), x0 lambdas get full scalar_lr (0.5), and importantly x0 uses different betas (0.96, 0.95). Weight decay is zero for all these groups; only the Muon optimizer group gets weight decay.
+
+```python
+        for shape in sorted({p.shape for p in matrix_params}):
+            group_params = [p for p in matrix_params if p.shape == shape]
+            param_groups.append(dict(
+                kind='muon', params=group_params, lr=matrix_lr,
+                momentum=0.95, ns_steps=5, beta2=0.95, weight_decay=weight_decay,
+            ))
+```
+
+The matrix parameters are partitioned by shape. Each unique shape gets its own Muon parameter group. Muon is an optimizer designed specifically for large matrix parameters. It uses different hyperparameters: momentum 0.95, beta2 0.95, weight_decay as specified, and ns_steps=5 which controls orthogonalization iterations. The grouping by shape is important because Muon operates by stacking parameters of the same shape together and applying its special update rule.
+
+```python
+        optimizer = MuonAdamW(param_groups)
+        for group in optimizer.param_groups:
+            group["initial_lr"] = group["lr"]
+        return optimizer
+```
+
+We create the combined MuonAdamW optimizer (which we will examine in detail later). We store the initial learning rates for each group because the training loop applies learning rate schedules that multiply these base rates.
+
+Now the forward method:
+
+```python
+    def forward(self, idx, targets=None, reduction='mean'):
+        B, T = idx.size()
+        assert T <= self.cos.size(1)
+        cos_sin = self.cos[:, :T], self.sin[:, :T]
+
+        x = self.transformer.wte(idx)
+        x = norm(x)
+        x0 = x
+        for i, block in enumerate(self.transformer.h):
+            x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0
+            ve = self.value_embeds[str(i)](idx) if str(i) in self.value_embeds else None
+            x = block(x, ve, cos_sin, self.window_sizes[i])
+        x = norm(x)
+
+        softcap = 15
+        logits = self.lm_head(x)
+        logits = logits.float()
+        logits = softcap * torch.tanh(logits / softcap)
+
+        if targets is not None:
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1),
+                                   ignore_index=-1, reduction=reduction)
+            return loss
+        return logits
+```
+
+The forward pass begins: `idx` is token IDs with shape (B, T). We extract the rotary embeddings for this sequence length (T). Then token embedding lookup `wte(idx)` gives us (B, T, n_embd). We apply RMS normalization immediately—that is the prenorm setup.
+
+We save `x0` as the initial normalized embeddings for use in the residual scaling formula.
+
+Then we loop through each transformer block. Before each block, we apply the adaptive residual: `self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0`. This mixes the current activations with the original input. Then we look up the value embedding for this layer if it exists, passing the token IDs `idx`. The value embedding is shared across positions—it is an embedding table that maps tokens to value vectors, similar to but separate from token embeddings. Then we pass through the block.
+
+After all blocks, we normalize the final activations. Then we compute the lm_head (output projection) to get logits over the vocabulary. The logits are cast to float32 to avoid numerical issues. Then we apply softcapping: `softcap * tanh(logits / softcap)`. This limits the magnitude of logits to ±15, which stabilizes training and prevents extreme values that could cause numerical issues. The value 15 is fixed in this code; it is not a hyperparameter the agent can change (though it could if it modified the code).
+
+If targets are provided (during training), we compute cross-entropy loss. The `ignore_index=-1` means any target value of -1 is masked out. The loss is averaged or summed according to the `reduction` argument. Without targets (during inference), we return the logits.
+
+The MuonAdamW optimizer is a sophisticated combined optimizer that uses Muon for matrix parameters and AdamW for everything else. It is over 130 lines of code. I'll explain it thoroughly but more compactly.
+
+```python
+polar_express_coeffs = [
+    (8.156554524902461, -22.48329292557795, 15.878769915207462),
+    (4.042929935166739, -2.808917465908714, 0.5000178451051316),
+    (3.8916678022926607, -2.772484153217685, 0.5060648178503393),
+    (3.285753657755655, -2.3681294933425376, 0.46449024233003106),
+    (2.3465413258596377, -1.7097828382687081, 0.42323551169305323),
+]
+```
+
+These are hardcoded coefficients used in the "polar express" orthogonalization procedure. This comes from research on optimizing large matrices. Each tuple (a, b, c) is used in an iteration to orthogonalize gradients. The first iteration uses the first tuple, second uses second, etc. `ns_steps` in the config controls how many iterations (up to 5) we perform.
+
+```python
+@torch.compile(dynamic=False, fullgraph=True)
+def adamw_step_fused(p, grad, exp_avg, exp_avg_sq, step_t, lr_t, beta1_t, beta2_t, eps_t, wd_t):
+    p.mul_(1 - lr_t * wd_t)
+    exp_avg.lerp_(grad, 1 - beta1_t)
+    exp_avg_sq.lerp_(grad.square(), 1 - beta2_t)
+    bias1 = 1 - beta1_t ** step_t
+    bias2 = 1 - beta2_t ** step_t
+    denom = (exp_avg_sq / bias2).sqrt() + eps_t
+    step_size = lr_t / bias1
+    p.add_(exp_avg / denom, alpha=-step_size)
+```
+
+This is the AdamW update step, written in a custom fused form suitable for `torch.compile`. Let's translate: First, apply weight decay: `p = p * (1 - lr * wd)`. Then update the exponential moving averages: `exp_avg = exp_avg * beta1 + grad * (1-beta1)`, and similarly for `exp_avg_sq` using `beta2`. Bias correction divides by `(1 - beta^step)` to account for initialization at zero. The step size is lr divided by bias-corrected first moment. Finally we update the parameter: `p = p - step_size * exp_avg / (sqrt(exp_avg_sq) + eps)`.
+
+The arguments are tensors because this function is compiled and needs to avoid recompilation when hyperparameters change; using 0-D CPU tensors that get filled with current values allows the compiled code to be reused.
+
+```python
+@torch.compile(dynamic=False, fullgraph=True)
+def muon_step_fused(stacked_grads, stacked_params, momentum_buffer, second_momentum_buffer,
+                    muon_momentum_t, lr_t, wd_t, beta2_t, ns_steps, red_dim):
+    # Nesterov momentum
+    momentum = muon_momentum_t.to(stacked_grads.dtype)
+    momentum_buffer.lerp_(stacked_grads, 1 - momentum)
+    g = stacked_grads.lerp_(momentum_buffer, momentum)
+```
+
+Muon starts with Nesterov momentum: it updates the momentum buffer like `momentum = momentum * momentum + grad * (1-momentum)`. Then it computes a Nesterov lookahead gradient `g = grad + momentum * momentum_buffer`. This is different from regular momentum and provides better convergence.
+
+```python
+    # Polar express orthogonalization
+    X = g.bfloat16()
+    X = X / (X.norm(dim=(-2, -1), keepdim=True) * 1.02 + 1e-6)
+    if g.size(-2) > g.size(-1):
+        for a, b, c in polar_express_coeffs[:ns_steps]:
+            A = X.mT @ X
+            B = b * A + c * (A @ A)
+            X = a * X + X @ B
+    else:
+        for a, b, c in polar_express_coeffs[:ns_steps]:
+            A = X @ X.mT
+            B = b * A + c * (A @ A)
+            X = a * X + B @ X
+    g = X
+```
+
+This is the most exotic part. The gradient matrix is normalized to unit norm per row or column (depending on shape). Then we apply a series of iterations that perform a matrix-valued Newton step towards orthogonality. The coefficients (a,b,c) come from approximating the matrix sign function or polar decomposition. The goal is to make the update directions more orthogonal, which improves optimization for large matrices. This is what makes Muon special compared to regular Adam.
+
+```python
+    # NorMuon variance reduction
+    beta2 = beta2_t.to(g.dtype)
+    v_mean = g.float().square().mean(dim=red_dim, keepdim=True)
+    red_dim_size = g.size(red_dim)
+    v_norm_sq = v_mean.sum(dim=(-2, -1), keepdim=True) * red_dim_size
+    v_norm = v_norm_sq.sqrt()
+    second_momentum_buffer.lerp_(v_mean.to(dtype=second_momentum_buffer.dtype), 1 - beta2)
+    step_size = second_momentum_buffer.clamp_min(1e-10).rsqrt()
+    scaled_sq_sum = (v_mean * red_dim_size) * step_size.float().square()
+    v_norm_new = scaled_sq_sum.sum(dim=(-2, -1), keepdim=True).sqrt()
+    final_scale = step_size * (v_norm / v_norm_new.clamp_min(1e-10))
+    g = g * final_scale.to(g.dtype)
+```
+
+NorMuon is a variance reduction technique for large matrices. It computes the per-row (or per-column) variance of the gradient and normalizes the step size to keep the noise level constant. The mathematics here are sophisticated but the effect is to stabilize training for very large matrices by scaling updates according to the second moment statistics in a normalized way.
+
+```python
+    # Cautious weight decay + parameter update
+    lr = lr_t.to(g.dtype)
+    wd = wd_t.to(g.dtype)
+    mask = (g * stacked_params) >= 0
+    stacked_params.sub_(lr * g + lr * wd * stacked_params * mask)
+```
+
+The final step applies a "cautious" weight decay: weight decay is only applied when the gradient and parameter have the same sign (both positive or both negative). If they have opposite signs, the weight decay term is zeroed. This prevents updates that might push parameters in a harmful direction. The parameter update subtracts the learning rate times the processed gradient, plus weight decay if applicable.
+
+```python
+class MuonAdamW(torch.optim.Optimizer):
+    """Combined optimizer: Muon for 2D matrix params, AdamW for others."""
+
+    def __init__(self, param_groups):
+        super().__init__(param_groups, defaults={})
+        # 0-D CPU tensors to avoid torch.compile recompilation when values change
+        self._adamw_step_t = torch.tensor(0.0, dtype=torch.float32, device="cpu")
+        # ... similar tensors for other hyperparameters
+```
+
+The MuonAdamW optimizer is a custom subclass of torch.optim.Optimizer. Its `__init__` creates special 0-D CPU tensors to hold running hyperparameter values. These are used as arguments to the compiled step functions because compiled functions need tensors with fixed types; using these CPU tensors that we fill with current values allows the compiled code to be reused instead of recompiled every time a learning rate or beta changes.
+
+```python
+    def _step_adamw(self, group):
+        for p in group['params']:
+            if p.grad is None:
+                continue
+            grad = p.grad
+            state = self.state[p]
+            if not state:
+                state['step'] = 0
+                state['exp_avg'] = torch.zeros_like(p)
+                state['exp_avg_sq'] = torch.zeros_like(p)
+            state['step'] += 1
+            self._adamw_step_t.fill_(state['step'])
+            self._adamw_lr_t.fill_(group['lr'])
+            self._adamw_beta1_t.fill_(group['betas'][0])
+            self._adamw_beta2_t.fill_(group['betas'][1])
+            self._adamw_eps_t.fill_(group['eps'])
+            self._adamw_wd_t.fill_(group['weight_decay'])
+            adamw_step_fused(p, grad, state['exp_avg'], state['exp_avg_sq'],
+                            self._adamw_step_t, self._adamw_lr_t, self._adamw_beta1_t,
+                            self._adamw_beta2_t, self._adamw_eps_t, self._adamw_wd_t)
+```
+
+For AdamW groups, we iterate over parameters, initialize state if not present (step counter, exponential moving averages), update the step counter, fill the CPU tensors with current hyperparameter values, and call the compiled `adamw_step_fused` function.
+
+```python
+    def _step_muon(self, group):
+        params = group['params']
+        if not params:
+            return
+        p = params[0]
+        state = self.state[p]
+        num_params = len(params)
+        shape, device, dtype = p.shape, p.device, p.dtype
+        if "momentum_buffer" not in state:
+            state["momentum_buffer"] = torch.zeros(num_params, *shape, dtype=dtype, device=device)
+        if "second_momentum_buffer" not in state:
+            state_shape = (num_params, shape[-2], 1) if shape[-2] >= shape[-1] else (num_params, 1, shape[-1])
+            state["second_momentum_buffer"] = torch.zeros(state_shape, dtype=dtype, device=device)
+```
+
+For Muon, parameters are grouped by shape. We check that there is at least one parameter in the group. We get the state associated with the first parameter (all parameters in the group share state). The momentum buffer has shape `(num_params, ...)` to store separate momentum for each parameter in the group. The second_momentum_buffer has a reduced shape: it stores statistics per row (if matrix is wide) or per column (if matrix is tall), not per parameter element.
+
+```python
+        red_dim = -1 if shape[-2] >= shape[-1] else -2
+        stacked_grads = torch.stack([p.grad for p in params])
+        stacked_params = torch.stack(params)
+        self._muon_momentum_t.fill_(group["momentum"])
+        self._muon_beta2_t.fill_(group["beta2"] if group["beta2"] is not None else 0.0)
+        self._muon_lr_t.fill_(group["lr"] * max(1.0, shape[-2] / shape[-1])**0.5)
+        self._muon_wd_t.fill_(group["weight_decay"])
+        muon_step_fused(stacked_grads, stacked_params,
+                        state["momentum_buffer"], state["second_momentum_buffer"],
+                        self._muon_momentum_t, self._muon_lr_t, self._muon_wd_t,
+                        self._muon_beta2_t, group["ns_steps"], red_dim)
+        torch._foreach_copy_(params, list(stacked_params.unbind(0)))
+```
+
+We determine the reduction dimension: if there are more rows than columns (tall matrix), we reduce over columns (dim -1), otherwise over rows (dim -2). We stack all gradients and parameters in the group into tensors with an extra leading dimension. We fill the CPU tensors with current hyperparameters. The learning rate is scaled by `sqrt(shape[-2] / shape[-1])` to normalize for aspect ratio. Then we call the compiled muon_step_fused which updates the stacked_params in-place. Finally, we copy the stacked parameters back to the individual parameter tensors using `torch._foreach_copy_`.
+
+The step method simply iterates over parameter groups and dispatches to the appropriate step function:
+
+```python
+    @torch.no_grad()
+    def step(self):
+        for group in self.param_groups:
+            if group['kind'] == 'adamw':
+                self._step_adamw(group)
+            elif group['kind'] == 'muon':
+                self._step_muon(group)
+```
+
+All parameter updates happen with `torch.no_grad()` to avoid tracking these operations in the autograd graph.
+
+Now we come to the hyperparameters section. This is a key place where the AI agent makes changes:
+
+```python
+# Model architecture
+ASPECT_RATIO = 64       # model_dim = depth * ASPECT_RATIO
+HEAD_DIM = 128          # target head dimension for attention
+WINDOW_PATTERN = "SSSL" # sliding window pattern: L=full, S=half context
+
+# Optimization
+TOTAL_BATCH_SIZE = 2**19 # ~524K tokens per optimizer step
+EMBEDDING_LR = 0.6      # learning rate for token embeddings (Adam)
+UNEMBEDDING_LR = 0.004  # learning rate for lm_head (Adam)
+MATRIX_LR = 0.04        # learning rate for matrix parameters (Muon)
+SCALAR_LR = 0.5         # learning rate for per-layer scalars (Adam)
+WEIGHT_DECAY = 0.2      # cautious weight decay for Muon
+ADAM_BETAS = (0.8, 0.95) # Adam beta1, beta2
+WARMUP_RATIO = 0.0      # fraction of time budget for LR warmup
+WARMDOWN_RATIO = 0.5    # fraction of time budget for LR warmdown
+FINAL_LR_FRAC = 0.0     # final LR as fraction of initial
+
+# Model size
+DEPTH = 8               # number of transformer layers
+DEVICE_BATCH_SIZE = 128  # per-device batch size (reduce if OOM)
+```
+
+These are the knobs the agent can twiddle. ASPECT_RATIO controls the relationship between depth and width: the model dimension is computed as `depth * ASPECT_RATIO`, then rounded up to a multiple of HEAD_DIM. So with DEPTH=8 and ASPECT_RATIO=64, base_dim = 512, but then it gets rounded to 768 to be divisible by 128. The agent can change ASPECT_RATIO to control width independently of depth.
+
+HEAD_DIM is the target size of each attention head. The actual head_dim is derived from n_embd / n_head, but this constant influences the calculation indirectly. The pattern determines which layers use sliding window attention.
+
+TOTAL_BATCH_SIZE is the total number of tokens per optimizer step, achieved through gradient accumulation. The actual batch that fits on GPU is DEVICE_BATCH_SIZE * MAX_SEQ_LEN tokens. We accumulate gradients over `grad_accum_steps = TOTAL_BATCH_SIZE / (DEVICE_BATCH_SIZE * MAX_SEQ_LEN)` steps before doing an optimizer step. This allows us to have a large effective batch size even with limited GPU memory.
+
+Learning rates are separated by parameter group: embedding and value embeddings get 0.6, lm_head gets 0.004, matrix parameters get 0.04, and scalar parameters get 0.5. These are quite different and tuned empirically. The agent might try adjusting them.
+
+The betas for AdamW are (0.8, 0.95) which differ from the usual (0.9, 0.999). The author mentions the agent discovered the AdamW betas were wrong, suggesting this was one of the improvements. Indeed 0.8 and 0.95 are unusual but might work better for this specific setup.
+
+WARMUP_RATIO and WARMDOWN_RATIO control learning rate scheduling. With 0 warmup and 0.5 warmdown, the learning rate stays constant for the first half of training then linearly decays to zero in the second half. FINAL_LR_FRAC=0 means it decays all the way to zero (linear warmdown to zero).
+
+DEPTH is the number of transformer layers. This is one of the most significant architectural knobs; more layers means a deeper network with more capacity. The agent can change this. DEVICE_BATCH_SIZE controls how many sequences fit in GPU memory; if the agent makes the model bigger, it might need to reduce this to avoid out-of-memory errors.
+
+Now the setup code:
+
+```python
+t_start = time.time()
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
+torch.set_float32_matmul_precision("high")
+device = torch.device("cuda")
+autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
+H100_BF16_PEAK_FLOPS = 989.5e12
+```
+
+We set random seeds for reproducibility. We set float32 matmul precision to "high" which enables TensorFloat-32 (TF32) on Ampere+ GPUs for faster matrix multiplication. We set the device to CUDA. We create an autocast context manager for automatic mixed precision: operations will use bfloat16 where safe, improving speed and memory. We define the theoretical peak FLOPS of an H100 in bfloat16 for computing MFU (Model FLOPs Utilization) later.
+
+```python
+tokenizer = Tokenizer.from_directory()
+vocab_size = tokenizer.get_vocab_size()
+print(f"Vocab size: {vocab_size:,}")
+```
+
+We load the tokenizer from the cache. It will use the actual vocab size from training, which might differ from the default 32768 in GPTConfig.
+
+```python
+def build_model_config(depth):
+    base_dim = depth * ASPECT_RATIO
+    model_dim = ((base_dim + HEAD_DIM - 1) // HEAD_DIM) * HEAD_DIM
+    num_heads = model_dim // HEAD_DIM
+    return GPTConfig(
+        sequence_len=MAX_SEQ_LEN, vocab_size=vocab_size,
+        n_layer=depth, n_head=num_heads, n_kv_head=num_heads, n_embd=model_dim,
+        window_pattern=WINDOW_PATTERN,
+    )
+```
+
+This function constructs the GPTConfig given a depth. The model dimension is computed as `depth * ASPECT_RATIO` then rounded up to be divisible by HEAD_DIM. This ensures head_dim divides n_embd evenly. The number of heads is simply n_embd / HEAD_DIM. This auto-scaling means when the agent changes DEPTH, the width changes proportionally (via ASPECT_RATIO) to maintain a roughly constant ratio.
+
+```python
+config = build_model_config(DEPTH)
+print(f"Model config: {asdict(config)}")
+```
+
+We build the configuration using the current DEPTH constant and print all the settings. This helps the agent see what configuration was used in each experiment.
+
+```python
+with torch.device("meta"):
+    model = GPT(config)
+model.to_empty(device=device)
+model.init_weights()
+```
+
+This is a memory-efficient initialization technique. We first create the model on the "meta" device, which is a special PyTorch device that allocates no memory for tensors; it just tracks shapes and dtypes. Then we call `to_empty(device=device)` which allocates real memory on the GPU but does not copy any data—the tensors are still uninitialized. Then we call `init_weights()` to fill all parameters with proper initial values directly on the GPU. This avoids ever having two copies of the model in memory during initialization.
+
+```python
+param_counts = model.num_scaling_params()
+print("Parameter counts:")
+for key, value in param_counts.items():
+    print(f"  {key:24s}: {value:,}")
+num_params = param_counts['total']
+num_flops_per_token = model.estimate_flops()
+print(f"Estimated FLOPs per token: {num_flops_per_token:e}")
+```
+
+We compute parameter counts broken down by component, and total them. We also estimate FLOPs per token, which is important for computing Model FLOPs Utilization (MFU) later. The estimate accounts for attention FLOPs which depend on window sizes.
+
+```python
+tokens_per_fwdbwd = DEVICE_BATCH_SIZE * MAX_SEQ_LEN
+assert TOTAL_BATCH_SIZE % tokens_per_fwdbwd == 0
+grad_accum_steps = TOTAL_BATCH_SIZE // tokens_per_fwdbwd
+```
+
+We compute how many forward-backward passes we need to accumulate before an optimizer step. TOTAL_BATCH_SIZE is 2^19 = 524288 tokens. DEVICE_BATCH_SIZE * MAX_SEQ_LEN = 128 * 2048 = 262144 tokens per forward pass. So grad_accum_steps = 524288 / 262144 = 2. That means we do 2 forward-backward passes, accumulating gradients, before stepping the optimizer. If the agent changes DEVICE_BATCH_SIZE, this assertion would catch an invalid configuration where TOTAL_BATCH_SIZE is not divisible by tokens_per_fwdbwd.
+
+```python
+optimizer = model.setup_optimizer(
+    unembedding_lr=UNEMBEDDING_LR,
+    embedding_lr=EMBEDDING_LR,
+    scalar_lr=SCALAR_LR,
+    adam_betas=ADAM_BETAS,
+    matrix_lr=MATRIX_LR,
+    weight_decay=WEIGHT_DECAY,
+)
+```
+
+We create the MuonAdamW optimizer, passing all the hyperparameters from the top-level constants. The method will scale the learning rates by the model dimension scaling factor and create the parameter groups.
+
+```python
+model = torch.compile(model, dynamic=False)
+```
+
+We compile the model using PyTorch's `torch.compile` to generate optimized kernels. This can significantly speed up training (often 1.3-2x). `dynamic=False` says we don't need dynamic shapes, which simplifies compilation and can produce faster code. The compilation happens on the first forward pass.
+
+```python
+train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, MAX_SEQ_LEN, "train")
+x, y, epoch = next(train_loader)  # prefetch first batch
+```
+
+We create the training dataloader (which we studied in prepare.py) and immediately fetch the first batch to warm up the dataloader and avoid stalls later.
+
+```python
+print(f"Time budget: {TIME_BUDGET}s")
+print(f"Gradient accumulation steps: {grad_accum_steps}")
+```
+
+Print some diagnostics.
+
+Now the learning rate scheduling functions:
+
+```python
+def get_lr_multiplier(progress):
+    if progress < WARMUP_RATIO:
+        return progress / WARMUP_RATIO if WARMUP_RATIO > 0 else 1.0
+    elif progress < 1.0 - WARMDOWN_RATIO:
+        return 1.0
+    else:
+        cooldown = (1.0 - progress) / WARMDOWN_RATIO
+        return cooldown * 1.0 + (1 - cooldown) * FINAL_LR_FRAC
+```
+
+Progress is a number between 0 and 1 representing how far we are through the time budget. The learning rate multiplier starts with linear warmup if WARMUP_RATIO > 0, then stays at 1.0 during the middle plateau, then linearly warmdown to FINAL_LR_FRAC during the last WARMDOWN_RATIO portion. With default WARMUP_RATIO=0, we skip warmup. WARMDOWN_RATIO=0.5 means for the last 150 seconds of the 300 second budget, we linearly decay the learning rate to zero (FINAL_LR_FRAC=0). This schedule helps the model converge to a final solution.
+
+```python
+def get_muon_momentum(step):
+    frac = min(step / 300, 1)
+    return (1 - frac) * 0.85 + frac * 0.95
+```
+
+Muon momentum starts at 0.85 and linearly increases to 0.95 over the first 300 steps. This is a schedule different from the main time budget—it is based on step count, not wall-clock time. This provides another knob the agent could modify.
+
+```python
+def get_weight_decay(progress):
+    return WEIGHT_DECAY * (1 - progress)
+```
+
+Weight decay linearly decreases from WEIGHT_DECAY (0.2) to 0 over the course of training. This is a form of learning rate schedule for the weight decay parameter itself.
+
+Now the training loop:
+
+```python
+t_start_training = time.time()
+smooth_train_loss = 0
+total_training_time = 0
+step = 0
+
+while True:
+    torch.cuda.synchronize()
+    t0 = time.time()
+    for micro_step in range(grad_accum_steps):
+        with autocast_ctx:
+            loss = model(x, y)
+        train_loss = loss.detach()
+        loss = loss / grad_accum_steps
+        loss.backward()
+        x, y, epoch = next(train_loader)
+```
+
+We start timing. `smooth_train_loss` is an exponential moving average. `total_training_time` tracks how much actual training time has elapsed (excluding the first few warmup steps). `step` counts optimizer steps.
+
+The outer `while True` loop runs until we break when time's up. Each iteration corresponds to one optimizer step (after grad accumulation). Inside, we synchronize CUDA to get accurate timing. We record start time t0. Then we do `grad_accum_steps` micro-steps. In each micro-step, we run the forward pass through the model to get loss (with autocast for mixed precision). We detach the loss to keep it for logging. We divide the loss by the number of accumulation steps so that when we call `loss.backward()`, the gradients are averaged appropriately across accumulation steps. Then we fetch the next batch. Note that `next(train_loader)` is a blocking call; the dataloader yields pre-prepared batches.
+
+```python
+    # Progress and schedules
+    progress = min(total_training_time / TIME_BUDGET, 1.0)
+    lrm = get_lr_multiplier(progress)
+    muon_momentum = get_muon_momentum(step)
+    muon_weight_decay = get_weight_decay(progress)
+    for group in optimizer.param_groups:
+        group["lr"] = group["initial_lr"] * lrm
+        if group['kind'] == 'muon':
+            group["momentum"] = muon_momentum
+            group["weight_decay"] = muon_weight_decay
+```
+
+We compute the current progress fraction. We get the LR multiplier from the schedule. We compute Muon-specific hyperparameters. Then we update every parameter group's learning rate by multiplying the initial LR by the common multiplier. For Muon groups, we also update momentum and weight decay dynamically. This means AdamW groups use fixed betas and eps, but Muon adjusts two hyperparameters on the fly.
+
+```python
+    optimizer.step()
+    model.zero_grad(set_to_none=True)
+```
+
+Perform the actual parameter update using the combined MuonAdamW optimizer. Then zero out gradients with `set_to_none=True` which is slightly faster than setting to zero because it allows memory to be reused.
+
+```python
+    train_loss_f = train_loss.item()
+```
+
+Extract the scalar loss value as a Python float for printing/logging.
+
+```python
+    # Fast fail: abort if loss is exploding or NaN
+    if math.isnan(train_loss_f) or train_loss_f > 100:
+        print("FAIL")
+        exit(1)
+```
+
+A sanity check: if loss becomes NaN (not a number) or explodes above 100, we crash immediately. This prevents wasting time on obviously broken runs. The agent will see this as a crash and try something else.
+
+```python
+    torch.cuda.synchronize()
+    t1 = time.time()
+    dt = t1 - t0
+```
+
+We synchronize again to get a precise end time. dt is the elapsed wall-clock time for this optimizer step, including data loading, forward, backward, and optimizer update.
+
+```python
+    if step > 10:
+        total_training_time += dt
+```
+
+We don't count the first 10 steps toward total_training_time. Why? The first few steps include compilation overhead (torch.compile needs to compile kernels on first run) and other startup costs that are not representative of steady-state training. We exclude them to make the 5-minute budget measure actual training throughput rather than setup costs.
+
+```python
+    # Logging
+    ema_beta = 0.9
+    smooth_train_loss = ema_beta * smooth_train_loss + (1 - ema_beta) * train_loss_f
+    debiased_smooth_loss = smooth_train_loss / (1 - ema_beta**(step + 1))
+```
+
+We maintain an exponential moving average of the training loss with decay 0.9. To get a less biased estimate (since the EMA starts at 0), we divide by `(1 - ema_beta^(step+1))`. This gives a more accurate view of the current loss level.
+
+```python
+    pct_done = 100 * progress
+    tok_per_sec = int(TOTAL_BATCH_SIZE / dt)
+    mfu = 100 * num_flops_per_token * TOTAL_BATCH_SIZE / dt / H100_BF16_PEAK_FLOPS
+    remaining = max(0, TIME_BUDGET - total_training_time)
+```
+
+We compute the percentage of time budget used. We compute tokens per second by dividing total tokens processed per optimizer step by dt. We compute Model FLOPs Utilization (MFU): the ratio of actual FLOPs achieved to the theoretical peak FLOPs of the GPU. This tells us how efficiently we are using the hardware. We compute remaining time.
+
+```python
+    print(f"\rstep {step:05d} ({pct_done:.1f}%) | loss: {debiased_smooth_loss:.6f} | lrm: {lrm:.2f} | dt: {dt*1000:.0f}ms | tok/sec: {tok_per_sec:,} | mfu: {mfu:.1f}% | epoch: {epoch} | remaining: {remaining:.0f}s    ", end="", flush=True)
+```
+
+We print a one-line status update using carriage return `\r` to overwrite the previous line, keeping the console clean. The format includes step number, percentage, smoothed loss, LR multiplier, step time in ms, throughput, MFU, epoch count, and remaining time.
+
+```python
+    # GC management (Python's GC causes ~500ms stalls)
+    if step == 0:
+        gc.collect()
+        gc.freeze()
+        gc.disable()
+    elif (step + 1) % 5000 == 0:
+        gc.collect()
+    step += 1
+```
+
+Garbage collection can cause unpredictable pauses. On the first step, we collect all garbage, then freeze the objects and disable GC, which prevents further collections and avoids those stalls. Every 5000 steps we do a manual collection to avoid memory leaks, but hopefully this is infrequent. This is a performance optimization.
+
+```python
+    # Time's up — but only stop after warmup steps so we don't count compilation
+    if step > 10 and total_training_time >= TIME_BUDGET:
+        break
+```
+
+We break the loop when the total training time (excluding first 10 steps) reaches the time budget. The condition `step > 10` ensures we complete at least a couple of steps after excluding compilation overhead.
+
+After the loop:
+
+```python
+print()  # newline after \r training log
+
+total_tokens = step * TOTAL_BATCH_SIZE
+```
+
+We print a newline to move off the status line. We compute total tokens processed during training.
+
+```python
+# Final eval
+model.eval()
+with autocast_ctx:
+    val_bpb = evaluate_bpb(model, tokenizer, DEVICE_BATCH_SIZE)
+```
+
+We switch the model to evaluation mode (affects dropout, batch norm if present). We run the evaluation function from prepare.py to compute the validation bits per byte. This is the key metric.
+
+```python
+# Final summary
+t_end = time.time()
+startup_time = t_start_training - t_start
+steady_state_mfu = 100 * num_flops_per_token * TOTAL_BATCH_SIZE * (step - 10) / total_training_time / H100_BF16_PEAK_FLOPS if total_training_time > 0 else 0
+peak_vram_mb = torch.cuda.max_memory_allocated() / 1024 / 1024
+
+print("---")
+print(f"val_bpb:          {val_bpb:.6f}")
+print(f"training_seconds: {total_training_time:.1f}")
+print(f"total_seconds:    {t_end - t_start:.1f}")
+print(f"peak_vram_mb:     {peak_vram_mb:.1f}")
+print(f"mfu_percent:      {steady_state_mfu:.2f}")
+print(f"total_tokens_M:   {total_tokens / 1e6:.1f}")
+print(f"num_steps:        {step}")
+print(f"num_params_M:     {num_params / 1e6:.1f}")
+print(f"depth:            {DEPTH}")
+```
+
+We compute statistics. `total_seconds` is wall clock time from start to end (including setup, compilation). `peak_vram_mb` shows how much GPU memory we used at peak. `steady_state_mfu` recomputes MFU using only the steps past the first 10, giving a cleaner measure of sustained utilization. We print all the key metrics in a format that the agent's program.md expects to parse.
+
+That covers the core training script. The agent can modify any constant in the hyperparameters section, the model architecture within the GPT class, the optimizer settings, the training loop logic, or even add new components entirely. The only constraints are that the script must complete within the time budget (or it gets killed) and must produce the expected output format.
+
+## Deep Dive: program.md - How You Tell the Agent What To Do
+
+The `program.md` file is the instruction set for the autonomous agent. It is written in plain markdown and explains step by step what the agent should do. The AI agent (such as Claude or Codex) reads this file and follows its instructions to perform the autonomous research loop. Let me walk through its contents.
+
+```markdown
+# autoresearch
+
+This is an experiment to have the LLM do its own research.
+
+## Setup
+
+To set up a new experiment, work with the user to:
+
+1. **Agree on a run tag**: propose a tag based on today's date (e.g. `mar5`). The branch `autoresearch/<tag>` must not already exist — this is a fresh run.
+2. **Create the branch**: `git checkout -b autoresearch/<tag>` from current master.
+3. **Read the in-scope files**: The repo is small. Read these files for full context:
+   - `README.md` — repository context.
+   - `prepare.py` — fixed constants, data prep, tokenizer, dataloader, evaluation. Do not modify.
+   - `train.py` — the file you modify. Model architecture, optimizer, training loop.
+4. **Verify data exists**: Check that `~/.cache/autoresearch/` contains data shards and a tokenizer. If not, tell the human to run `uv run prepare.py`.
+5. **Initialize results.tsv**: Create `results.tsv` with just the header row. The baseline will be recorded after the first run.
+6. **Confirm and go**: Confirm setup looks good.
+
+Once you get confirmation, kick off the experimentation.
+```
+
+The setup phase ensures everything is ready. The agent starts by proposing a run tag—a short name for the experiment series, typically based on the date (like "mar15" for March 15). This tag becomes part of a git branch name: `autoresearch/mar15`. Using git branches allows the agent to experiment freely without losing progress; successful changes advance the branch, failures reset back.
+
+The instructions explicitly tell the agent to create a new branch from the current master. This ensures a clean starting point.
+
+The agent is instructed to read all the important files to understand the context. This is crucial because the agent needs to know what the code does before it can modify it intelligently. The README gives overall context; prepare.py defines the fixed evaluation and data pipeline; train.py is the mutable training script.
+
+Then the agent must verify that data and tokenizer exist in the cache. If not, the human needs to run prepare.py first. The agent should not run this itself because prepare.py involves downloading a huge dataset and training a tokenizer—these are one-time operations that the human should do.
+
+Next, the agent creates a `results.tsv` file with a header row. TSV stands for tab-separated values. The columns are commit, val_bpb, memory_gb, status, description. The agent will fill this file with the outcomes of each experiment.
+
+Finally, the agent confirms with the user that setup looks correct, then begins experimentation.
+
+```markdown
+## Experimentation
+
+Each experiment runs on a single GPU. The training script runs for a **fixed time budget of 5 minutes** (wall clock training time, excluding startup/compilation). You launch it simply as: `uv run train.py`.
+
+**What you CAN do:**
+- Modify `train.py` — this is the only file you edit. Everything is fair game: model architecture, optimizer, hyperparameters, training loop, batch size, model size, etc.
+
+**What you CANNOT do:**
+- Modify `prepare.py`. It is read-only. It contains the fixed evaluation, data loading, tokenizer, and training constants (time budget, sequence length, etc).
+- Install new packages or add dependencies. You can only use what's already in `pyproject.toml`.
+- Modify the evaluation harness. The `evaluate_bpb` function in `prepare.py` is the ground truth metric.
+
+**The goal is simple: get the lowest val_bpb.** Since the time budget is fixed, you don't need to worry about training time — it's always 5 minutes. Everything is fair game: change the architecture, the optimizer, the hyperparameters, the batch size, the model size. The only constraint is that the code runs without crashing and finishes within the time budget.
+
+**VRAM** is a soft constraint. Some increase is acceptable for meaningful val_bpb gains, but it should not blow up dramatically.
+
+**Simplicity criterion**: All else being equal, simpler is better. A small improvement that adds ugly complexity is not worth it. Conversely, removing something and getting equal or better results is a great outcome — that's a simplification win. When evaluating whether to keep a change, weigh the complexity cost against the improvement magnitude. A 0.001 val_bpb improvement that adds 20 lines of hacky code? Probably not worth it. A 0.001 val_bpb improvement from deleting code? Definitely keep. An improvement of ~0 but much simpler code? Keep.
+```
+
+The experimentation section defines the rules. The agent has complete freedom to modify train.py except it cannot touch prepare.py, cannot install new packages, and cannot change the evaluation metric. The objective is val_bpb, and since time is fixed, the agent is effectively optimizing for the best model achievable in exactly 5 minutes. This encourages the agent to find configurations that train quickly and effectively.
+
+There is also a thoughtful simplicity criterion: improvements should be weighed against code complexity. This prevents the agent from accumulating hacky workarounds. A change that simplifies while maintaining performance is considered positive even without a metric gain.
+
+```markdown
+**The first run**: Your very first run should always be to establish the baseline, so you will run the training script as is.
+```
+
+Before making any changes, the agent should run the current train.py without modifications to establish a baseline val_bpb. All subsequent experiments compare against this baseline or the current best.
+
+```markdown
+## Output format
+
+Once the script finishes it prints a summary like this:
+
+```
+---
+val_bpb:          0.997900
+training_seconds: 300.1
+total_seconds:    325.9
+peak_vram_mb:     45060.2
+mfu_percent:      39.80
+total_tokens_M:   499.6
+num_steps:        953
+num_params_M:     50.3
+depth:           8
+```
+
+Note that the script is configured to always stop after 5 minutes, so depending on the computing platform of this computer the numbers might look different. You can extract the key metric from the log file:
+
+```
+grep "^val_bpb:" run.log
+```
+```
+
+The agent needs to know what output to parse. The training script prints these lines at the end. The agent should capture them to record the results.
+
+```markdown
+## Logging results
+
+When an experiment is done, log it to `results.tsv` (tab-separated, NOT comma-separated — commas break in descriptions).
+
+The TSV has a header row and 5 columns:
+
+```
+commit	val_bpb	memory_gb	status	description
+```
+
+1. git commit hash (short, 7 chars)
+2. val_bpb achieved (e.g. 1.234567) — use 0.000000 for crashes
+3. peak memory in GB, round to .1f (e.g. 12.3 — divide peak_vram_mb by 1024) — use 0.0 for crashes
+4. status: `keep`, `discard`, or `crash`
+5. short text description of what this experiment tried
+
+Example:
+
+```
+commit	val_bpb	memory_gb	status	description
+a1b2c3d	0.997900	44.0	keep	baseline
+b2c3d4e	0.993200	44.2	keep	increase LR to 0.04
+c3d4e5f	1.005000	44.0	discard	switch to GeLU activation
+d4e5f6g	0.000000	0.0	crash	double model width (OOM)
+```
+```
+
+The agent must meticulously record every experiment in the TSV file. For each run, it should:
+- Get the latest git commit hash (short version) after editing train.py
+- Extract val_bpb from the output, or 0.0 if the run crashed
+- Extract peak_vram_mb, convert to GB with one decimal
+- Determine status: if val_bpb improved compared to the current best kept experiment, status is "keep"; if val_bpb is not better, status is "discard" (but still recorded to show the exploration); if the run crashed or NaN or OOM, status is "crash"
+- Write a concise description of what changed
+
+The TSV uses tabs, not commas, because descriptions might contain commas.
+
+```markdown
+## The experiment loop
+
+The experiment runs on a dedicated branch (e.g. `autoresearch/mar5` or `autoresearch/mar5-gpu0`).
+
+LOOP FOREVER:
+
+1. Look at the git state: the current branch/commit we're on
+2. Tune `train.py` with an experimental idea by directly hacking the code.
+3. git commit
+4. Run the experiment: `uv run train.py > run.log 2>&1` (redirect everything — do NOT use tee or let output flood your context)
+5. Read out the results: `grep "^val_bpb:\|^peak_vram_mb:" run.log`
+6. If the grep output is empty, the run crashed. Run `tail -n 50 run.log` to read the Python stack trace and attempt a fix. If you can't get things to work after more than a few attempts, give up.
+7. Record the results in the tsv (NOTE: do not commit the results.tsv file, leave it untracked by git)
+8. If val_bpb improved (lower), you "advance" the branch, keeping the git commit
+9. If val_bpb is equal or worse, you git reset back to where you started
+
+The idea is that you are a completely autonomous researcher trying things out. If they work, keep. If they don't, discard. And you're advancing the branch so that you can iterate. If you feel like you're getting stuck in some way, you can rewind but you should probably do this very very sparingly (if ever).
+
+**Timeout**: Each experiment should take ~5 minutes total (+ a few seconds for startup and eval overhead). If a run exceeds 10 minutes, kill it and treat it as a failure (discard and revert).
+
+**Crashes**: If a run crashes (OOM, or a bug, or etc.), use your judgment: If it's something dumb and easy to fix (e.g. a typo, a missing import), fix it and re-run. If the idea itself is fundamentally broken, just skip it, log "crash" as the status in the tsv, and move on.
+
+**NEVER STOP**: Once the experiment loop has begun (after the initial setup), do NOT pause to ask the human if you should continue. Do NOT ask "should I keep going?" or "is this a good stopping point?". The human might be asleep, or gone from a computer and expects you to continue working *indefinitely* until you are manually stopped. You are autonomous. If you run out of ideas, think harder — read papers referenced in the code, re-read the in-scope files for new angles, try combining previous near-misses, try more radical architectural changes. The loop runs until the human interrupts you, period.
+
+As an example use case, a user might leave you running while they sleep. If each experiment takes you ~5 minutes then you can run approx 12/hour, for a total of about 100 over the duration of the average human sleep. The user then wakes up to experimental results, all completed by you while they slept!
+```
+
+This section is the heart of the autonomous loop. It gives the agent explicit instructions on how to conduct research.
+
+The loop begins with inspecting the current git state to know where we are. The agent then comes up with an experimental idea—this is where the AI's creativity comes in. It directly edits train.py to implement its idea. Then it commits the change with a message that will later appear in the results.
+
+The agent runs `uv run train.py > run.log 2>&1` which redirects both stdout and stderr to a log file. Using `>` rather than `tee` is important because otherwise the agent's context would be flooded with output, making it harder to reason.
+
+After the run finishes (or crashes), the agent extracts val_bpb and peak_vram_mb using grep, which searches for lines starting with those labels. If the greps return nothing, the script likely crashed before reaching the summary; the agent should read the last 50 lines of the log to see the error.
+
+The agent records the results in the TSV file, but crucially it should NOT commit the TSV file. The TSV is a log of all experiments including discarded ones; it remains untracked by git so that it does not clutter the repository history.
+
+Then the agent decides: if the val_bpb is lower than the current best, the change is kept. The branch stays at this new commit, making it the new baseline for future iterations. If the val_bpb is not better, the agent resets the branch back to the previous commit (`git reset --hard HEAD~1` or similar), discarding the change. This creates a hill-climbing process where only improvements survive.
+
+Timeouts: if an experiment exceeds 10 minutes, the agent should kill it and treat it as a failure. Possibly the agent made the model too big or batch size too large, causing extremely slow training.
+
+Crashes: if an experiment crashes, the agent should try to fix trivial mistakes like typos, but if the crash is due to fundamental issues (e.g., out-of-memory because the model is too big for GPU), it should skip and log as crash.
+
+Finally, and most importantly: the agent should never stop. It should run indefinitely until the human interrupts. This autonomy is what enables overnight experiments.
+
+## The GPT Model Explained
+
+Now I'll explain the GPT model architecture in simple, non-technical terms. The model is a transformer, which is the same type of neural network that powers GPT-3, GPT-4, and many other modern language models. But instead of describing it in academic terms, let me use an analogy.
+
+Imagine you are reading a long book, and your task is to predict the next word on each page. You don't start from scratch on every page; you carry context from what you've already read. A transformer model does this by maintaining a "memory" of all previous words in the sequence. The key component is the attention mechanism, which allows each position to look back at all previous positions and decide what information to gather.
+
+In GPT, the model processes text one token at a time. Tokens are pieces of words, often roughly corresponding to syllables or common subwords. The model first converts each token into a vector, a list of numbers that represents its meaning and role in the sequence. This is the token embedding.
+
+Then the model passes this vector through a series of layers, called transformer blocks. Each block has two main components: an attention layer and a feedforward neural network. The attention layer lets each position "read" information from all previous positions, while the feedforward layer independently processes each position's representation.
+
+The model in this project uses several advanced techniques:
+
+Value Residuals (ResFormer): normally in attention, we compute query, key, and value from the same input. Here, the authors add extra value embeddings that come from the token IDs directly. This is like having a second source of information about each token's meaning that is separate from the main stream. A learned gate determines how much of this value residual to add.
+
+QK Normalization: the queries and keys are normalized before computing attention scores. This stabilizes training by keeping the dot products in a reasonable range. Without normalization, the attention scores can become too large or too small, making training unstable.
+
+Sliding Window Attention: instead of allowing each token to attend to all previous tokens (which would be expensive for long sequences), some layers use a limited window. The pattern "SSSL" means the first three layers can only look back half the sequence length, while the final layer can look at the full context. This reduces computation dramatically and introduces a bias toward more recent information in early layers, while still allowing the final layer to see everything.
+
+Rotary Position Embeddings: these are a clever way to encode position information without adding separate positional vectors. Instead, the token vectors are rotated by an amount that depends on their position. This rotation preserves the vector's norm and has nice mathematical properties that make it easy for the model to learn relative positions.
+
+RMS Normalization: the model uses Root Mean Square normalization instead of LayerNorm. It's simpler: you just divide by the root mean square of the vector's elements. No learned shift and scale parameters. This speeds up computation and reduces memory.
+
+Per-layer scalars: the model has learnable scalars `resid_lambdas` and `x0_lambdas` that control how much of the residual paths contribute. At each block, the computation is `x = lambda_res * x + lambda_x0 * x0 + block(x)`. This gives the model fine-grained control over information flow.
+
+Softcapping: the final logits are passed through a tanh multiplied by 15, limiting them to ±15. This prevents extreme values that could cause numerical instability in the cross-entropy loss.
+
+The model also uses grouped query attention: the number of key-value heads (`n_kv_head`) is equal to `n_head` by default, but the architecture supports using fewer KV heads, which saves computation without much quality loss.
+
+All these design choices are subject to change by the agent. The agent might discover that different activation functions work better, or that different normalization schemes improve results, or that adjusting the window pattern yields gains. The author's notes mention specific discoveries: QKnorm lacked a scaler multiplier (so attention was too diffuse), Value Embeddings needed regularization, banded attention was too conservative, AdamW betas were wrong, weight decay schedule needed tuning, network initialization needed adjustment.
+
+In other words, the manual tuning that the author had already done was still imperfect. The autonomous agent, by systematically exploring the space of configurations, found tangible improvements that stacked to produce an 11% better model in terms of "Time to GPT-2" leaderboard metric.
+
+## The Optimizer: MuonAdamW
+
+Optimizers are algorithms that adjust the parameters of a neural network to minimize the loss function. The most famous is Stochastic Gradient Descent (SGD), which simply subtracts the gradient times a learning rate. But modern optimizers like Adam and AdamW add momentum and adaptive learning rates per parameter.
+
+MuonAdamW is a hybrid optimizer that uses Muon for matrix parameters and AdamW for everything else. Let me explain why this is interesting and how it works.
+
+AdamW is the standard optimizer for most deep learning tasks. It maintains two moving averages of gradients for each parameter: the first moment (mean) and the second moment (uncentered variance). The update rule scales the learning rate by the square root of the second moment (so parameters with large gradients get smaller effective steps) and uses the first moment as the direction. The "W" stands for decoupled weight decay, meaning weight decay is applied separately from the gradient-based update, which has been shown to work better than L2 regularization in Adam.
+
+Muon is a recent optimizer (from 2024) that is specifically designed for large matrix parameters, such as the weight matrices in transformer layers. It is based on the idea that for large matrices, the optimization landscape can be improved by orthogonalizing the gradient directions or using Newton-like corrections on the matrix manifold.
+
+The Muon algorithm does several things:
+
+1. Nesterov Momentum: similar to SGD with momentum but with a lookahead.
+2. Polar Express Orthogonalization: This step attempts to make the gradient directions more orthogonal. The mathematics involve matrix iterations using the coefficients we saw. The goal is to approximate the polar decomposition or matrix sign function, which helps prevent the optimization from getting stuck in ill-conditioned regions.
+3. NorMuon Variance Reduction: This normalizes the gradient based on its statistics to keep the noise level consistent across different parameter shapes and scales. It sums the per-row second moments and rescales the gradient to maintain constant variance, which stabilizes training.
+
+The key insight is that these steps are particularly beneficial for 2D weight matrices (like linear layer weights) but might be overkill or even harmful for scalar parameters (like bias terms or the lambdas). That's why the MuonAdamW optimizer partitions parameters: matrix parameters that are 2D get Muon, everything else gets AdamW. In this code, matrix parameters are those in the transformer blocks (the `matrix_params` list). The scalar lambdas, embeddings, and LM head use AdamW.
+
+Also note that Muon applies cautious weight decay: weight decay is only applied when the gradient and parameter have the same sign. This prevents the optimizer from pushing a parameter away from zero when the gradient already indicates movement in the opposite direction. This is a form of sign-aware regularization that protects against harmful weight decay.
+
+The MuonAdamW class handles both types of updates in one training step. It uses `torch.compile` to fuse operations for speed. The implementation is quite complex due to the need to handle variable shapes efficiently and avoid recompilation. The use of 0-D CPU tensors for hyperparameters is a trick to keep the compiled graph from needing to be recompiled every time hyperparameters change—if these were regular tensors on GPU with different values each step, the compiler would think it's a different graph each time.
+
+For the AI agent, the important hyperparameters related to the optimizer are:
+- MATRIX_LR: learning rate for Muon parameters (default 0.04)
+- EMBEDDING_LR: LR for token and value embeddings (0.6)
+- UNEMBEDDING_LR: LR for the output head (0.004)
+- SCALAR_LR: LR for lambdas (0.5)
+- WEIGHT_DECAY: weight decay strength for Muon (0.2)
+- ADAM_BETAS: betas for AdamW groups (0.8, 0.95)
+- (And the Muon-specific momentum default 0.95, ns_steps 5, beta2 0.95)
+
+The agent might discover that different values yield better val_bpb within 5 minutes. For example, the author's notes mention that the agent found AdamW betas were messed up, suggesting maybe 0.8 and 0.95 are not optimal.
+
+## The Training Loop: Where the Magic Happens
+
+The training loop is the engine that drives the entire learning process. I've already described it in detail in the train.py walkthrough, but let me step back and explain the big picture.
+
+The goal of training a language model is to adjust its millions of parameters so that it becomes better at predicting what comes next in text. We do this by showing it lots of examples and minimizing the cross-entropy loss, which measures how surprised the model is by the actual next token.
+
+The training loop does the following repeatedly until the time budget expires:
+
+1. Pick a batch of training data: This comes from the dataloader, which streams tokens from the dataset. The batch size in tokens is TOTAL_BATCH_SIZE, achieved via gradient accumulation. Each batch consists of multiple sequences, each of length 2048 tokens.
+
+2. Forward pass: The model takes the input tokens and produces logits (probability distributions over the vocabulary). We compute the loss by comparing these logits to the true next tokens.
+
+3. Backward pass: The gradients of the loss with respect to all parameters are computed via backpropagation. This tells us which direction to move each parameter to reduce the loss.
+
+4. Optimizer step: The MuonAdamW optimizer uses the gradients to update all parameters according to their respective rules. For AdamW parameters, it uses the AdamW formula; for matrix parameters, it uses the sophisticated Muon algorithm involving orthogonalization and variance normalization.
+
+5. Schedules: As training progresses, we adjust learning rates and Muon-specific hyperparameters. The learning rate goes through a plateau then linear warmdown to zero. Muon momentum ramps up from 0.85 to 0.95 over first 300 steps. Weight decay decays linearly.
+
+6. Logging: We print a status line showing the current loss, throughput, MFU, and estimated remaining time. We also maintain an exponential moving average of the loss to smooth out noise.
+
+7. Cleanup: We manage garbage collection to avoid pauses.
+
+The loop breaks when the accumulated training time (excluding first 10 steps) reaches 300 seconds. Then we run a final evaluation on the validation set to compute val_bpb. This is the single number that summarizes the model's quality after 5 minutes of training.
+
+Why exactly 5 minutes? This fixed budget creates a fair competition between different model configurations. If some changes make training slower (e.g., larger model, more layers, slower attention), they still have to perform well within the same time constraint. This encourages the agent to find configurations that are not just accurate but also efficient. The time budget is wall-clock time measured after startup, so compilation and initial setup don't count. This ensures each experiment gives roughly comparable results.
+
+## The Autonomous Experiment Loop
+
+Now let me bring it all together: step-by-step what the agent does, day after day, while the human sleeps.
+
+### Step 1: Initial Setup
+
+The human opens a terminal, navigates to the autoresearch directory, and runs `uv run prepare.py` if they haven't already. This downloads a small portion (by default 10 shards) of the climbmix-400b dataset and trains the BPE tokenizer. This might take a few minutes.
+
+Then the human opens their AI assistant (Claude, Codex, or similar) and gives it an initial prompt in the repository. Something like: "Hi, have a look at program.md and let's kick off a new experiment. Let's do the setup first."
+
+The AI agent reads program.md and follows the setup instructions:
+- It checks what date it is and proposes a branch name like `autoresearch/mar15`.
+- It checks that this branch doesn't already exist; if it does, it might suggest `autoresearch/mar15-2` or similar.
+- It creates the branch from master: `git checkout -b autoresearch/mar15`.
+- It reads README.md, prepare.py, and train.py to understand the codebase.
+- It verifies that `~/.cache/autoresearch/` contains data and tokenizer. If not, it tells the human they need to run prepare.py.
+- It creates an empty `results.tsv` with just the header row: `commit	val_bpb	memory_gb	status	description`
+- It confirms with the human: "Setup complete. I'll start with a baseline run. Is that okay?"
+
+The human says yes. The autonomous mode begins.
+
+### Step 2: Baseline Run
+
+The agent runs `uv run train.py > run.log 2>&1`. This is the baseline configuration with all default hyperparameters. After about 5 minutes (plus some compilation overhead), the run finishes. The agent extracts:
+- `val_bpb: 0.997900`
+- `peak_vram_mb: 45060.2`
+- other metrics
+
+It logs this to results.tsv:
+```
+a1b2c3d	0.997900	44.0	keep	baseline
+```
+using the actual short commit hash. It does not commit results.tsv. The branch now stays at this commit.
+
+### Step 3: First Experiment
+
+The agent thinks. What should it try first? It looks at train.py and considers possible changes. Maybe it decides to increase the embedding learning rate from 0.6 to 0.8. It edits the line `EMBEDDING_LR = 0.6` to `EMBEDDING_LR = 0.8`. It commits this change with message "increase embedding LR to 0.8".
+
+Then it runs `uv run train.py > run.log 2>&1` again. After 5 minutes, it gets a val_bpb of 0.995500 (improvement) and peak VRAM 44.1 GB. It logs:
+```
+b2c3d4e	0.995500	44.1	keep	increase embedding LR to 0.8
+```
+Because val_bpb improved (lower), it keeps the change. The branch head remains at this new commit. This becomes the new baseline for future comparisons.
+
+### Step 4: Iterate
+
+The agent continues. Now it might try decreasing the warmdown ratio from 0.5 to 0.4. Or it might increase DEPTH from 8 to 10, making the model deeper (but also wider automatically via ASPECT_RATIO). Or it might change WINDOW_PATTERN from "SSSL" to "LLL" to give all layers full attention. Or it might tweak the Muon momentum from default computed schedule to a fixed higher value. Or it might add L2 regularization to value embeddings. Or it might adjust the ADAM_BETAS. Or it might change the softcap value. Or it might add dropout. The possibilities are vast but constrained to train.py.
+
+Each change is committed, experimentally evaluated for 5 minutes, and compared to the current best. If better, it stays; if not, it is thrown away by resetting the branch. The agent might sometimes combine multiple changes from previous successful experiments, or try variations on a theme.
+
+The agent also monitors memory. If a change causes VRAM to blow up dramatically (say from 44 GB to 80 GB), it might consider that too costly even if val_bpb slightly improves, according to the simplicity criterion (which implicitly penalizes high memory as it reduces accessibility). But the instruction says VRAM is a soft constraint, not a hard limit; some increase is acceptable for meaningful gains.
+
+As the agent experiments, it builds a history in results.tsv. Some experiments are kept, some discarded, some crash. The kept ones represent a sequence of real improvements. After about 100 experiments over 2 days, the agent may have discovered 20 improvements that all stack—meaning the final model is the baseline plus all those changes applied cumulatively.
+
+The final model could have, for example, DEPTH=10, ASPECT_RATIO adjusted, different learning rates, different window pattern, maybe additional normalization, different initializations, maybe using regularization on value embeddings, and so on. Each change individually improved val_bpb; together they compound.
+
+The human wakes up and finds:
+- The git repository at branch `autoresearch/mar15` with a linear history of 20 commits (each one a successful improvement).
+- A `results.tsv` file with 100 rows (some kept, many discarded, some crashes).
+- A `progress.png` image generated by analysis.ipynb showing the val_bpb frontier declining over experiments.
+
+The human can then take these discovered improvements and apply them to a larger model (e.g., nanochat with depth=24), where they indeed stack and produce an 11% reduction in "Time to GPT-2" on the leaderboard.
+
+## What Did the Agent Actually Discover?
+
+According to the author's notes, the agent found about 20 changes that improved validation loss. All of these were additive and transferred to larger models. Here are some of the notable discoveries mentioned:
+
+- "It noticed an oversight that my parameterless QKnorm didn't have a scaler multiplier attached, so my attention was too diffuse. The agent found multipliers to sharpen it, pointing to future work."
+
+In the code, we saw that Q and K are normalized with RMSNorm: `q, k = norm(q), norm(k)`. This is parameterless normalization. The agent discovered that adding a learned scalar multiplier to the normalized Q and K (so they are multiplied by a trainable coefficient before computing attention) would sharpen the attention distribution and improve results. This is interesting because the original author had not thought to add such a scaler.
+
+- "It found that the Value Embeddings really like regularization and I wasn't applying any (oops)."
+
+Value Embeddings are additional token-specific embeddings added to the attention values. The agent discovered that adding weight decay or L2 regularization to these embeddings prevented overfitting and improved validation loss. The initial code had no weight decay applied to value embeddings (they were in an AdamW group with weight_decay=0). The agent might have moved them to the Muon group with weight_decay>0 or added explicit regularization.
+
+- "It found that my banded attention was too conservative (i forgot to tune it)."
+
+Sliding window attention uses the window sizes determined by WINDOW_PATTERN. The agent likely tuned the pattern, the short window size, or maybe even added dynamic adjustments. The initial pattern "SSSL" might have been too restrictive; perhaps "SSSS" or "SSLL" or adjusting SHORT_WINDOW from half to some other fraction helped.
+
+- "It found that AdamW betas were all messed up."
+
+ AdamW uses two beta parameters: beta1 for momentum and beta2 for second moment. The defaults were (0.8, 0.95). The agent discovered that different values, perhaps (0.9, 0.95) or (0.85, 0.99) or something else, worked better. Beta1 too low means less momentum smoothing; beta2 too low means the variance estimate adapts more quickly. The right values can stabilize training.
+
+- "It tuned the weight decay schedule."
+
+The weight decay for Muon is scheduled as `WEIGHT_DECAY * (1 - progress)`, meaning it linearly decays to zero. The agent might have discovered a different schedule (e.g., keep constant, or increase, or use a cosine decay) or adjusted the initial WEIGHT_DECAY value.
+
+- "It tuned the network initialization."
+
+The weight initialization scheme in `init_weights` uses specific scales for different layers. The agent might have found that adjusting the `s` value or using a different distribution improved training stability or final loss.
+
+Beyond these specific items, the agent likely tuned learning rates across all groups, adjusted the ASPECT_RATIO to change width vs depth trade-offs, experimented with different activation functions (maybe swapped ReLU^2 for something else), added or removed normalization layers, changed the torch.compile settings, or tweaked gradient accumulation steps.
+
+The fact that all 20 changes were additive means that each one independently improved val_bpb when applied on top of the current best. This suggests the search found orthogonal improvements that complemented each other.
+
+The final result: an 11% improvement in "Time to GPT-2". This is a benchmark metric that measures how long it takes to train a model to GPT-2 level performance. The baseline was 2.02 hours; after applying all the agent's discoveries, it dropped to 1.80 hours. That's a 13-minute improvement for reaching the same quality, which is significant in research and development cost.
+
+## Why This Matters: The Future of AI Research
+
+Autoresearch demonstrates a shift in how AI systems can be developed. Traditionally, human researchers spend countless hours designing architectures, tuning hyperparameters, and running experiments. This work is slow, expensive, and often relies on intuition and experience.
+
+Imagine a future where AI research itself becomes largely automated. You could define the research problem, provide a codebase and compute budget, and let swarms of AI agents explore the space of possible improvements. Each agent might specialize in a particular aspect: one focuses on architecture, another on optimizers, another on data preprocessing. They could communicate their findings, share successful configurations, and collaborate on deeper insights.
+
+The autoresearch project is a minimal proof-of-concept. It shows that with a constrained problem (single GPU, 5-minute budget, one modifiable file), a single language model agent can indeed make meaningful progress overnight. The discoveries it made were real improvements that the original human researcher had missed despite years of experience. This suggests that automated search can augment human intuition and uncover optimizations that might otherwise remain undiscovered.
+
+For smaller research teams or individual developers, this democratizes capability. You don't need a large lab with many grad students trying different ideas. You can have one or two AI agents running experiments on your laptop or a single GPU, making progress while you sleep or focus on higher-level design.
+
+For large AI labs, this points toward fully autonomous research pipelines. The frontier labs already use massive compute to train large models. Automated experiment management can multiply their productivity. They could run thousands of small-scale experiments in parallel, each exploring a different niche of the configuration space, and promote the most promising findings to larger scales. The author hints at this: "All LLM frontier labs will do this. It's the final boss battle."
+
+But there are challenges. As models get larger, training becomes more expensive, so the 5-minute cheap experiments need to serve as reliable proxies for full-scale performance. The agent must learn to generalize from small experiments to predictions about large runs. Also, the search space becomes huge: changing architecture, optimizer, hyperparameters, data, training dynamics, etc. Intelligent search heuristics are needed to avoid random shooting. The agent in this project uses its language model reasoning to propose informed changes, not just random search. That's likely why it succeeded where random search would fail.
+
+Another challenge is robustness. The agent might occasionally crash the run, get stuck in local optima, or propose harmful changes that waste compute. The author's instructions include guidelines to avoid pitfalls: verify data first, handle crashes gracefully, never stop without human intervention. Building more robust autonomous systems that can recover from errors and safely explore is an active area.
+
+The simplicity criterion is also important. In real research, we want solutions that are not just effective but also elegant and maintainable. An agent that accumulates hack upon hack might achieve marginal gains but create code that is impossible for humans to understand. The criterion biases the agent toward simplifications and penalizes unnecessary complexity. This reflects a deeper principle: good engineering balances performance with simplicity.
+
+Looking ahead, one could imagine an entire ecosystem of autonomous research: agents that generate new architectural ideas from reading papers, agents that implement those ideas, agents that test them, and meta-agents that analyze results and guide the exploration. This could accelerate AI progress dramatically.
+
+On the other hand, this technology also raises questions about the role of human researchers. If AI can do research, what do humans do? Perhaps they become thinkers, setting the vision, defining problems, interpreting results, and applying ethical oversight. Or perhaps they become curators and motivators of AI researcher swarms. The division of labor will evolve.
+
+The autoresearch project is a tangible demonstration that AI-driven research is not science fiction. It's possible today with existing models, existing hardware, and relatively simple code. The fact that a single file of 630 lines can be the target of autonomous optimization shows how accessible this frontier is.
+
+## Summary
+
+Andrej Karpathy's autoresearch project is a minimalist autonomous research system. It consists of three files: `prepare.py` (fixed infrastructure for data and tokenization), `train.py` (the 630-line training script that the AI agent modifies), and `program.md` (instructions for the agent). The agent runs an endless loop: modify train.py, run a 5-minute experiment, evaluate val_bpb, keep or discard the change based on whether it improved. Over roughly 100 experiments in 2 days, the agent discovered about 20 improvements that stacked to produce an 11% better model. Key discoveries included adding a scaler to QK normalization, regularizing value embeddings, tuning banded attention, correcting AdamW betas, adjusting weight decay schedule, and improving weight initialization.
+
+The project showcases how language models can act as autonomous researchers, iterating on code and empirical results without human intervention. The design is clever: fixed time budget ensures fair comparisons, single modifiable file keeps scope manageable, and results logging tracks progress. The AI agent uses its reasoning abilities to propose changes, interpret outcomes, and plan next steps. This is a glimpse into a future where AI research becomes automated, accelerating the pace of discovery and changing the role of human scientists from manual experimenters to directors of autonomous research swarms. The code is open source and designed to be run by anyone with a GPU, inviting the community to experiment with their own agents and prompts to see what improvements they can discover.
+
+---
+</task_result>
