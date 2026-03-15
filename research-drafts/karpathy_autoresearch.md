@@ -4,27 +4,75 @@
 
 Imagine you have a robot chef. You give it a kitchen, some ingredients, and a cookbook. You tell it your goal is to make the most delicious chocolate chip cookie possible. You let it experiment overnight. In the morning, you find that the robot chef has tried hundreds of variations, keeping only the ones that improved the taste, discarding the failures, and documenting every change. This is the essence of what Andrej Karpathy calls "autoresearch".
 
+### Who is Andrej Karpathy?
+
+Andrej Karpathy is a well-known figure in the artificial intelligence field. He earned his PhD from Stanford University, one of the top schools for computer science research. During his studies, he worked on deep learning, which is the technology behind modern AI. After Stanford, he joined Tesla, the electric car company. At Tesla, he led the team that created Autopilot, the system that helps cars steer, brake, and stay in their lane. This was one of the first large-scale uses of AI in a consumer product. His work there showed that neural networks could solve real problems in the physical world, not just on paper.
+
+Later, he became a co-founder of OpenAI, the research organization that created the GPT series of language models. He was part of the early team that laid the groundwork for today's AI revolution. Although he eventually left to pursue other interests, his contributions helped shape the industry. Today he is known for explaining complex AI concepts in clear, accessible ways. He creates educational videos and writes about how AI systems work. People pay attention to his work because he has both deep technical knowledge and a talent for teaching.
+
+His "autoresearch" project continues this tradition. It tackles a fundamental challenge: training AI models is expensive and slow. If an AI can help improve its own training code, we could speed up progress across the entire field. Karpathy's reputation gives credibility to this research. But more importantly, his track record shows he focuses on practical, impactful problems. He is not just an academic; he has built systems that affect millions of people. That combination of theory and practice makes his work worth watching.
+
+### What Are These Technologies?
+
 In the world of artificial intelligence, building large language models like GPT-4 involves countless decisions. How many layers should the neural network have? What learning rate works best? Should we use one type of attention mechanism or another? Traditionally, human researchers spend months or years experimenting with these settings, running training runs that can cost millions of dollars in computing power. Large Language Models, often called LLMs or GPT models (GPT stands for Generative Pre-trained Transformer), are AI systems trained on vast text corpora. They work by predicting the next word in a sequence, which allows them to generate realistic text, answer questions, write code, and more. They have become the foundation for modern AI assistants.
 
-This project might seem like just a clever experiment, but it points to a much bigger shift. For the first time, AI systems can conduct meaningful research on themselves, running experiments 24/7 and discovering improvements that even experienced human researchers might overlook. This matters because it could dramatically accelerate the pace of AI development, making powerful models arrive sooner. It also democratizes research—small teams with limited resources can let AI agents do the tedious trial-and-error work that normally requires large labs. Today, this is possible because language models have become skilled at coding and reasoning, open-source tools like PyTorch make experimentation accessible, and a single GPU can run these constrained experiments. This is part of a broader trend toward automation of scientific discovery, where AI doesn't just assist humans but actively conducts research. As we will see, the agent discovered real, tangible improvements that stacked to produce an 11% better model—proof that autonomous research is not a distant dream but a present reality.
+Imagine you want to teach a computer to understand language. You might start by showing it millions of books, articles, and websites. The computer looks for patterns in how words follow each other. It learns that after "the cat sat on" the next word might be "the mat". This is the basic idea behind a GPT model. It is like a student who has read everything and can guess what comes next in a sentence. GPT stands for Generative Pre-trained Transformer, but you don't need to remember that name. Just think of it as a very capable language student that can write answers, summarize text, or even code.
+
+At the heart of this student is something called a neural network. You can picture it as a group of many tiny switches working together, like a team of learners. Each switch learns a little piece of the puzzle. When you connect thousands of these switches, they can recognize complex patterns. The network starts knowing nothing. It makes random guesses at first. Then it practices, over and over, with many examples. This practice process is called training. Training is like practicing piano. You play the same pieces many times. Each time you make small adjustments. Your fingers learn the right movements. Eventually you play smoothly without thinking.
+
+But training needs rules. How long should you practice? How fast should you go? These settings are called hyperparameters. They are like the temperature and time you set when baking a cake. If the oven is too hot, the cake burns. If it is too low, it does not cook. Hyperparameters control the training speed, the amount of practice, and many other details. Finding good hyperparameters is crucial.
+
+Finally, there is optimization. This is the coach who watches your piano practice and tells you to slow down in certain parts, or to use a different finger. Optimization adjusts the tiny switches inside the network after each practice round. It nudges them toward better performance. The goal is to reduce mistakes. The fewer mistakes, the better the model works. All these pieces: GPT, neural networks, training, hyperparameters, and optimization work together to create a useful AI student.
+
+This project might seem like just a clever experiment, but it points to a much bigger shift. For the first time, AI systems can conduct meaningful research on themselves, running experiments 24/7 and discovering improvements that even experienced human researchers might overlook.
+
+### Why Should Anyone Care?
+
+Consider the work of scientists who search for new medicines. They often have to test thousands of possible drug combinations. This takes years, even decades. If AI models that help with this research become better and faster, we could discover life-saving treatments much more quickly. Better AI means better tools for doctors. Imagine an AI that helps read medical scans with superhuman accuracy. Or one that predicts which patients need urgent care. This kind of AI needs constant improvement. Autonomous research could make those improvements happen faster.
+
+Think about education. Right now, many students use basic tutoring software. But what if the AI behind those tools could learn more effectively on its own? It could adapt to each student's unique style, helping children understand difficult concepts in math or reading. The same goes for climate science. Predicting weather patterns and climate change requires enormous computing power. More efficient AI models could run on smaller computers, bringing advanced forecasting to communities that currently lack access.
+
+Even everyday products could become cheaper. Better AI means companies can design products with less waste, optimize delivery routes to save fuel, and offer more personalized services at lower cost. The impact is not about making smarter robots. It is about using technology to solve real human problems. Autonomous AI research is like giving scientists a tireless assistant who can also improve its own skills. That assistant could help us tackle some of the world's biggest challenges, from health to environment to education.
+
+This matters because it could dramatically accelerate the pace of AI development, making powerful models arrive sooner. It also democratizes research, small teams with limited resources can let AI agents do the tedious trial-and-error work that normally requires large labs. Today, this is possible because language models have become skilled at coding and reasoning, open-source tools like PyTorch make experimentation accessible, and a single GPU can run these constrained experiments. This is part of a broader trend toward automation of scientific discovery, where AI does not just assist humans but actively conducts research. As we will see, the agent discovered real, tangible improvements that stacked to produce an 11% better model, proof that autonomous research is not a distant dream but a present reality.
 
 ## The Big Picture: How Does It Work?
 
-Let me explain the autonomous loop using a familiar analogy. Think of training a neural network like teaching a student to recognize cats in pictures. You start with a blank slate, show it examples, correct its mistakes, and gradually it learns. But you also have to decide how fast the student learns (learning rate), how many practice sessions it needs (epochs), and what teaching methods work best (optimizer choice). These decisions are hyperparameters, and finding good ones is more art than science.
+Let me explain the autonomous loop using familiar analogies. Think of training a neural network like teaching a student to recognize cats in pictures. You start with a blank slate, show it examples, correct its mistakes, and gradually it learns. But you also have to decide how fast the student learns (learning rate), how many practice sessions it needs (epochs), and what teaching methods work best (optimizer choice). These decisions are hyperparameters, and finding good ones is more art than science.
 
-To make this accessible, let's clarify some core concepts.
+### Everyday Analogies for Key Concepts
+
+**Neural networks as students studying:** Picture a student learning a new subject. At first they know nothing. They read textbooks, attend lectures, and take practice quizzes. Each time they make a mistake, they adjust their thinking. Over time they get better. A neural network works the same way. It starts with random connections, like a confused student. It processes examples, sees where it went wrong, and tweaks its internal structure. The network gradually builds understanding, not by memorizing facts, but by recognizing patterns. This analogy helps us see that learning takes time and repetition.
+
+**Training as practicing piano:** Learning piano requires daily practice. You start with simple scales, then move to short pieces, then concertos. Each practice session strengthens muscle memory. Similarly, an AI model practices with many data examples. It plays the same "scales" of prediction many times. Over time, its accuracy improves. The parallel reminds us that skill development is gradual and requires consistent effort.
+
+**Attention mechanism as reading a book:** When you read an important document, you don't treat every word equally. You focus on headings, key sentences, and numbers. Your attention naturally goes to what matters most. The attention mechanism in AI lets the model weigh the importance of different parts of its input. It learns to "look" at the most relevant words when making a prediction. This mirrors how humans prioritize information.
+
+**Optimizers as coaches adjusting training methods:** A good coach watches an athlete's performance and suggests changes. Maybe they need more cardio, or a different diet, or a technical tweak. The optimizer is that coach for the neural network. After each practice round, the optimizer calculates how to adjust the network's internal knobs to reduce future mistakes. It directs the learning process.
+
+**Hyperparameters as recipe settings:** Cooking a perfect soup requires setting the right stove temperature, simmer time, and salt amount. Change one, and the result differs. Hyperparameters are like those settings. They control how fast the model learns, how much it remembers, and how it updates itself. Getting them just right is crucial for a successful outcome.
+
+To make this accessible, let's clarify some core concepts more formally.
 
 A **neural network** is a type of computer program loosely modeled on the brain. It is built from many small computing units called neurons, organized in layers. Each connection between neurons has a number (a weight) that determines how much influence one neuron has on another. During training, these weights get adjusted so the network's outputs become more accurate. More layers generally mean the network can learn more complex patterns, but also require more computation and data.
 
 **Training** is the learning process itself. You feed the network many examples (like pictures of cats and not-cats), it makes predictions, measures how wrong it is using a loss function, and then updates its weights to reduce that wrongness. This cycle repeats millions of times. Think of it like practicing a skill over and over, gradually getting better.
 
-**Hyperparameters** are the settings you choose before training starts—the knobs and dials that control how training proceeds. They include the learning rate (how big each weight update should be, like the size of your steps when learning), the batch size (how many examples to process before updating weights), the optimizer (the algorithm that decides how to update weights based on gradients), the number of layers, and many others. Finding good hyperparameters is a mix of science and art; small changes can have big effects, and what works for one model might not work for another. That is why automated search like this project is valuable.
+**Hyperparameters** are the settings you choose before training starts, the knobs and dials that control how training proceeds. They include the learning rate (how big each weight update should be, like the size of your steps when learning), the batch size (how many examples to process before updating weights), the optimizer (the algorithm that decides how to update weights based on gradients), the number of layers, and many others. Finding good hyperparameters is a mix of science and art; small changes can have big effects, and what works for one model might not work for another. That is why automated search like this project is valuable.
 
-**Optimization** refers to the mathematical methods used to adjust the weights during training. The optimizer looks at the gradients (which indicate which direction reduces loss) and decides how exactly to move each weight. Different optimizers—like SGD, Adam, or the Muon used here—have different strategies for combining past information, adapting step sizes, and preventing overshooting. Good optimization makes training faster and more stable.
+**Optimization** refers to the mathematical methods used to adjust the weights during training. The optimizer looks at the gradients (which indicate which direction reduces loss) and decides how exactly to move each weight. Different optimizers, like SGD, Adam, or the Muon used here, have different strategies for combining past information, adapting step sizes, and preventing overshooting. Good optimization makes training faster and more stable.
 
 Autoresearch automates this decision-making process. Here is how the loop works in plain language:
 
-The AI agent starts with a working version of the training code. It runs an experiment for exactly 5 minutes, measuring how well the model performs on a validation set using a metric called "val_bpb" (validation bits per byte). Lower val_bpb means the model is better at predicting text. After the 5 minutes are up, the agent records the results in a results file.
+The AI agent starts with a working version of the training code. It runs an experiment for exactly 5 minutes, measuring how well the model performs on a validation set using a metric called "val_bpb" (validation bits per byte). Lower val_bpb means the model is better at predicting text.
+
+### Understanding the Metrics: Bits per Byte and Validation Loss
+
+How do we know if an AI model is any good? We need ways to measure its performance, just like a teacher uses tests to see if students are learning. In AI research, one common measure is called "bits per byte". This might sound technical, but the idea is simple. The model reads text and predicts what comes next. After seeing the actual word, we check how surprised the model was. If it predicted the word perfectly, it was not surprised at all. If it was completely wrong, it was very surprised. Bits per byte is a score that adds up all that surprise across many words. A lower score means the model was less surprised, meaning it made fewer mistakes. Think of it like a spelling test. A student who spells most words correctly gets a higher grade. A student who makes many errors gets a lower grade. Bits per byte is the AI's grade on a massive language test.
+
+Another important measure is "validation loss". This checks whether the model really learned or just memorized. During training, the model sees a set of practice problems. But we also give it a separate set of problems it has never seen before. That is the validation set. The model's performance on these new problems is its validation loss. A low validation loss means the model can apply what it learned to new situations. This is like a student who studies specific examples but then can solve new, similar problems on the real exam. If the model does well on practice but poorly on new problems, it probably just memorized answers. That is not useful. Validation loss tells us if the AI is truly understanding patterns or just cramming. Both metrics guide researchers toward better models. They are the feedback that indicates progress.
+
+After the 5 minutes are up, the agent records the results in a results file.
 
 Next, the agent uses its intelligence to modify the training code. It might increase the learning rate, add a new type of normalization, change the optimizer settings, or adjust the model architecture. The agent then commits this change to a special git branch and runs another 5-minute experiment.
 
@@ -71,7 +119,7 @@ TIME_BUDGET = 300        # training time budget in seconds (5 minutes)
 EVAL_TOKENS = 40 * 524288  # number of tokens for val eval
 ```
 
-These are constants—values that stay fixed throughout the entire autoresearch process. MAX_SEQ_LEN is 2048, which means the model looks at sequences of 2048 tokens at a time. Think of this as the model's working memory. TIME_BUDGET is 300 seconds, which is exactly 5 minutes. Every training experiment stops after this time. EVAL_TOKENS determines how much data we use to evaluate whether the model is good; it uses 20 million tokens for validation.
+These are constants, values that stay fixed throughout the entire autoresearch process. MAX_SEQ_LEN is 2048, which means the model looks at sequences of 2048 tokens at a time. Think of this as the model's working memory. TIME_BUDGET is 300 seconds, which is exactly 5 minutes. Every training experiment stops after this time. EVAL_TOKENS determines how much data we use to evaluate whether the model is good; it uses 20 million tokens for validation.
 
 ```python
 CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "autoresearch")
@@ -83,7 +131,7 @@ VAL_SHARD = MAX_SHARD
 VOCAB_SIZE = 8192
 ```
 
-Here we define where files live on disk. CACHE_DIR points to `~/.cache/autoresearch/` on any operating system. Inside that, DATA_DIR holds downloaded data shards, and TOKENIZER_DIR will store the trained tokenizer. BASE_URL tells us where to download the training data from—it is a specific dataset called "climbmix-400b-shuffle" hosted on Hugging Face, which is a popular platform for sharing machine learning datasets. MAX_SHARD is 6542, meaning there are 6543 shard files numbered from 0 to 6542. We designate the last shard as the validation shard, which we use to evaluate model performance. VOCAB_SIZE is 8192, meaning our tokenizer will learn 8192 different tokens (pieces of words or characters).
+Here we define where files live on disk. CACHE_DIR points to `~/.cache/autoresearch/` on any operating system. Inside that, DATA_DIR holds downloaded data shards, and TOKENIZER_DIR will store the trained tokenizer. BASE_URL tells us where to download the training data from, it is a specific dataset called "climbmix-400b-shuffle" hosted on Hugging Face, which is a popular platform for sharing machine learning datasets. MAX_SHARD is 6542, meaning there are 6543 shard files numbered from 0 to 6542. We designate the last shard as the validation shard, which we use to evaluate model performance. VOCAB_SIZE is 8192, meaning our tokenizer will learn 8192 different tokens (pieces of words or characters).
 
 ```python
 SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,2}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
@@ -134,7 +182,7 @@ This function downloads one data shard. Let's break it down. It constructs the f
 
 If we need to download it, the function constructs the full URL and attempts the download up to 5 times. The download streams the file in 1-megabyte chunks to avoid memory issues. It writes to a temporary file first (`filepath + ".tmp"`) and only renames it to the final filename when the download completes successfully. This prevents corrupted partial downloads from being mistaken for complete files.
 
-If an attempt fails, it cleans up any temporary or partial files and waits with exponential backoff—2 seconds, then 4, then 8, and so on. This is polite to the server and gives transient network issues time to resolve.
+If an attempt fails, it cleans up any temporary or partial files and waits with exponential backoff, 2 seconds, then 4, then 8, and so on. This is polite to the server and gives transient network issues time to resolve.
 
 ```python
 def download_data(num_shards, download_workers=8):
@@ -183,7 +231,7 @@ def train_tokenizer():
         sys.exit(1)
 ```
 
-This function checks if we already have a trained tokenizer by looking for two files: `tokenizer.pkl` (the actual tokenizer) and `token_bytes.pt` (a lookup table we'll explain later). If both exist, it returns immediately. Otherwise, it creates the tokenizer directory and checks that we have at least 2 data shards—one for training and one for validation.
+This function checks if we already have a trained tokenizer by looking for two files: `tokenizer.pkl` (the actual tokenizer) and `token_bytes.pt` (a lookup table we'll explain later). If both exist, it returns immediately. Otherwise, it creates the tokenizer directory and checks that we have at least 2 data shards, one for training and one for validation.
 
 ```python
     tokenizer = rustbpe.Tokenizer()
@@ -274,7 +322,7 @@ The imports set up the environment. The first two lines set environment variable
 
 The PyTorch imports are the core neural network framework. We use `torch.nn` for neural network modules and `torch.nn.functional` for functions like activation functions.
 
-The next few lines are important: they load a special kernel called Flash Attention 3. Attention is the key operation in transformer models, and Flash Attention is an optimized implementation that runs much faster by using GPU memory more efficiently. The code checks the GPU capability; if it is an H100 (capability 9.0), it uses one repository, otherwise it uses a community version that works on other GPUs. This abstraction means the agent does not have to worry about the low-level CUDA details—the kernel is loaded and available.
+The next few lines are important: they load a special kernel called Flash Attention 3. Attention is the key operation in transformer models, and Flash Attention is an optimized implementation that runs much faster by using GPU memory more efficiently. The code checks the GPU capability; if it is an H100 (capability 9.0), it uses one repository, otherwise it uses a community version that works on other GPUs. This abstraction means the agent does not have to worry about the low-level CUDA details, the kernel is loaded and available.
 
 ```python
 from prepare import MAX_SEQ_LEN, TIME_BUDGET, Tokenizer, make_dataloader, evaluate_bpb
@@ -296,7 +344,7 @@ class GPTConfig:
     window_pattern: str = "SSSL"
 ```
 
-A dataclass is a convenient Python class that automatically generates boilerplate code like initialization and representation. The `GPTConfig` class holds all the architectural hyperparameters that define the model structure. `sequence_len` is the context window (2048 tokens). `vocab_size` is the size of the token vocabulary—default is 32768, though the tokenizer actually uses 8192; note the discrepancy, but the code below will overwrite this with the actual tokenizer vocab size. `n_layer` is the number of transformer blocks (12). `n_head` is the number of attention heads (6). `n_kv_head` is the number of key-value heads (6)—this differs from regular GPT where they would be the same; this allows for grouped query attention which is more efficient. `n_embd` is the embedding dimension (768), which is the size of the hidden representations throughout the model. `window_pattern` is "SSSL" which determines sliding window attention patterns—S means short window (half context), L means long window (full context), alternating SSSL means first three layers use short window, last layer uses long.
+A dataclass is a convenient Python class that automatically generates boilerplate code like initialization and representation. The `GPTConfig` class holds all the architectural hyperparameters that define the model structure. `sequence_len` is the context window (2048 tokens). `vocab_size` is the size of the token vocabulary, default is 32768, though the tokenizer actually uses 8192; note the discrepancy, but the code below will overwrite this with the actual tokenizer vocab size. `n_layer` is the number of transformer blocks (12). `n_head` is the number of attention heads (6). `n_kv_head` is the number of key-value heads (6), this differs from regular GPT where they would be the same; this allows for grouped query attention which is more efficient. `n_embd` is the embedding dimension (768), which is the size of the hidden representations throughout the model. `window_pattern` is "SSSL" which determines sliding window attention patterns, S means short window (half context), L means long window (full context), alternating SSSL means first three layers use short window, last layer uses long.
 
 Now the building blocks:
 
@@ -450,11 +498,11 @@ The GPT class ties everything together. ModuleDict and ModuleList are PyTorch co
 
 `wte` is the token embedding table that maps token IDs to vectors. `h` is the list of transformer blocks. `lm_head` is the output layer that predicts the next token; it is tied to the input embeddings in some models, but here it is separate.
 
-`resid_lambdas` and `x0_lambdas` are learnable scalar parameters that control the residual pathways. In the forward pass, `x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0`. These allow the model to learn how much of the original input to preserve at each layer—a form of adaptive residual scaling.
+`resid_lambdas` and `x0_lambdas` are learnable scalar parameters that control the residual pathways. In the forward pass, `x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0`. These allow the model to learn how much of the original input to preserve at each layer, a form of adaptive residual scaling.
 
 `value_embeds` is a dictionary of embedding tables for layers that have value embeddings. The embedding dimension is `kv_dim` (key-value dimension), not the full `n_embd`.
 
-Rotary embeddings are precomputed for a much longer sequence length (`rotary_seq_len = sequence_len * 10`) than we actually use, allowing the model to handle longer contexts than it was trained on by leveraging the rotary extrapolation property. These are registered as buffers—they are part of the model state but not trainable parameters.
+Rotary embeddings are precomputed for a much longer sequence length (`rotary_seq_len = sequence_len * 10`) than we actually use, allowing the model to handle longer contexts than it was trained on by leveraging the rotary extrapolation property. These are registered as buffers, they are part of the model state but not trainable parameters.
 
 ```python
     @torch.no_grad()
@@ -499,7 +547,7 @@ The residual scaling parameters start with `resid_lambdas` at 1.0 (full residual
                 torch.nn.init.zeros_(block.attn.ve_gate.weight)
 ```
 
-Value embeddings get the same uniform initialization. The gate weights are initialized to zero because the gate computes `2 * sigmoid(ve_gate(...))`. When weights are zero, sigmoid(0) = 0.5, times 2 equals 1.0, which is neutral—the value embedding does not alter the original values initially. This allows the model to gradually learn whether to use value embeddings.
+Value embeddings get the same uniform initialization. The gate weights are initialized to zero because the gate computes `2 * sigmoid(ve_gate(...))`. When weights are zero, sigmoid(0) = 0.5, times 2 equals 1.0, which is neutral, the value embedding does not alter the original values initially. This allows the model to gradually learn whether to use value embeddings.
 
 ```python
         # Rotary embeddings
@@ -566,7 +614,7 @@ This method creates the optimizer with carefully separated parameter groups, eac
             len(lm_head_params) + len(value_embeds_params) + len(resid_params) + len(x0_params))
 ```
 
-This assertion verifies that we have accounted for all parameters in the model—nothing is missing or double-counted.
+This assertion verifies that we have accounted for all parameters in the model, nothing is missing or double-counted.
 
 ```python
         dmodel_lr_scale = (model_dim / 768) ** -0.5
@@ -636,11 +684,11 @@ Now the forward method:
         return logits
 ```
 
-The forward pass begins: `idx` is token IDs with shape (B, T). We extract the rotary embeddings for this sequence length (T). Then token embedding lookup `wte(idx)` gives us (B, T, n_embd). We apply RMS normalization immediately—that is the prenorm setup.
+The forward pass begins: `idx` is token IDs with shape (B, T). We extract the rotary embeddings for this sequence length (T). Then token embedding lookup `wte(idx)` gives us (B, T, n_embd). We apply RMS normalization immediately, that is the prenorm setup.
 
 We save `x0` as the initial normalized embeddings for use in the residual scaling formula.
 
-Then we loop through each transformer block. Before each block, we apply the adaptive residual: `self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0`. This mixes the current activations with the original input. Then we look up the value embedding for this layer if it exists, passing the token IDs `idx`. The value embedding is shared across positions—it is an embedding table that maps tokens to value vectors, similar to but separate from token embeddings. Then we pass through the block.
+Then we loop through each transformer block. Before each block, we apply the adaptive residual: `self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0`. This mixes the current activations with the original input. Then we look up the value embedding for this layer if it exists, passing the token IDs `idx`. The value embedding is shared across positions, it is an embedding table that maps tokens to value vectors, similar to but separate from token embeddings. Then we pass through the block.
 
 After all blocks, we normalize the final activations. Then we compute the lm_head (output projection) to get logits over the vocabulary. The logits are cast to float32 to avoid numerical issues. Then we apply softcapping: `softcap * tanh(logits / softcap)`. This limits the magnitude of logits to ±15, which stabilizes training and prevents extreme values that could cause numerical issues. The value 15 is fixed in this code; it is not a hyperparameter the agent can change (though it could if it modified the code).
 
@@ -911,7 +959,7 @@ model.to_empty(device=device)
 model.init_weights()
 ```
 
-This is a memory-efficient initialization technique. We first create the model on the "meta" device, which is a special PyTorch device that allocates no memory for tensors; it just tracks shapes and dtypes. Then we call `to_empty(device=device)` which allocates real memory on the GPU but does not copy any data—the tensors are still uninitialized. Then we call `init_weights()` to fill all parameters with proper initial values directly on the GPU. This avoids ever having two copies of the model in memory during initialization.
+This is a memory-efficient initialization technique. We first create the model on the "meta" device, which is a special PyTorch device that allocates no memory for tensors; it just tracks shapes and dtypes. Then we call `to_empty(device=device)` which allocates real memory on the GPU but does not copy any data, the tensors are still uninitialized. Then we call `init_weights()` to fill all parameters with proper initial values directly on the GPU. This avoids ever having two copies of the model in memory during initialization.
 
 ```python
 param_counts = model.num_scaling_params()
@@ -987,7 +1035,7 @@ def get_muon_momentum(step):
     return (1 - frac) * 0.85 + frac * 0.95
 ```
 
-Muon momentum starts at 0.85 and linearly increases to 0.95 over the first 300 steps. This is a schedule different from the main time budget—it is based on step count, not wall-clock time. This provides another knob the agent could modify.
+Muon momentum starts at 0.85 and linearly increases to 0.95 over the first 300 steps. This is a schedule different from the main time budget, it is based on step count, not wall-clock time. This provides another knob the agent could modify.
 
 ```python
 def get_weight_decay(progress):
@@ -1172,12 +1220,12 @@ This is an experiment to have the LLM do its own research.
 
 To set up a new experiment, work with the user to:
 
-1. **Agree on a run tag**: propose a tag based on today's date (e.g. `mar5`). The branch `autoresearch/<tag>` must not already exist — this is a fresh run.
+1. **Agree on a run tag**: propose a tag based on today's date (e.g. `mar5`). The branch `autoresearch/<tag>` must not already exist ,  this is a fresh run.
 2. **Create the branch**: `git checkout -b autoresearch/<tag>` from current master.
 3. **Read the in-scope files**: The repo is small. Read these files for full context:
-   - `README.md` — repository context.
-   - `prepare.py` — fixed constants, data prep, tokenizer, dataloader, evaluation. Do not modify.
-   - `train.py` — the file you modify. Model architecture, optimizer, training loop.
+   - `README.md` ,  repository context.
+   - `prepare.py` ,  fixed constants, data prep, tokenizer, dataloader, evaluation. Do not modify.
+   - `train.py` ,  the file you modify. Model architecture, optimizer, training loop.
 4. **Verify data exists**: Check that `~/.cache/autoresearch/` contains data shards and a tokenizer. If not, tell the human to run `uv run prepare.py`.
 5. **Initialize results.tsv**: Create `results.tsv` with just the header row. The baseline will be recorded after the first run.
 6. **Confirm and go**: Confirm setup looks good.
@@ -1185,13 +1233,13 @@ To set up a new experiment, work with the user to:
 Once you get confirmation, kick off the experimentation.
 ```
 
-The setup phase ensures everything is ready. The agent starts by proposing a run tag—a short name for the experiment series, typically based on the date (like "mar15" for March 15). This tag becomes part of a git branch name: `autoresearch/mar15`. Using git branches allows the agent to experiment freely without losing progress; successful changes advance the branch, failures reset back.
+The setup phase ensures everything is ready. The agent starts by proposing a run tag, a short name for the experiment series, typically based on the date (like "mar15" for March 15). This tag becomes part of a git branch name: `autoresearch/mar15`. Using git branches allows the agent to experiment freely without losing progress; successful changes advance the branch, failures reset back.
 
 The instructions explicitly tell the agent to create a new branch from the current master. This ensures a clean starting point.
 
 The agent is instructed to read all the important files to understand the context. This is crucial because the agent needs to know what the code does before it can modify it intelligently. The README gives overall context; prepare.py defines the fixed evaluation and data pipeline; train.py is the mutable training script.
 
-Then the agent must verify that data and tokenizer exist in the cache. If not, the human needs to run prepare.py first. The agent should not run this itself because prepare.py involves downloading a huge dataset and training a tokenizer—these are one-time operations that the human should do.
+Then the agent must verify that data and tokenizer exist in the cache. If not, the human needs to run prepare.py first. The agent should not run this itself because prepare.py involves downloading a huge dataset and training a tokenizer, these are one-time operations that the human should do.
 
 Next, the agent creates a `results.tsv` file with a header row. TSV stands for tab-separated values. The columns are commit, val_bpb, memory_gb, status, description. The agent will fill this file with the outcomes of each experiment.
 
@@ -1203,18 +1251,18 @@ Finally, the agent confirms with the user that setup looks correct, then begins 
 Each experiment runs on a single GPU. The training script runs for a **fixed time budget of 5 minutes** (wall clock training time, excluding startup/compilation). You launch it simply as: `uv run train.py`.
 
 **What you CAN do:**
-- Modify `train.py` — this is the only file you edit. Everything is fair game: model architecture, optimizer, hyperparameters, training loop, batch size, model size, etc.
+- Modify `train.py` ,  this is the only file you edit. Everything is fair game: model architecture, optimizer, hyperparameters, training loop, batch size, model size, etc.
 
 **What you CANNOT do:**
 - Modify `prepare.py`. It is read-only. It contains the fixed evaluation, data loading, tokenizer, and training constants (time budget, sequence length, etc).
 - Install new packages or add dependencies. You can only use what is already in `pyproject.toml`.
 - Modify the evaluation harness. The `evaluate_bpb` function in `prepare.py` is the ground truth metric.
 
-**The goal is simple: get the lowest val_bpb.** Since the time budget is fixed, you do not need to worry about training time — it is always 5 minutes. Everything is fair game: change the architecture, the optimizer, the hyperparameters, the batch size, the model size. The only constraint is that the code runs without crashing and finishes within the time budget.
+**The goal is simple: get the lowest val_bpb.** Since the time budget is fixed, you do not need to worry about training time ,  it is always 5 minutes. Everything is fair game: change the architecture, the optimizer, the hyperparameters, the batch size, the model size. The only constraint is that the code runs without crashing and finishes within the time budget.
 
 **VRAM** is a soft constraint. Some increase is acceptable for meaningful val_bpb gains, but it should not blow up dramatically.
 
-**Simplicity criterion**: All else being equal, simpler is better. A small improvement that adds ugly complexity is not worth it. Conversely, removing something and getting equal or better results is a great outcome — that is a simplification win. When evaluating whether to keep a change, weigh the complexity cost against the improvement magnitude. A 0.001 val_bpb improvement that adds 20 lines of hacky code? Probably not worth it. A 0.001 val_bpb improvement from deleting code? Definitely keep. An improvement of ~0 but much simpler code? Keep.
+**Simplicity criterion**: All else being equal, simpler is better. A small improvement that adds ugly complexity is not worth it. Conversely, removing something and getting equal or better results is a great outcome ,  that is a simplification win. When evaluating whether to keep a change, weigh the complexity cost against the improvement magnitude. A 0.001 val_bpb improvement that adds 20 lines of hacky code? Probably not worth it. A 0.001 val_bpb improvement from deleting code? Definitely keep. An improvement of ~0 but much simpler code? Keep.
 ```
 
 The experimentation section defines the rules. The agent has complete freedom to modify train.py except it cannot touch prepare.py, cannot install new packages, and cannot change the evaluation metric. The objective is val_bpb, and since time is fixed, the agent is effectively optimizing for the best model achievable in exactly 5 minutes. This encourages the agent to find configurations that train quickly and effectively.
@@ -1257,7 +1305,7 @@ The agent needs to know what output to parse. The training script prints these l
 ```markdown
 ## Logging results
 
-When an experiment is done, log it to `results.tsv` (tab-separated, NOT comma-separated — commas break in descriptions).
+When an experiment is done, log it to `results.tsv` (tab-separated, NOT comma-separated ,  commas break in descriptions).
 
 The TSV has a header row and 5 columns:
 
@@ -1266,8 +1314,8 @@ commit	val_bpb	memory_gb	status	description
 ```
 
 1. git commit hash (short, 7 chars)
-2. val_bpb achieved (e.g. 1.234567) — use 0.000000 for crashes
-3. peak memory in GB, round to .1f (e.g. 12.3 — divide peak_vram_mb by 1024) — use 0.0 for crashes
+2. val_bpb achieved (e.g. 1.234567) ,  use 0.000000 for crashes
+3. peak memory in GB, round to .1f (e.g. 12.3 ,  divide peak_vram_mb by 1024) ,  use 0.0 for crashes
 4. status: `keep`, `discard`, or `crash`
 5. short text description of what this experiment tried
 
@@ -1301,7 +1349,7 @@ LOOP FOREVER:
 1. Look at the git state: the current branch/commit we are on
 2. Tune `train.py` with an experimental idea by directly hacking the code.
 3. git commit
-4. Run the experiment: `uv run train.py > run.log 2>&1` (redirect everything — do NOT use tee or let output flood your context)
+4. Run the experiment: `uv run train.py > run.log 2>&1` (redirect everything ,  do NOT use tee or let output flood your context)
 5. Read out the results: `grep "^val_bpb:\|^peak_vram_mb:" run.log`
 6. If the grep output is empty, the run crashed. Run `tail -n 50 run.log` to read the Python stack trace and attempt a fix. If you cannot get things to work after more than a few attempts, give up.
 7. Record the results in the tsv (NOTE: do not commit the results.tsv file, leave it untracked by git)
@@ -1314,14 +1362,14 @@ The idea is that you are a completely autonomous researcher trying things out. I
 
 **Crashes**: If a run crashes (OOM, or a bug, or etc.), use your judgment: If it is something dumb and easy to fix (e.g. a typo, a missing import), fix it and re-run. If the idea itself is fundamentally broken, just skip it, log "crash" as the status in the tsv, and move on.
 
-**NEVER STOP**: Once the experiment loop has begun (after the initial setup), do NOT pause to ask the human if you should continue. Do NOT ask "should I keep going?" or "is this a good stopping point?". The human might be asleep, or gone from a computer and expects you to continue working *indefinitely* until you are manually stopped. You are autonomous. If you run out of ideas, think harder — read papers referenced in the code, re-read the in-scope files for new angles, try combining previous near-misses, try more radical architectural changes. The loop runs until the human interrupts you, period.
+**NEVER STOP**: Once the experiment loop has begun (after the initial setup), do NOT pause to ask the human if you should continue. Do NOT ask "should I keep going?" or "is this a good stopping point?". The human might be asleep, or gone from a computer and expects you to continue working *indefinitely* until you are manually stopped. You are autonomous. If you run out of ideas, think harder ,  read papers referenced in the code, re-read the in-scope files for new angles, try combining previous near-misses, try more radical architectural changes. The loop runs until the human interrupts you, period.
 
 As an example use case, a user might leave you running while they sleep. If each experiment takes you ~5 minutes then you can run approx 12/hour, for a total of about 100 over the duration of the average human sleep. The user then wakes up to experimental results, all completed by you while they slept!
 ```
 
 This section is the heart of the autonomous loop. It gives the agent explicit instructions on how to conduct research.
 
-The loop begins with inspecting the current git state to know where we are. The agent then comes up with an experimental idea—this is where the AI's creativity comes in. It directly edits train.py to implement its idea. Then it commits the change with a message that will later appear in the results.
+The loop begins with inspecting the current git state to know where we are. The agent then comes up with an experimental idea, this is where the AI's creativity comes in. It directly edits train.py to implement its idea. Then it commits the change with a message that will later appear in the results.
 
 The agent runs `uv run train.py > run.log 2>&1` which redirects both stdout and stderr to a log file. Using `>` rather than `tee` is important because otherwise the agent's context would be flooded with output, making it harder to reason.
 
@@ -1389,7 +1437,7 @@ The key insight is that these steps are particularly beneficial for 2D weight ma
 
 Also note that Muon applies cautious weight decay: weight decay is only applied when the gradient and parameter have the same sign. This prevents the optimizer from pushing a parameter away from zero when the gradient already indicates movement in the opposite direction. This is a form of sign-aware regularization that protects against harmful weight decay.
 
-The MuonAdamW class handles both types of updates in one training step. It uses `torch.compile` to fuse operations for speed. The implementation is quite complex due to the need to handle variable shapes efficiently and avoid recompilation. The use of 0-D CPU tensors for hyperparameters is a trick to keep the compiled graph from needing to be recompiled every time hyperparameters change—if these were regular tensors on GPU with different values each step, the compiler would think it is a different graph each time.
+The MuonAdamW class handles both types of updates in one training step. It uses `torch.compile` to fuse operations for speed. The implementation is quite complex due to the need to handle variable shapes efficiently and avoid recompilation. The use of 0-D CPU tensors for hyperparameters is a trick to keep the compiled graph from needing to be recompiled every time hyperparameters change, if these were regular tensors on GPU with different values each step, the compiler would think it is a different graph each time.
 
 For the AI agent, the important hyperparameters related to the optimizer are:
 - MATRIX_LR: learning rate for Muon parameters (default 0.04)
@@ -1480,7 +1528,7 @@ Each change is committed, experimentally evaluated for 5 minutes, and compared t
 
 The agent also monitors memory. If a change causes VRAM to blow up dramatically (say from 44 GB to 80 GB), it might consider that too costly even if val_bpb slightly improves, according to the simplicity criterion (which implicitly penalizes high memory as it reduces accessibility). But the instruction says VRAM is a soft constraint, not a hard limit; some increase is acceptable for meaningful gains.
 
-As the agent experiments, it builds a history in results.tsv. Some experiments are kept, some discarded, some crash. The kept ones represent a sequence of real improvements. After about 100 experiments over 2 days, the agent may have discovered 20 improvements that all stack—meaning the final model is the baseline plus all those changes applied cumulatively.
+As the agent experiments, it builds a history in results.tsv. Some experiments are kept, some discarded, some crash. The kept ones represent a sequence of real improvements. After about 100 experiments over 2 days, the agent may have discovered 20 improvements that all stack, meaning the final model is the baseline plus all those changes applied cumulatively.
 
 The final model could have, for example, DEPTH=10, ASPECT_RATIO adjusted, different learning rates, different window pattern, maybe additional normalization, different initializations, maybe using regularization on value embeddings, and so on. Each change individually improved val_bpb; together they compound.
 
@@ -1548,6 +1596,14 @@ Looking ahead, one could imagine an entire ecosystem of autonomous research: age
 On the other hand, this technology also raises questions about the role of human researchers. If AI can do research, what do humans do? Perhaps they become thinkers, setting the vision, defining problems, interpreting results, and applying ethical oversight. Or perhaps they become curators and motivators of AI researcher swarms. The division of labor will evolve.
 
 The autoresearch project is a tangible demonstration that AI-driven research is not science fiction. It is possible today with existing models, existing hardware, and relatively simple code. The fact that a single file of 630 lines can be the target of autonomous optimization shows how accessible this frontier is.
+
+## Is This Safe? Risk and Safety Considerations
+
+When we hear about AI that can improve itself, many people feel uneasy. Questions naturally arise: Is this safe? Could it go rogue? Will it take all the jobs? These concerns deserve serious thought. Autonomous AI research is still in its very early days. The systems being built today are far from the independent, sentient AI of science fiction. They are specialized tools that assist human researchers, not replace them. The code written by these systems must still be checked, tested, and supervised by experts. Think of it like a very fast assistant who drafts reports but needs a manager to review the work. That human oversight remains essential.
+
+The AI community is aware of potential risks. Many organizations have safety teams dedicated to understanding how advanced AI could be misused or cause harm. They develop guidelines and best practices for responsible research. Autonomous coding agents are designed with limitations. They operate within narrow boundaries, improving a specific piece of code rather than making open-ended decisions. This containment reduces the chance of unintended consequences.
+
+As for jobs, history suggests that automation often creates new types of work while eliminating some old ones. AI researchers themselves are in high demand. Tools that make their work easier could actually increase the need for human insight. But we should not dismiss worries about displacement. The transition matters, and society needs policies to help people adapt. The key is to recognize that this research is a tool. Its ultimate impact depends on how we choose to use it. The path forward requires both enthusiasm for the benefits and careful attention to the risks. That balanced approach is what responsible innovation looks like.
 
 ## Summary
 
