@@ -41,7 +41,7 @@ The practical takeaway is this: when you're creating an agent, focus on the agen
 
 ### What Is an AI Coding Assistant?
 
-An AI coding assistant is a software tool that uses artificial intelligence to help you write, understand, modify, and debug code. Instead of having to figure everything out on your own or search through endless documentation, you have a knowledgeable partner that can assist with programming tasks in natural language. You describe what you want in plain English (or your native language), and the AI helps make it happen.
+An AI coding assistant is a software tool that uses artificial intelligence to help you write, understand, modify, and debug code. Instead of having to figure everything out on your own or search through endless documentation, you have a knowledgeable partner that can assist with programming tasks in natural language. You describe what you want in natural language, and the AI helps make it happen.
 
 OpenCode is a specific type of AI coding assistant that works directly inside your text editor. But to understand what makes it special, let's first understand what AI coding assistants do in general.
 
@@ -1098,9 +1098,9 @@ If you use local models through Ollama or LM Studio, or if you have a company-in
 
 The permission.task setting controls which subagents an agent can invoke on its own through the Task tool. This is about orchestration: what other agents can this agent call autonomously when it decides it needs help? You might create a manager agent that only calls your vetted custom agents and does not call arbitrary subagents that users might @-mention. The configuration looks like this: permission.task with a default of deny for all, then allow for agents whose names match certain patterns, and ask for specific agents. This means your agent cannot invoke any subagent by default. It can automatically invoke subagents whose names start with orchestrator- without asking. And it can invoke the code-reviewer but must ask you first. This is useful for creating hierarchies of agents where a manager oversees what specialist subagents can be used. Important: this restricts what the agent does autonomously based on its own decisions. It does not restrict what users can do manually. Users can always manually @-mention any agent that exists. Task permissions only restrict the agent's autonomous decisions when it is trying to accomplish something on its own.
 
-## Part 10: Troubleshooting - Plain English Solutions
+## Part 10: Troubleshooting - Common Language Solutions
 
-This section provides solutions to common problems you might encounter when working with OpenCode agents. Each problem is stated clearly, followed by a checklist of things to verify in plain language.
+This section provides solutions to common problems you might encounter when working with OpenCode agents. Each problem is stated clearly, followed by a checklist of things to verify in common language.
 
 ### I Created an Agent but It Does Not Appear Anywhere
 
