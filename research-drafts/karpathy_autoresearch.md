@@ -1,4 +1,4 @@
-# Understanding Autoresearch: When AI Research Becomes Autonomous
+# Deconstructing Karpathy's Autoresearch: A Line-by-Line Guide to Autonomous AI Training with Practical Examples
 
 ## Introduction: What is Autoresearch?
 
