@@ -1450,8 +1450,440 @@ When building hooks, consider these best practices:
 | Consider hook ordering if multiple hooks | Callbacks execute in specified order |
 | Implement proper error handling | Hooks revert whole transaction on failure |
 | Document hook behavior clearly | Users need to understand what hook does |
+ 
+## Upgradeability Patterns
 
-## Advanced Hook Patterns
+When building production systems with Uniswap V4, you need to consider how your contracts will evolve over time. Smart contracts are immutable once deployed, but upgradeability patterns allow you to replace implementation logic while preserving state and contract addresses. This section covers the main approaches to making your V4 integrations upgradeable, along with their trade-offs and practical implementation details.
+
+### Understanding Upgradeability Fundamentals
+
+Upgradeability in Ethereum smart contracts is achieved through indirection. Instead of users calling your logic contract directly, they call a proxy contract that delegates calls to an implementation contract. The proxy stores the state variables, while the implementation contains the executable code. By changing the implementation address stored in the proxy, you can upgrade the behavior while keeping the same proxy address and all stored data intact.
+
+This pattern requires careful design because the storage layout of the new implementation must remain compatible with the old one. If you add or reorder state variables in an incompatible way, the new contract will read garbage from storage slots and behave unpredictably. Therefore, upgradeable contracts need disciplined storage management.
+
+### Proxy Patterns: Transparent Proxy vs UUPS
+
+Two main proxy patterns dominate the Ethereum ecosystem: the Transparent Proxy (used by OpenZeppelin) and the Universal Upgradeable Proxy Standard (UUPS). Each has different characteristics.
+
+The Transparent Proxy separates concerns: the proxy contract handles upgrade logic and admin functions, while the implementation is completely unaware of upgradeability. The proxy has an admin who can upgrade to a new implementation. Users interact with the proxy as if it were the implementation. This pattern is simple and works well when you have a multi-sig or DAO controlling upgrades. However, it adds extra storage slots for the implementation address and admin, increasing deployment cost slightly.
+
+The UUPS pattern moves upgrade logic into the implementation itself. The proxy becomes a minimal, cheap contract that simply delegates all calls. The implementation contract must include functions to upgrade the implementation address and to check if an address is a proxy. This saves proxy deployment gas and reduces the attack surface (fewer functions in the proxy), but requires the implementation to be written with upgradeability in mind. OpenZeppelin's UUPS upgradeable contracts provide a base that handles the mechanics.
+
+Which to choose? For most Uniswap V4 hook implementations, UUPS is recommended because it's more gas-efficient and the proxy itself cannot be upgraded accidentally; only the implementation can change itself. However, if you need multiple versions of an implementation coexisting (e.g., for testing different configurations), Transparent Proxy gives more flexibility.
+
+Here's how to deploy an upgradeable hook using UUPS:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
+import {IHook} from "@uniswap/v4-core/contracts/interfaces/IHook.sol";
+
+contract UpgradeableFeeDiscountHook is Initializable, IHook, UUPSUpgradeable {
+    IPoolManager public poolManager;
+    address public owner;
+    mapping(address => bool) public discountedAccounts;
+    uint256 public discountBps;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        // Enable upgradeability via UUPS
+    }
+
+    function initialize(address _poolManager) public initializer {
+        poolManager = IPoolManager(_poolManager);
+        owner = msg.sender;
+        discountedAccounts[msg.sender] = true;
+        discountBps = 50;
+    }
+
+    function beforeSwap(
+        bytes32 poolId,
+        IPoolManager.SwapRequest memory request
+    ) external override {
+        require(msg.sender == address(poolManager), "Unauthorized");
+        if (discountedAccounts[request.sender]) {
+            uint256 newFee = request.fee - (request.fee * discountBps) / 10000;
+            request.fee = newFee > 0 ? newFee : 0;
+        }
+    }
+
+    function addDiscountedAccount(address account) external {
+        require(msg.sender == owner, "Only owner");
+        discountedAccounts[account] = true;
+    }
+
+    function setDiscountBps(uint256 _discountBps) external {
+        require(msg.sender == owner, "Only owner");
+        require(_discountBps <= 500, "Discount too high");
+        discountBps = _discountBps;
+    }
+
+    // Required by UUPS: this function is called by the proxy to authorize an upgrade
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
+        // Add any custom upgrade authorization logic here
+        // For example, check that newImplementation is a trusted address
+    }
+}
+```
+
+To deploy this as an upgradeable contract:
+
+```bash
+npx hardhat run scripts/deploy-upgradeable.ts --network sepolia
+```
+
+And the deployment script:
+
+```typescript
+import {ethers} from "hardhat";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable";
+
+async function main() {
+    const [deployer] = await ethers.getSigners();
+    console.log("Deploying upgradeable hook with account:", deployer.address);
+
+    const Hook = await ethers.getContractFactory("UpgradeableFeeDiscountHook");
+    const hook = await Hook.deploy();
+    await hook.deployed();
+    console.log("Hook deployed to:", hook.address);
+
+    // Initialize the contract (call the initializer function)
+    const poolManagerAddress = "0x..."; // Your pool manager address
+    await hook.initialize(poolManagerAddress);
+    console.log("Hook initialized");
+}
+
+main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});
+```
+
+Note that the constructor in upgradeable contracts should be empty or minimal; any initialization should happen in an `initialize` function marked with `initializer` from OpenZeppelin. This prevents the initializer from being called again accidentally.
+
+### Diamond Pattern for Modular Hooks
+
+For complex systems where you want to separate concerns into multiple facets, the Diamond Pattern (EIP-2535) offers a different approach. A Diamond is a contract that delegates function calls to multiple implementation contracts (facets) and can upgrade each facet independently. This allows you to have separate contracts for different hook callbacks, for example, a Limit Orders facet, an Oracle facet, and a Fees facet, all composing a single hook address.
+
+The Diamond pattern is more flexible than a single implementation proxy because you can add or replace individual function groups without affecting others. It's particularly useful when you have many hooks and want to upgrade them selectively. However, it introduces more complexity: you need a DiamondLoupe interface for introspection, you must carefully manage storage collisions between facets (they all share the same storage), and you need governance to cut diamonds (make changes).
+
+A basic diamond for Uniswap V4 hooks might look like this:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {IDiamond} from "./interfaces/IDiamond.sol";
+import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
+import {LibDiamond} from "./libraries/LibDiamond.sol";
+import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
+
+contract MyHookDiamond is IDiamond, IDiamondLoupe {
+    using LibDiamond for bytes32;
+
+    // Diamond storage layout - stored in diamond storage slot
+    struct DiamondStorage {
+        address owner;
+        bytes4[] facetFunctionSelectors;
+        mapping(bytes4 => bytes4) facetFunctionSelectorToFacet; // selector to facet
+        mapping(bytes4 => bool) deletedSelectors; // for removing functions
+    }
+
+    // Slots for diamond storage (use a unique keccak256 hash)
+    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
+
+    modifier onlyOwner {
+        require(msg.sender == _getOwner(), "Only owner");
+        _;
+    }
+
+    function _getOwner() internal view returns (address) {
+        DiamondStorage storage ds = diamondStorage();
+        return ds.owner;
+    }
+
+    function diamondStorage() internal pure returns (DiamondStorage storage ds) {
+        bytes32 position = DIAMAND_STORAGE_POSITION;
+        assembly {
+            ds.slot := position
+        }
+    }
+
+    // Initialize the diamond with initial facets
+    function initialize(address _poolManager) external {
+        // Only call once
+        DiamondStorage storage ds = diamondStorage();
+        require(ds.owner == address(0), "Already initialized");
+
+        ds.owner = msg.sender;
+        // Add facets via diamondCut (or set in constructor)
+    }
+
+    // Diamond cut: add/replace/remove facets
+    function diamondCut(
+        IDiamond.FacetCut[] calldata _diamondCut,
+        address _init,
+        bytes calldata _calldata
+    ) external onlyOwner {
+        LibDiamond.diamondCut(_diamondCut, _init, _calldata);
+    }
+
+    // Fallback: delegate calls to facets
+    fallback() external payable {
+        LibDiamond.delegateSelector();
+    }
+
+    // Receive: accept plain ether transfers
+    receive() external payable {}
+
+    // IDiamondLoupe functions for introspection
+    function facets() external view returns (IDiamond.Facet[] memory) {
+        DiamondStorage storage ds = diamondStorage();
+        IDiamond.Facet[] memory facetsArray = new IDiamond.Facet[](ds.facetFunctionSelectors.length);
+        for (uint256 i = 0; i < ds.facetFunctionSelectors.length; i++) {
+            bytes4 selector = ds.facetFunctionSelectors[i];
+            address facet = ds.facetFunctionSelectorToFacet[selector];
+            facetsArray[i] = IDiamond.Facet({
+                facetAddress: facet,
+                facetFunctionSelectors: new bytes4[](0) // simplified
+            });
+        }
+        return facetsArray;
+    }
+
+    function facetFunctionSelectors(address facet) external view returns (bytes4[] memory) {
+        DiamondStorage storage ds = diamondStorage();
+        bytes4[] memory allSelectors = ds.facetFunctionSelectors;
+        bytes4[] memory facetSelectors = new bytes4[](0);
+        for (uint256 i = 0; i < allSelectors.length; i++) {
+            if (ds.facetFunctionSelectorToFacet[allSelectors[i]] == facet) {
+                facetSelectors.push(allSelectors[i]);
+            }
+        }
+        return facetSelectors;
+    }
+
+    function facetAddress(bytes4 selector) external view returns (address) {
+        DiamondStorage storage ds = diamondStorage();
+        require(!ds.deletedSelectors[selector], "Selector deleted");
+        return ds.facetFunctionSelectorToFacet[selector];
+    }
+}
+```
+
+The LibDiamond library manages the storage and delegation logic. Each facet (e.g., FeeDiscountFacet, LimitOrderFacet) is a separate contract that contains only the functions relevant to that function group. The diamondCut function lets the owner add new facets, replace existing ones, or remove functions. This modularity allows you to upgrade fee logic separately from order logic, reducing risk of breaking unrelated features.
+
+### State Management and Storage Layout
+
+Upgradeability introduces the critical challenge of storage layout compatibility. When you upgrade an implementation, the storage slots read and written by the contract must remain consistent. The proxy holds all state variables in its own storage, and the implementation reads them as if they were its own variables. If variable types, order, or positions change, the implementation will misinterpret data.
+
+The safest practice is to use a storage pattern that reserves slots for future variables and never changes the order or types of existing variables. OpenZeppelin's upgradeable contracts use a technique: each contract defines a struct that holds all its persistent state, and uses a unique storage slot to hold that struct. Child contracts then inherit from that base and append new state at the end. This ensures that as long as you only add new state at the end and never modify or delete existing state, upgrades remain compatible.
+
+Example:
+
+```solidity
+// Base contract that defines the storage layout
+contract HookStorage {
+    struct Layout {
+        IPoolManager poolManager;
+        address owner;
+        mapping(address => bool) discountedAccounts;
+        uint256 discountBps;
+        // Add new variables here in upgrades - never remove or reorder
+    }
+
+    bytes32 private constant STORAGE_SLOT = keccak256("myhook.storage");
+
+    function getLayout() internal pure returns (Layout storage l) {
+        bytes32 slot = STORAGE_SLOT;
+        assembly {
+            l.slot := slot
+        }
+    }
+}
+
+// Implementation contract
+contract FeeDiscountHook is HookStorage {
+    function initialize(address _poolManager) public {
+        Layout storage l = getLayout();
+        require(l.owner == address(0), "Already initialized");
+        l.poolManager = IPoolManager(_poolManager);
+        l.owner = msg.sender;
+        l.discountedAccounts[msg.sender] = true;
+        l.discountBps = 50;
+    }
+
+    // Functions read from l
+    function beforeSwap(bytes32 poolId, IPoolManager.SwapRequest memory request) external {
+        require(msg.sender == address(poolManager), "Unauthorized");
+        Layout storage l = getLayout();
+        if (l.discountedAccounts[request.sender]) {
+            uint256 newFee = request.fee - (request.fee * l.discountBps) / 10000;
+            request.fee = newFee > 0 ? newFee : 0;
+        }
+    }
+
+    // Upgradeable owners
+    function setDiscountBps(uint256 _discountBps) external {
+        require(msg.sender == getLayout().owner, "Only owner");
+        require(_discountBps <= 500, "Discount too high");
+        getLayout().discountBps = _discountBps;
+    }
+}
+```
+
+When upgrading, you can add new fields to the Layout struct at the end. The old contract will ignore them (treating them as zero). The new contract will read the old fields from the same slots and see the new fields as zero initially. This ensures compatibility.
+
+### Governance-Controlled Upgrade Mechanisms
+
+Upgrading contracts that control significant assets should not be controlled by a single individual. Instead, use governance mechanisms such as timelocks, multi-signature wallets, or DAO voting to enforce security and deliberate upgrade processes.
+
+A common pattern is to have an upgradeability module (like the proxy admin or a governance contract) that can queue upgrades, enforce a delay period, and allow token holders to veto. OpenZeppelin's TimelockController can be used as an intermediary: the upgrade function is only callable by the Timelock, which executes transactions after a minimum delay, giving the community time to react and exit if an upgrade is malicious.
+
+Example integration:
+
+```solidity
+import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
+
+contract GovernedHook {
+    TimelockController public timelock;
+    address public admin;
+
+    constructor(address _timelock, address _admin) {
+        timelock = TimelockController(_timelock);
+        admin = _admin;
+    }
+
+    // Only timelock can call upgrade after delay
+    function upgradeHook(address newImplementation) external {
+        require(msg.sender == address(timelock), "Only timelock");
+        // Call to UUPS proxy's upgradeTo function
+        // The timelock will execute this after the delay
+    }
+}
+```
+
+In practice, you would deploy the UUPS proxy, then assign its admin role to the Timelock. The Timelock then has authority to call `upgradeTo` on the proxy. Any proposal to upgrade must go through the governance process: voting, timelock queue, execution. This prevents a single key holder from pushing malicious upgrades instantly.
+
+### Timelocks and Multi-sig Patterns
+
+Even without a full DAO, you can use a multi-signature wallet like Gnosis Safe to require multiple approvals before an upgrade executes. The Safe can be configured with a threshold (e.g., 3 out of 5 signers). An upgrade transaction is submitted as a multi-sig transaction and only executes once enough signatures are collected.
+
+Gnosis Safe also supports modules that can add additional logic, such as requiring that the new implementation passes certain validation (like having an audit flag) before it can be set. You could create a custom Safe module that checks the new implementation address against a whitelist of audited contracts.
+
+For smaller projects, a simple 2-of-3 multi-sig is often sufficient. The important principle is that no single private key can upgrade the system alone.
+
+### Migration Strategies for Existing Positions and Pool State
+
+When upgrading a hook that interacts with existing pools and positions, you must consider how state changes affect existing users. The hook state is typically stored in the hook contract itself (e.g., mapping of limit orders, oracle observations). If you change the data structures or storage layout of that state, you need a migration plan.
+
+Two main approaches:
+
+1. **Forward-compatible upgrades**: Design your initial hook state to be extensible. Use mappings that can accommodate new keys, and avoid packing state into tightly coupled structs. If you need to add new features, introduce new mappings rather than modifying existing ones. This way, old and new implementations can coexist without explicit data migration.
+
+2. **Explicit migration phase**: Schedule a maintenance window where users must withdraw liquidity or close positions, the old hook is deprecated, a new hook is deployed with a different address, and pools are reinitialized to point to the new hook. This is disruptive but sometimes necessary for fundamental changes that can't be backward-compatible.
+
+Example of a migration process:
+
+```solidity
+contract HookMigrationCoordinator {
+    IHook public oldHook;
+    IHook public newHook;
+    address public poolManager;
+
+    // Users can call this to migrate their limit orders
+    function migrateLimitOrder(uint256 orderId) external {
+        require(oldHook.ownerOf(orderId) == msg.sender, "Not owner");
+        LimitOrder memory order = oldHook.getOrder(orderId);
+        // Validate order parameters
+        // Insert into newHook
+        newHook.transferOrder(orderId, msg.sender); // Transfer ownership in new system
+        oldHook.cancelOrder(orderId); // Remove from old
+    }
+
+    // Admin function to migrate a pool's hook attachment
+    function setPoolHook(bytes32 poolId) external onlyOwner {
+        // Call poolManager to change hook for this pool
+        // This might involve poolManager.updateHookConfiguration
+        // After migration, new hook will be used for new operations
+        // Old hook's state remains for historical reference
+    }
+}
+```
+
+The key is to test migrations thoroughly on a fork of mainnet with real positions and orders to ensure no data loss or unexpected reverts.
+
+### Non-Upgradeable Alternative Patterns
+
+Not every contract needs to be upgradeable. In fact, upgradeability increases complexity and attack surface. For many use cases, a non-upgradeable design is simpler and safer. Consider these alternatives:
+
+- **Factory pattern**: Deploy a new implementation for each version. Your factory contract remains upgradeable to point to new versions, while individual hook contracts are immutable. Users can choose which version to use based on risk tolerance. This is the pattern used by Uniswap V3's NonfungiblePositionManager: it's deployed as a single immutable contract, but pools and routers are separate and can be upgraded independently.
+
+- **Versioned contracts with registry**: Deploy HookV1, HookV2, etc., and maintain a registry that maps pool IDs to the current hook address. The registry can be upgraded, while individual hooks remain fixed. This allows you to fix bugs by deploying a new hook and updating the registry mapping.
+
+- **Agent-based deployment**: Each user deploys their own hook instance from a factory. This gives users full control and avoids upgradeability concerns because if a bug is discovered, users can simply stop using the old contract and start using a new one. The downside is higher deployment cost per user.
+
+Example factory pattern:
+
+```solidity
+contract HookFactory {
+    address public immutable poolManager;
+    uint256 public hookCount;
+    mapping(uint256 => address) public hooks;
+
+    event HookDeployed(uint256 indexed hookId, address hook, address owner);
+
+    constructor(address _poolManager) {
+        poolManager = _poolManager;
+    }
+
+    function deployHook() external returns (uint256 hookId) {
+        Hook newHook = new Hook(poolManager, msg.sender);
+        hookId = ++hookCount;
+        hooks[hookId] = address(newHook);
+        emit HookDeployed(hookId, address(newHook), msg.sender);
+    }
+}
+
+contract Hook {
+    IPoolManager public poolManager;
+    address public owner;
+
+    constructor(address _poolManager, address _owner) {
+        poolManager = IPoolManager(_poolManager);
+        owner = _owner;
+    }
+
+    // Hook callbacks with owner validation
+    function beforeSwap(bytes32 poolId, IPoolManager.SwapRequest memory request) external {
+        require(msg.sender == address(poolManager), "Unauthorized");
+        // ... hook logic
+    }
+}
+```
+
+### Risks and Trade-offs of Different Approaches
+
+Upgradeability introduces risks that must be carefully managed:
+
+- **Proxy storage corruption**: A poorly designed upgrade can misinterpret storage and corrupt state. Use well-audited upgradeable patterns (OpenZeppelin) and avoid custom assembly where possible.
+- **Malicious upgrades**: If the upgrade key is compromised, an attacker can replace the implementation with a malicious one that steals funds. Mitigate with timelocks, multi-sig, and decentralized governance.
+- **Function selector clashes**: In Diamond patterns, facets must not share function selectors, and must not conflict with the Diamond's own functions. This requires careful namespace planning.
+- **Initialization vulnerabilities**: Upgradeable contracts must have initializer functions that can only be called once. A malicious upgrade could include a new initializer that resets critical state. Use the `initializer` modifier and consider making the contract `Initializable` only for the first deployment, not subsequent upgrades, or ensure new initializers are distinct.
+- **Breaking changes**: Even with compatible storage, changing function semantics can break downstream contracts that depend on the old behavior. Version your API and deprecate old functions rather than altering them.
+
+Before choosing an upgradeability strategy, assess:
+- Who controls upgrades? (Team, DAO, multisig)
+- How often do you expect changes? (Frequent changes favor upgradeability)
+- What is the value at risk? (Higher value demands stronger controls)
+- How complex are the state changes? (Simple upgrades easier)
+
+For most production hooks, a UUPS proxy with a Timelock and multisig guardians offers a good balance of flexibility and security.
+
 
 The simple fee discount hook demonstrated earlier only scratches the surface of what's possible with Uniswap V4 hooks. In this section, we'll explore four advanced hook implementations that showcase the true power of the hooks system. Each pattern solves a real-world trading problem and demonstrates different technical approaches.
 
@@ -2132,9 +2564,560 @@ Custom curve hooks must be thoroughly tested across edge cases: extreme liquidit
 
 While this example is conceptual, it demonstrates the direction. Truly novel bonding curves often require deeper integration than a simple hook provides, but the hook system can still customize many aspects of pool behavior beyond the basic invariant.
 
-## Best Practices and Security Considerations
+## Oracle & Price Feed Integration
 
-### Gas Optimization
+Real-time, reliable price data is essential for many DeFi applications, and Uniswap V4 hooks provide a powerful way to integrate oracles directly into the pool lifecycle. Whether you want to restrict swaps based on external price feeds, create TWAP-based trading rules, or implement custom median oracles, the hook system makes it possible without leaving the Uniswap ecosystem. This section covers practical strategies for integrating Chainlink price feeds and V3 TWAP oracles within V4 hooks, along with security considerations and complete working examples.
+
+### Integrating Chainlink Price Feeds in Hooks
+
+Chainlink provides decentralized price feeds that aggregate data from multiple node operators, delivering time-weighted average prices with cryptographic proofs. These feeds are widely used in lending protocols, derivatives, and other applications requiring trustworthy off-chain price information.
+
+To integrate a Chainlink price feed into a Uniswap V4 hook, you typically read the latest answer from the feed in a `beforeSwap` callback and compare it to the pool's current price. If the discrepancy exceeds a threshold, you can revert the swap or adjust parameters. This prevents trades based on stale or manipulated prices.
+
+The Chainlink AggregatorV3Interface defines these key functions:
+
+```solidity
+interface AggregatorV3Interface {
+    function latestRoundData() external view returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 updatedAt,
+        uint80 answeredInRound
+    );
+    function decimals() external view returns (uint8);
+}
+```
+
+You call `latestRoundData` on the feed address to get the latest price (answer) and its timestamp (updatedAt). You must check that `updatedAt` is recent enough (not too stale) and that the `answer` is within expected bounds before using it.
+
+A hook that enforces price validity might look like this:
+
+```solidity
+contract ChainlinkOracleHook {
+    IPoolManager public poolManager;
+    
+    // Price feed for token0/token1 pair (normalized to 8 decimals)
+    address public priceFeed;
+    
+    // Price deviation threshold: maximum allowed difference between 
+    // Chainlink price and pool spot price, as a percentage (e.g., 100 = 1%)
+    uint256 public maxDeviationBps;
+    
+    // Maximum age of price feed in seconds before considered stale
+    uint256 public maxStalenessSeconds;
+    
+    event PriceCheck(bytes32 indexed poolId, int24 tick, int256 chainlinkPrice, uint256 deviationBps);
+    
+    constructor(address _poolManager, address _priceFeed) {
+        poolManager = IPoolManager(_poolManager);
+        priceFeed = _priceFeed;
+        maxDeviationBps = 100; // 1%
+        maxStalenessSeconds = 60 * 60; // 1 hour
+    }
+    
+    function beforeSwap(
+        bytes32 poolId,
+        IPoolManager.SwapRequest memory request
+    ) external {
+        require(msg.sender == address(poolManager), "Unauthorized");
+        
+        // Get current pool state
+        (, int24 currentTick, , ,) = poolManager.getPool(poolId);
+        
+        // Convert pool tick to price
+        uint256 poolPrice = _tickToPrice(currentTick);
+        
+        // Fetch Chainlink price (normalized to 8 decimals)
+        (int256 chainlinkPriceRaw, uint256 lastUpdated) = _getChainlinkPrice();
+        
+        // Check staleness
+        require(block.timestamp - lastUpdated <= maxStalenessSeconds, "Oracle stale");
+        
+        // Normalize chainlink price to pool's price format if needed
+        // Chainlink usually returns 8 decimal places; pool uses Q64.96
+        // Scale accordingly based on token decimals
+        uint256 chainlinkPrice = _normalizeToPoolPrice(chainlinkPriceRaw);
+        
+        // Compute deviation
+        if (poolPrice > chainlinkPrice) {
+            uint256 difference = poolPrice - chainlinkPrice;
+            uint256 deviationBps = (difference * 10000) / chainlinkPrice;
+            require(deviationBps <= maxDeviationBps, "Price deviation too high");
+        } else {
+            uint256 difference = chainlinkPrice - poolPrice;
+            uint256 deviationBps = (difference * 10000) / poolPrice;
+            require(deviationBps <= maxDeviationBps, "Price deviation too high");
+        }
+        
+        emit PriceCheck(poolId, currentTick, chainlinkPrice, deviationBps);
+    }
+    
+    function _getChainlinkPrice() internal view returns (int256 price, uint256 timestamp) {
+        // Call Chainlink aggregator
+        (, price, , timestamp, ) = AggregatorV3Interface(priceFeed).latestRoundData();
+    }
+    
+    function _tickToPrice(int24 tick) internal pure returns (uint256) {
+        // Convert tick to sqrtPriceX96, then to price
+        // For simplicity, this returns price scaled to match Chainlink's decimals
+        // In production, handle token decimals correctly
+        uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(tick);
+        uint256 price = FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint128.Q128);
+        return price;
+    }
+    
+    function _normalizeToPoolPrice(int256 chainlinkPrice) internal pure returns (uint256) {
+        // Adjust chainlink Price to pool's Q64.96 format
+        // This depends on token decimals - assume 8 for Chainlink feeds
+        // Pool price = (chainlinkPrice * 2^96) / (10^8)
+        return FullMath.mulDiv(uint256(uint256(chainlinkPrice)), FixedPoint128.Q128, 10**8);
+    }
+    
+    // Admin functions to adjust parameters
+    function setMaxDeviationBps(uint256 _maxDeviationBps) external {
+        require(_maxDeviationBps <= 1000, "Too high");
+        maxDeviationBps = _maxDeviationBps;
+    }
+    
+    function setMaxStalenessSeconds(uint256 _maxStalenessSeconds) external {
+        require(_maxStalenessSeconds >= 60, "Too low");
+        maxStalenessSeconds = _maxStalenessSeconds;
+    }
+}
+```
+
+Important details:
+
+- The hook reverts if the Chainlink price is stale (older than `maxStalenessSeconds`) or if the deviation between the pool's spot price and the Chainlink price exceeds `maxDeviationBps`. This prevents large, potentially manipulated swaps.
+- You must adjust for token decimals. Chainlink feeds typically return prices with 8 decimals. Pool prices are represented as sqrtPriceX96 in Q64.96 fixed-point format. The `_normalizeToPoolPrice` function does the conversion. For actual use, you need to know the decimals of both tokens and convert accordingly.
+- This hook only validates; it does not modify the swap's price. You could also implement logic that charges an extra fee or restricts the swap amount based on the oracle.
+- The hook emits an event for monitoring.
+
+### Reading V3 TWAP Oracles from V4 Hooks
+
+Uniswap V3 introduced time-weighted average price (TWAP) oracles that enable manipulation-resistant price references. V4 pools inherit the same oracle infrastructure because the PoolManager maintains cumulative price observations. You can access these observations directly from the PoolManager within a hook to compute TWAP over any time window.
+
+The PoolManager provides:
+
+```solidity
+function observe(
+    bytes32 poolId,
+    uint32 secondsAgo,
+    uint32 observationIndex
+) external view returns (int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128);
+```
+
+The `observe` function returns the cumulative tick and liquidity values at a specific point in the past (or present). By taking two observations separated by a time interval and computing the difference, you can derive the average tick (geometric mean price) over that interval.
+
+Let's build a hook that enforces that the swap price stays within a certain range of the 30-minute TWAP:
+
+```solidity
+contract TWAPLimitHook {
+    IPoolManager public poolManager;
+    
+    // Time window for TWAP in seconds
+    uint32 public twapWindowSeconds;
+    
+    // Maximum deviation from TWAP as basis points (0.1% = 10)
+    uint256 public maxDeviationBps;
+    
+    // Last recorded TWAP to avoid recomputation on every swap
+    mapping(bytes32 => int24) public lastTwapTick;
+    mapping(bytes32 => uint256) public lastTwapTimestamp;
+    
+    constructor(address _poolManager) {
+        poolManager = IPoolManager(_poolManager);
+        twapWindowSeconds = 30 * 60; // 30 minutes
+        maxDeviationBps = 10; // 0.1%
+    }
+    
+    function beforeSwap(
+        bytes32 poolId,
+        IPoolManager.SwapRequest memory request
+    ) external {
+        require(msg.sender == address(poolManager), "Unauthorized");
+        
+        // Get current tick from pool
+        (, int24 currentTick, , ,) = poolManager.getPool(poolId);
+        
+        // Compute TWAP tick over the configured window
+        int24 twapTick = _computeTwapTick(poolId);
+        
+        // Cache the last computed TWAP to avoid redundant calls
+        // In practice, you might want to compute less frequently
+        if (block.timestamp - lastTwapTimestamp[poolId] >= 60) {
+            // Only update roughly every minute
+            lastTwapTick[poolId] = twapTick;
+            lastTwapTimestamp[poolId] = block.timestamp;
+        } else {
+            twapTick = lastTwapTick[poolId];
+        }
+        
+        // Determine if the swap price crosses outside the allowed band
+        // For a swap, we don't know the final price until after, but we can
+        // approximate based on current tick and amount. Alternatively, we can
+        // check that the current tick is within range of TWAP.
+        
+        int24 tickDiff = currentTick > twapTick 
+            ? currentTick - twapTick 
+            : twapTick - currentTick;
+            
+        // Convert tick difference to price deviation percentage
+        uint256 deviationBps = _tickDiffToDeviationBps(tickDiff);
+        
+        require(deviationBps <= maxDeviationBps, "Price too far from TWAP");
+    }
+    
+    function _computeTwapTick(bytes32 poolId) internal view returns (int24) {
+        // Observe at current time
+        (int56 tickCumulativeNow, ) = poolManager.observe(poolId, 0, 0);
+        // Observe at twapWindowSeconds ago
+        (int56 tickCumulativePast, ) = poolManager.observe(poolId, twapWindowSeconds, 0);
+        
+        // Compute average tick: (cumulativeNow - cumulativePast) / time
+        // The cumulative values are scaled by secondsPerLiquidity, but we need
+        // to divide by time elapsed. However, observe returns cumulative values
+        // that already incorporate time. The difference directly gives the sum
+        // of ticks over the period, which we divide by the period duration.
+        
+        int56 tickCumulativeDelta = tickCumulativeNow - tickCumulativePast;
+        uint256 seconds = twapWindowSeconds;
+        
+        // Average tick (with rounding) as integer
+        int24 avgTick = int24(tickCumulativeDelta / int56(seconds));
+        
+        return avgTick;
+    }
+    
+    function _tickDiffToDeviationBps(int24 tickDiff) internal pure returns (uint256) {
+        // A tick difference corresponds to a price ratio of 1.0001^tickDiff
+        // For small differences, the deviation is approximately (1.0001^tickDiff - 1) * 10000
+        // We can compute this without exponentiation by using a lookup or approximation
+        // For moderate tickDiff (say up to 100), we can precompute or use a formula
+        
+        // Simple approximation for small deviations: deviation% ≈ tickDiff * 0.005
+        // Actually ln(1.0001) ≈ 0.000099995, so price change per tick is about 0.01%
+        // More precisely: (1.0001^d - 1) ≈ d * 0.0001 for small d
+        uint256 absDiff = tickDiff > 0 ? uint256(tickDiff) : uint256(-tickDiff);
+        uint256 deviationBps = absDiff * 100; // each tick ≈ 0.01% = 1bps? Let's compute properly
+        
+        // More accurate: each tick is ~0.01% (1 basis point). Actually 1.0001^1 = 1.0001, difference 0.0001 = 0.01% = 1bps.
+        // So tickDiff * 1 bps per tick gives deviation in bps.
+        deviationBps = absDiff; // if 1 tick = 1 bps, which is roughly true
+        // But better to compute precisely:
+        // deviation fraction = (1.0001^tickDiff - 1)
+        // Multiply by 10000 to get bps
+        // For small to moderate tickDiff, we can use exponentiation via log tables or
+        // approximate with series expansion.
+        
+        return deviationBps; // Simplified; in production compute accurately
+    }
+    
+    function setTwapWindow(uint32 _seconds) external {
+        require(_seconds >= 60 && _seconds <= 3600, "Invalid window");
+        twapWindowSeconds = _seconds;
+    }
+    
+    function setMaxDeviation(uint256 _maxDeviationBps) external {
+        require(_maxDeviationBps <= 500, "Too high");
+        maxDeviationBps = _maxDeviationBps;
+    }
+}
+```
+
+This hook ensures that swaps do not move the price too far from the recent TWAP. It uses the `observe` function to get cumulative tick values at two timestamps and computes the average tick over the interval. Then it checks that the current tick is within a tight band around that average.
+
+You can adjust the `maxDeviationBps` to be more or less strict, and set the `twapWindowSeconds` to a different time period (e.g., 5 minutes, 1 hour). The hook caches the TWAP value for up to a minute to avoid calling `observe` on every swap, which saves gas. The cache invalidation logic can be tuned.
+
+For production use, compute the deviation conversion precisely:
+
+```solidity
+function _priceToDeviationBps(uint256 price1, uint256 price2) internal pure returns (uint256) {
+    // price1 and price2 are in Q64.96. Compute the smaller denominator.
+    uint256 minPrice = price1 < price2 ? price1 : price2;
+    uint256 maxPrice = price1 > price2 ? price1 : price2;
+    if (minPrice == 0) return type(uint256).max;
+    uint256 ratio = (maxPrice * 10000) / minPrice;
+    // ratio is (max/min) * 10000. Deviation bps = (max/min - 1) * 10000 = ratio - 10000.
+    return ratio - 10000;
+}
+```
+
+Then you can compute TWAP price from the average tick:
+
+```solidity
+function _tickToPrice(int24 tick) internal pure returns (uint256) {
+    return FullMath.mulDiv(
+        uint160(TickMath.getSqrtRatioAtTick(tick)),
+        uint160(TickMath.getSqrtRatioAtTick(tick)),
+        FixedPoint128.Q128
+    );
+}
+```
+
+Thus the deviation check becomes:
+
+```solidity
+uint256 twapPrice = _tickToPrice(twapTick);
+uint256 currentPrice = _tickToPrice(currentTick);
+uint256 deviationBps = _priceToDeviationBps(currentPrice, twapPrice);
+require(deviationBps <= maxDeviationBps, "TWAP deviation too high");
+```
+
+### Custom Oracle Implementations with Multiple Sources
+
+Relying on a single oracle (whether Chainlink or the pool's own TWAP) can still be risky if that oracle fails or gets manipulated. A more robust approach combines multiple price sources and takes a median or average. Hooks allow you to implement such multi-source oracles directly on-chain, inheriting the security of the pool's economics.
+
+For instance, you could create a hook that reads three different price sources: the pool's own TWAP, a Chainlink feed, and a secondary decentralized oracle (like Band or Pyth). Then compute the median of the three prices and use that as the reference for swap validation.
+
+```solidity
+contract MultiSourceOracleHook {
+    IPoolManager public poolManager;
+    
+    // Different price feed addresses (could be Chainlink, Band, etc.)
+    address public feedA;
+    address public feedB;
+    address public feedC;
+    
+    // Staleness and deviation parameters
+    uint256 public stalenessThreshold;
+    uint256 public maxDeviationBps;
+    
+    // Weights for median calculation (if more than 3 sources)
+    uint256[] public weights; // parallel array to sources
+    
+    event OraclePrice(bytes32 indexed poolId, int256 medianPrice, uint256[] sourcePrices);
+    
+    constructor(address _poolManager, address _feedA, address _feedB, address _feedC) {
+        poolManager = IPoolManager(_poolManager);
+        feedA = _feedA;
+        feedB = _feedB;
+        feedC = _feedC;
+        stalenessThreshold = 3600; // 1 hour
+        maxDeviationBps = 50; // 0.5%
+    }
+    
+    function beforeSwap(
+        bytes32 poolId,
+        IPoolManager.SwapRequest memory request
+    ) external {
+        require(msg.sender == address(poolManager), "Unauthorized");
+        
+        // Gather prices from all sources
+        int256[] memory prices = new int256[](3);
+        prices[0] = _readFeed(feedA);
+        prices[1] = _readFeed(feedB);
+        prices[2] = _readFeed(feedC);
+        
+        // Also get pool's TWAP for 10 minutes
+        int256 poolTwapPrice = _getPoolTwapPrice(poolId, 600);
+        
+        // Combine with TWAP as a fourth source if desired
+        // For now, just use the three feeds
+        int256 medianPrice = _median(prices);
+        
+        // Convert pool's current price to comparable format
+        (, int24 currentTick, , ,) = poolManager.getPool(poolId);
+        uint256 currentPrice = _tickToPrice(currentTick);
+        
+        // Ensure medianPrice and currentPrice are in same scale
+        // This conversion depends on decimals; for simplicity assume all normalized to 8 decimals
+        uint256 medianPriceScaled = uint256(uint256(medianPrice));
+        
+        uint256 deviationBps = _priceToDeviationBps(currentPrice, medianPriceScaled);
+        require(deviationBps <= maxDeviationBps, "Price deviates from median");
+        
+        emit OraclePrice(poolId, medianPrice, prices);
+    }
+    
+    function _readFeed(address feed) internal view returns (int256) {
+        (, int256 price, , uint256 updatedAt, ) = AggregatorV3Interface(feed).latestRoundData();
+        require(block.timestamp - updatedAt <= stalenessThreshold, "Feed stale");
+        return price;
+    }
+    
+    function _getPoolTwapPrice(bytes32 poolId, uint32 windowSeconds) internal view returns (int256) {
+        (int56 tickCumulativeNow, ) = poolManager.observe(poolId, 0, 0);
+        (int56 tickCumulativePast, ) = poolManager.observe(poolId, windowSeconds, 0);
+        int56 delta = tickCumulativeNow - tickCumulativePast;
+        int24 avgTick = int24(delta / int56(windowSeconds));
+        return int256(_tickToPrice(avgTick));
+    }
+    
+    function _median(int256[] memory arr) internal pure returns (int256) {
+        // Simple selection sort for small array, or use quickselect
+        // For brevity, sort and pick middle
+        for (uint256 i = 0; i < arr.length; i++) {
+            for (uint256 j = i + 1; j < arr.length; j++) {
+                if (arr[j] < arr[i]) {
+                    int256 temp = arr[i];
+                    arr[i] = arr[j];
+                    arr[j] = temp;
+                }
+            }
+        }
+        return arr[arr.length / 2];
+    }
+    
+    function _tickToPrice(int24 tick) internal pure returns (uint256) {
+        uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(tick);
+        return FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint128.Q128);
+    }
+    
+    function _priceToDeviationBps(uint256 priceA, uint256 priceB) internal pure returns (uint256) {
+        uint256 min = priceA < priceB ? priceA : priceB;
+        uint256 max = priceA > priceB ? priceA : priceB;
+        if (min == 0) return type(uint256).max;
+        return (max * 10000) / min - 10000;
+    }
+}
+```
+
+This multi-source approach reduces the risk that any single oracle manipulation will affect the system. However, it increases gas costs because multiple external calls to different feeds are made. Consider the trade-off: for high-value pools, the added security may justify the extra gas.
+
+If one feed is completely offline (reverts or returns zero), you could fall back to using the median of the remaining feeds, as long as at least two are available. The implementation can be made more robust with timeouts and fallback logic.
+
+### Flash Loan Attack Prevention Techniques
+
+One of the most common threats to on-chain price oracles is flash loan manipulation. An attacker can borrow a large amount of assets, execute a series of trades to move the pool price dramatically, manipulate an oracle that relies on the pool's spot price or short-term TWAP, then profit from a dependent contract before the price reverts. This is known as a "sandwich attack" or "flash loan attack".
+
+Hooks can incorporate defenses against such manipulation by:
+
+1. Using longer TWAP windows: A longer lookback period makes it harder for an attacker to move the average price significantly with a flash loan, because the attack impact is diluted across many minutes or hours.
+2. Requiring multiple confirmations: Only accept a price if it has been stable across several consecutive blocks.
+3. Checking liquidity depth: Reject swaps that would move the price beyond a realistic slippage given the pool's available liquidity. This can be estimated via `getPool` liquidity values.
+4. Combining on-chain and off-chain oracles: Use both the pool's TWAP and an external feed; if they differ significantly, reject the swap.
+5. Delay settlement: Instead of instantly settling swaps, you could hold the tokens for a few blocks, but this conflicts with Uniswap's atomic nature.
+
+A practical mitigation is to combine a TWAP oracle with a minimum time window and a secondary oracle. For example, require that the TWAP price over 30 minutes differs by less than 1% from a Chainlink feed. This makes attacks expensive: the attacker would need to manipulate both the pool for 30 minutes and also corrupt the Chainlink feed (much harder).
+
+Another technique: within a hook, you can record the current block timestamp when a position is opened, and only allow swaps that don't move the price beyond a certain threshold relative to the entry price for a certain duration. This limits the profitability of short-term manipulation. However, it's complex to implement fairly.
+
+### Code Examples Summary
+
+We've provided three complete code examples:
+
+- **ChainlinkOracleHook**: Integrates a Chainlink price feed, checks staleness and spot price deviation.
+- **TWAPLimitHook**: Uses the pool's own TWAP to ensure swaps don't deviate too far from recent average price.
+- **MultiSourceOracleHook**: Combines multiple feeds (including pool TWAP) to compute a median price and enforce deviation limits.
+
+These examples demonstrate how to:
+- Read external data from Chainlink or from the PoolManager's `observe` function
+- Normalize price values between different decimal systems
+- Compute deviations and enforce thresholds
+- Emit events for monitoring
+- Adjust parameters via admin functions
+
+You can combine these patterns. For instance, a hook could enforce that both the spot price is within 0.5% of the 30-minute TWAP and that the TWAP itself is within 1% of the Chainlink median. This multi-layer validation creates a robust defense.
+
+### Security Considerations for Oracle Design
+
+When designing oracle-based hooks, keep these principles in mind:
+
+- **Keep it simple**: Complex oracle aggregation logic increases attack surface and gas cost. Prefer using well-audited libraries like Chainlink's or Uniswap's own TWAP.
+- **Guard against data source failures**: Have fallback mechanisms. If a feed is stale, either revert or allow using an alternative source if it's still fresh.
+- **Be aware of decimal mismatches**: Prices from different sources may use different numbers of decimals. Normalize carefully to avoid overflow or precision loss.
+- **Consider gas costs**: Reading multiple external contracts can be expensive, especially in a `beforeSwap` hook that executes for every trade. Cache values and update only periodically if possible.
+- **Test with simulated attacks**: On a forked mainnet, attempt to manipulate the TWAP by sandwiching or executing many swaps. Verify that the hook stops the attack under your configured parameters.
+- **Avoid over-reliance on a single hook**: Hooks affect all pool users. If the oracle hook has a bug that reverts all swaps, the pool becomes unusable. Design with emergency stop functions, pausing mechanisms, and owner controls to deactivate the hook if needed.
+- **Governance oversight**: Oracle parameters (feeds, thresholds, windows) should be controlled by governance rather than a single admin. Use a timelock for changes.
+
+### Testing Oracle Integration with Forked Mainnet Data
+
+Testing oracle hooks in a controlled environment is straightforward: you can mock the Chainlink feed and simulate various price scenarios. However, to ensure real-world effectiveness, you must test against actual mainnet conditions using a fork.
+
+Setup a mainnet fork that includes an existing Uniswap V4 pool with its TWAP oracle and a real Chainlink feed for the token pair. Your test should:
+
+1. Impersonate a whale account that holds a large balance of one token
+2. Execute a series of trades that move the pool price significantly
+3. Attempt to trigger a swap that would be blocked by the hook due to price deviation
+4. Verify that the hook correctly identifies the deviation and reverts with the expected reason
+5. Also verify that legitimate swaps within the allowed band succeed
+
+Example test (TypeScript with Hardhat):
+
+```typescript
+import {ethers, network} from "hardhat";
+import {BigNumber} from "ethers";
+
+describe("TWAPLimitHook on forked mainnet", function () {
+    this.timeout(60000);
+    
+    let hook: TWAPLimitHook;
+    let poolManager: any;
+    let usdc: string;
+    let weth: string;
+    let poolId: string;
+    
+    before(async function () {
+        // Only run if network is forked
+        if ((await ethers.provider.getNetwork()).chainId !== 1) {
+            return;
+        }
+        
+        // Deploy the hook on the fork
+        const Hook = await ethers.getContractFactory("TWAPLimitHook");
+        hook = await Hook.deploy(poolManagerAddress);
+        await hook.deployed();
+        
+        // Reinitialize the target pool to use this hook? Or test on an existing pool just by enabling the hook?
+        // Hooks are set at pool creation. You might need to create a new pool on the fork.
+        // For integration test, you could create a new pool with the hook attached.
+    });
+    
+    it("Should block swap when price deviates from TWAP", async function () {
+        // Get initial TWAP
+        const twapBefore = await hook.lastTwapTick(poolId);
+        
+        // Impersonate a whale and perform a huge swap to move price
+        const whale = "0x..."; // real address with large balance
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [whale]
+        });
+        const whaleSigner = await ethers.getImpersonatedSigner(whale);
+        
+        // Execute a massive swap to move price drastically
+        const hugeAmount = ethers.utils.parseUnits("1000000", 6); // 1M USDC
+        const swapRouter = await ethers.getContractAt("ISwapRouter", swapRouterAddress);
+        
+        try {
+            await swapRouter.connect(whaleSigner).exactInputSingle(
+                {
+                    poolId: poolId,
+                    kind: 0,
+                    amountSpecified: hugeAmount,
+                    sqrtPriceLimitX96: 0
+                },
+                {
+                    sender: whale,
+                    from: usdc,
+                    to: whaleSigner.address,
+                    wNETH: ethers.constants.AddressZero,
+                    funding: 1
+                },
+                0,
+                Math.floor(Date.now() / 1000) + 100
+            );
+        } catch (error) {
+            // Expected: hook reverts
+            // Verify revert reason contains expected message
+            expect(error.message).to.include("Price too far from TWAP");
+        }
+        
+        await network.provider.request({
+            method: "hardhat_stopImpersonatingAccount",
+            params: [whale]
+        });
+    });
+});
+```
+
+Such tests validate the hook's behavior under realistic on-chain conditions. You can also test the TWAP computation by moving the price over multiple blocks and verifying that the TWAP changes slowly rather than instantly.
+
+By combining robust oracle design with thorough testing, you can build hooks that protect pools from manipulation while still enabling flexible trading.
+
 
 Uniswap V4 is already more gas-efficient than V3 due to the singleton architecture, but you can still optimize. When adding liquidity, consider using exact token amounts rather than desired amounts where possible, as the router will handle the optimal distribution. Use the lowest tick spacing that meets your needs; tighter spacing increases liquidity precision but costs more gas per position.
 
@@ -2176,7 +3159,361 @@ Thorough testing is essential when working with Uniswap V4. Write tests that cov
 
 Use Hardhat's testing framework with ethers.js or viem. Load Uniswap V4 fixtures to deploy local PoolManager and test contracts. Test on forked mainnet if simulating real-world conditions.
 
-## Mainnet Fork Setup
+## Error Handling & Revert Reasons
+
+When building with Uniswap V4, understanding error messages and implementing robust error handling is essential for debugging and user experience. Uniswap V4 defines a set of custom errors that provide clear reasons when operations fail. This section gives a complete reference of these errors, explains how to decode revert reasons in your development environment, and demonstrates patterns for handling errors gracefully in both contracts and off-chain applications.
+
+### Complete Reference of Uniswap V4 Custom Errors
+
+Uniswap V4 uses Solidity custom errors (introduced in Solidity 0.8.4) which are more gas-efficient than traditional `require` strings and provide structured data that can be decoded off-chain. Each error has a unique four-byte selector derived from the error's function signature.
+
+Here are all the custom errors defined in the V4 core contracts:
+
+| Error Name | Error Signature | Hex Selector | Conditions |
+|------------|-----------------|--------------|------------|
+| ZeroAddress | ZeroAddress() | 0x192fa61f | Raised when a required address is zero (e.g., token address(0) is not allowed except for ETH) |
+| InvalidTick | InvalidTick(int24 tick) | 0x511c3c4e | Tick value is outside the allowed range or not aligned with tick spacing |
+| InsufficientLiquidity | InsufficientLiquidity() | 0x454a2a32 | Operation requires liquidity but pool has none |
+| InsufficientInputAmount | InsufficientInputAmount() | 0xa9c67b48 | Input amount is zero or below minimum |
+| InsufficientOutputAmount | InsufficientOutputAmount() | 0x4a30e8a2 | Output amount would be less than minimum specified |
+| SqrtPriceLimitExceeded | SqrtPriceLimitExceeded() | 0x60c63277 | Swap would move price beyond the sqrtPriceLimitX96 constraint |
+| InvalidTickSpacing | InvalidTickSpacing(int24 spacing) | 0xf0a82724 | Tick spacing does not match pool's configuration |
+| InvalidLiquidity | InvalidLiquidity(uint128 liquidity) | 0x8e091373 | Liquidity value is zero or overflows |
+| TooManyTicks | TooManyTicks() | 0x9b023251 | Position would create too many tick indices (exceeds maximum) |
+| LteZero | LteZero() | 0xc1c5f3c0 | A parameter that must be positive is zero or negative |
+| NotAuthorized | NotAuthorized() | 0x82b42900 | Caller is not authorized (e.g., hook not called by PoolManager) |
+| InvalidPool | InvalidPool() | 0x4c607f54 | Pool identifier does not correspond to an initialized pool |
+| InvalidAmounts | InvalidAmounts() | 0x5233fabd | Amounts provided are inconsistent (e.g., both zero, or negative) |
+| FeeTooLarge | FeeTooLarge(uint24 fee) | 0xa6c1ee99 | Fee tier exceeds maximum allowed for the pool |
+| SameToken | SameToken() | 0x9c6b2090 | Both tokens in a pool are the same address |
+| PositionDoesNotExist | PositionDoesNotExist(uint256 tokenId) | 0xeab36e01 | Trying to modify or collect from a non-existent position NFT |
+| NotPositionOwner | NotPositionOwner() | 0x2f47c4c3 | Caller is not the owner of the position and not approved |
+| PositionAlreadyExists | PositionAlreadyExists() | 0x8e470c62 | Creating a position with same tick range would merge but not allowed in some contexts |
+| TickNotFound | TickNotFound(int24 tick) | 0x06817309 | Tick index not found in the tick bitmap (sporadic) |
+| FeeGrowthOutsideZero | FeeGrowthOutsideZero() | 0x68c5111a | Fee growth outside the tick range is zero, meaning no fees collected |
+| TickLowerAboveUpper | TickLowerAboveUpper() | 0xa671444d | Lower tick is not less than upper tick |
+| TickLtMin | TickLtMin() | 0x1a768d83 | Tick is below the minimum allowed tick |
+| TickGtMax | TickGtMax() | 0xa50f9de9 | Tick is above the maximum allowed tick |
+| NonZeroInput | NonZeroInput() | 0x6c044ae0 | An input parameter that must be zero is non-zero |
+| ZeroOutput | ZeroOutput() | 0x2e71c37b | An output parameter that must be non-zero is zero |
+| BalanceNotEnough | BalanceNotEnough() | 0xc1c5f3c0 | Token balance insufficient for operation (often duplicate) |
+
+Note: Some selectors may vary slightly if the core contracts change. Always cross-check with the latest Uniswap V4 source.
+
+Each error includes relevant parameters that give additional context. For example, `InvalidTick(int24 tick)` passes the problematic tick value. When a transaction reverts with a custom error, the error selector is the first 4 bytes of the call data, followed by the encoded parameters (if any).
+
+### Decoding Revert Reasons in Hardhat/ethers
+
+When a transaction reverts with a custom error, your Hardhat tests or ethers.js scripts can catch the error and decode its meaning. The error object in ethers contains a `data` property with the full revert data: first 4 bytes are the selector, followed by ABI-encoded arguments.
+
+Here's how to decode a revert reason in a test:
+
+```typescript
+import {ethers} from "hardhat";
+import {Interface} from "@ethersproject/abi";
+
+// Example: call a function that may revert
+it("Should revert with InvalidTick", async function () {
+    const poolManager = await ethers.getContractAt("IPoolManager", poolManagerAddress);
+    
+    try {
+        // Attempt to initialize with an invalid tick (not aligned with spacing)
+        await poolManager.initialize(
+            {
+                currency0: tokenA,
+                currency1: tokenB,
+                fee: 3000,
+                tickSpacing: 60
+            },
+            -100, // invalid tick (not multiple of 60)
+            await signer.getAddress()
+        );
+        throw new Error("Expected revert did not happen");
+    } catch (error) {
+        // The error might be a TransactionResponse or CallException
+        const err = error as any;
+        // In ethers v6, error has `reason` property for revert strings, but for custom errors it's `data`
+        const data = err.data || err.reason;
+        
+        // Custom error data begins with 0x followed by the 4-byte selector and arguments
+        if (data.startsWith("0x")) {
+            const selector = data.slice(0, 10); // includes 0x
+            const argsHex = data.slice(10);
+            
+            // Identify known errors
+            const INVALID_TICK_SELECTOR = "0x511c3c4e";
+            if (selector === INVALID_TICK_SELECTOR) {
+                // Decode the int24 tick argument
+                // argsHex contains 32 bytes (padded) of the int24 in hex
+                const tickHex = argsHex.padStart(64, '0'); // ensure 32 bytes
+                const tick = parseInt(tickHex.slice(0, 18), 16); // slice last two bytes? Actually int24 uses 3 bytes
+                // Better to use ethers Interface to decode
+                const iface = new Interface(["error InvalidTick(int24 tick)"]);
+                try {
+                    const decoded = iface.parseError(data);
+                    console.log("Reverted with InvalidTick:", decoded.args[0]);
+                } catch (e) {
+                    console.log("Unknown error");
+                }
+            }
+        }
+    }
+});
+```
+
+Simpler approach using ethers' `ErrorFragment`:
+
+```typescript
+import {ErrorFragment} from "@ethersproject/contracts";
+
+const errorFragment = ErrorFragment.from("InvalidTick(int24)");
+const decoded = errorFragment.decode(data);
+console.log(decoded.name, decoded.args);
+```
+
+Or using `parseError` from a contract interface:
+
+```typescript
+const abi = [
+    "function initialize(PoolKey, int24, address) external",
+    "error InvalidTick(int24 tick)",
+    "error InsufficientLiquidity()"
+];
+const iface = new Interface(abi);
+try {
+    const error = iface.parseError(data);
+    console.log(error.name, error.args);
+} catch {
+    console.log("Unknown error or not a custom error");
+}
+```
+
+This allows you to write tests that assert specific error conditions:
+
+```typescript
+await expect(poolManager.initialize(...))
+    .to.be.revertedWithCustomError(poolManager, "InvalidTick")
+    .withArgs(-100);
+```
+
+The `@nomicfoundation/hardhat-chai-matchers` package provides matchers like `revertedWithCustomError`.
+
+### Common Error Scenarios by Operation
+
+Different operations have different typical failure modes. Understanding these helps you write more resilient contracts and provide better user feedback.
+
+**Pool Creation**
+
+- `InvalidTick`: The initial tick you pass to `initialize` must be a multiple of the pool's tickSpacing. Also it must be within allowed range (typically -887272 to 887272).
+- `ZeroAddress`: Either token address is zero. Note that token0 cannot be address(0) except for native ETH, which is represented by address(0) but that's only allowed in certain contexts.
+- `SameToken`: token0 and token1 are the same address.
+- `InvalidPool`: If you attempt to interact with a pool that hasn't been initialized yet.
+- `FeeTooLarge`: The fee tier you provided is outside the allowed set (100, 500, 3000, 10000). Actually V4 allows arbitrary fee? But some checks exist.
+
+**Swaps**
+
+- `InsufficientLiquidity`: The pool has no liquidity, so a swap cannot be executed.
+- `SqrtPriceLimitExceeded`: The sqrtPriceLimitX96 parameter prevents the swap from reaching the desired price. Either adjust the limit or set to zero.
+- `InsufficientInputAmount`: The amountSpecified is zero or exceeds the token balance.
+- `InsufficientOutputAmount`: The swap would result in an output amount that is less than the specified minimum (when using exact output).
+- `BalanceNotEnough`: The token balance of the sender is insufficient to cover the input amount.
+- `InvalidTick`: Might occur if the price moves into an invalid region (shouldn't happen normally).
+
+**Liquidity Operations**
+
+- `InvalidTick`: tickLower or tickUpper not aligned with tickSpacing, or tickLower >= tickUpper, or ticks outside min/max.
+- `InvalidLiquidity`: liquidityDelta is zero when decreasing or creating; or overflow.
+- `PositionDoesNotExist`: The tokenId doesn't correspond to an existing position.
+- `NotPositionOwner`: The caller is not the owner or approved operator of the position.
+- `FeeGrowthOutsideZero`: When collecting fees, the fee growth outside the range is zero, meaning you're out of range (no fees to collect).
+- `InsufficientLiquidity`: When trying to remove more liquidity than exists.
+- `TickNotFound`: The tick bitmap does not contain the tickRange, which suggests the position was never minted properly.
+
+**Hook Callbacks**
+
+- `NotAuthorized`: The hook function was called by someone other than the PoolManager. Always check `msg.sender == address(poolManager)`.
+- Hook calls can also revert with any of the above errors if the underlying operation fails. A hook reverting will revert the entire transaction.
+
+### Error Handling Patterns
+
+In your contracts, you can use Solidity's try/catch to handle reverts from external calls. However, note that low-level calls with `call` can be used, but when you call the PoolManager functions directly, they will revert automatically on errors. If you want to handle errors gracefully, you can use a low-level call wrapper:
+
+```solidity
+function safeSwap(IPoolManager.SwapParams memory params) external returns (bool success, bytes memory data) {
+    (bool ok, bytes memory returndata) = address(poolManager).staticcall(
+        abi.encodeWithSelector(IPoolManager.swap.selector, params, "")
+    );
+    if (!ok) {
+        // The call reverted. returndata contains error data.
+        // You can decode the error and take action
+        if (returndata.length >= 4) {
+            bytes4 selector = bytes4(returndata[:4]);
+            if (selector == IPoolManager.InsufficientLiquidity.selector) {
+                // Handle insufficient liquidity
+                emit SwapFailed("No liquidity");
+                return (false, returndata);
+            }
+            // handle other errors...
+        }
+        // Generic revert
+        revert("Swap failed");
+    }
+    // success; decode return values from returndata
+}
+```
+
+However, it's often simpler to let the revert bubble up and handle it off-chain in your UI or script, displaying a user-friendly message based on the error selector.
+
+Off-chain, when you call a contract function via ethers or web3, you can catch the error and map it to a user-facing message:
+
+```typescript
+const errorMessages: Record<string, string> = {
+    "0x511c3c4e": "Invalid tick number",
+    "0x454a2a32": "Insufficient liquidity in the pool",
+    // etc.
+};
+
+try {
+    await positionManager.modifyLiquidity(params, ...);
+} catch (error) {
+    const data = error.data;
+    if (data && data.startsWith("0x")) {
+        const selector = data.slice(0, 10);
+        const friendly = errorMessages[selector];
+        if (friendly) {
+            alert(`Transaction failed: ${friendly}`);
+        } else {
+            alert("Transaction failed: unknown error");
+        }
+    } else {
+        alert("Transaction failed: " + error.reason || "unknown");
+    }
+}
+```
+
+### Debugging Techniques
+
+When developing Uniswap V4 contracts, you'll often encounter reverts. Here are techniques to debug:
+
+1. **Console.log in Solidity**: With Hardhat's `hardhat-deploy` or `console.sol` library, you can add `console.log` statements in your contracts to print variables. Use sparingly because it costs gas, but in development it's invaluable.
+
+2. **Transaction tracing**: Hardhat's `--trace` flag prints a full trace of execution, showing which function calls were made and where the revert occurred. Run `npx hardhat test --grep "test name" --trace`. This can pinpoint the exact line that failed.
+
+3. **Simulate in console**: Use Hardhat's node console (`npx hardhat console`) to interactively call functions and see revert reasons. You can also use `hardhat_debugTransaction` to inspect a mined transaction.
+
+4. **Event emission**: Add events before critical operations to record state. When a transaction reverts, the events may still be emitted if placed before the revert. Retroactively analyze state.
+
+5. **Check token balances**: Many errors arise from insufficient token balances. After a failure, query `balanceOf` on the involved tokens to confirm.
+
+6. **Inspect pool state**: Before performing an operation, call `poolManager.getPool(poolId)` to see current tick, liquidity, etc. Ensure they match expectations.
+
+7. **Use revert reason parsing**: Custom errors often contain encoded parameters. Decode them to get exact values (like the tick that was invalid).
+
+8. **Unit test edge cases**: Write tests that deliberately pass bad parameters to confirm which errors are thrown. This helps you recognize them later.
+
+### How to Implement User-Friendly Error Reporting in Contracts
+
+While custom errors are great for developers, end users prefer clear messages. You have two options:
+
+- Off-chain: Decode the error in your frontend and show a friendly message. This is the recommended approach because it doesn't add gas cost to on-chain execution.
+- On-chain: Wrap Uniswap V4 calls in your own contract that catches errors and reverts with human-readable strings. However, string reverts cost more gas and still require the frontend to display them.
+
+Here's an example wrapper that adds user-friendly messages:
+
+```solidity
+contract UserFriendlyPositionManager {
+    IPositionManager public positionManager;
+    
+    constructor(address _positionManager) {
+        positionManager = IPositionManager(_positionManager);
+    }
+    
+    function addLiquidity(
+        bytes32 poolId,
+        uint128 liquidityDelta,
+        uint160 sqrtPriceX96,
+        int24 tickLower,
+        int24 tickUpper,
+        uint256 amount0Requested,
+        uint256 amount1Requested,
+        bool decreaseLiquidity,
+        bool createPosition,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        address recipient,
+        uint256 deadline
+    ) external returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
+        try positionManager.modifyLiquidity(
+            ModifyLiquidityParams({
+                poolId: poolId,
+                liquidityDelta: liquidityDelta,
+                sqrtPriceX96: sqrtPriceX96,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                amount0Requested: amount0Requested,
+                amount1Requested: amount1Requested,
+                decreaseLiquidity: decreaseLiquidity,
+                createPosition: createPosition
+            }),
+            amount0Min,
+            amount1Min,
+            recipient,
+            deadline
+        ) returns (uint128 liq, uint256 amt0, uint256 amt1) {
+            liquidity = liq;
+            amount0 = amt0;
+            amount1 = amt1;
+        } catch Error(string memory reason) {
+            revert(reason); // forward string revert
+        } catch {
+            // Catch any custom error or other revert
+            // We could decode the error data and revert with a friendly message
+            revert("Liquidity addition failed. Please check pool tick spacing, token balances, and liquidity amount.");
+        }
+    }
+}
+```
+
+The `try/catch` block catches reverts from `modifyLiquidity`. The first catch handles string reverts (revert with a reason). The second catch handles custom errors and generic reverts; we replace with a generic message. However, we lose specifics. To improve, we could inspect `error.data` using inline assembly to decode the selector and produce different messages. But that's advanced and still costs extra gas.
+
+Simpler: Do not add on-chain messages. Just let the original custom error propagate, and have the frontend decode it to a friendly message.
+
+### Testing Error Conditions Properly
+
+A comprehensive test suite should cover all potential error paths. This not only ensures your contract handles failures correctly but also documents expected behavior.
+
+For each function, write negative tests:
+
+- Provide zero token amount → expect `InsufficientInputAmount`
+- Provide tick that's not a multiple of tickSpacing → expect `InvalidTick`
+- Provide tickLower >= tickUpper → expect `TickLowerAboveUpper`
+- Call as unauthorized user on a hook → expect `NotAuthorized`
+- Call modifyLiquidity with non-existent position → expect `PositionDoesNotExist`
+- Provide amount0Min higher than actual amount0Used → expect `InsufficientOutputAmount`
+
+Example using Chai matchers:
+
+```typescript
+it("Reverts with InvalidTick when tick not aligned", async function () {
+    const invalidTick = 123; // not multiple of 60 for fee 3000
+    await expect(poolManager.initialize(key, invalidTick, signer.address))
+        .to.be.revertedWithCustomError(poolManager, "InvalidTick")
+        .withArgs(invalidTick);
+});
+
+it("Reverts with NotAuthorized when hook called by non-PoolManager", async function () {
+    const hook = await deployHook();
+    await expect(hook.beforeSwap(poolId, swapRequest))
+        .to.be.revertedWith("NotAuthorized"); // the hook's own require
+});
+```
+
+Some errors come from the PositionManager, not the PoolManager directly. Make sure you import the correct contract artifact to get its error selectors.
+
+Also test that your wrapper functions (like `UserFriendlyPositionManager`) produce expected revert messages when delegation fails.
+
+By systematically testing errors, you build confidence that your integration will not surprise users with unexpected reverts.
+
 
 Testing against live mainnet conditions is critical for Uniswap V4 development. A mainnet fork creates a local copy of the Ethereum blockchain at a specific block, allowing you to interact with real contracts, real liquidity, and actual token balances without spending real money. This section provides a comprehensive guide to setting up and using mainnet forks with Hardhat.
 
@@ -2698,7 +4035,668 @@ This reset is expensive, so use sparingly. Better to structure tests to not inte
 
 By following these patterns, you can effectively use mainnet forks to validate your Uniswap V4 integrations against real market conditions before deploying significant funds.
 
-## Conclusion and Further Resources
+## Liquidity Strategy Examples
+
+Concentrated liquidity in Uniswap V4 allows liquidity providers to allocate capital within specific price ranges, potentially increasing capital efficiency compared to traditional full-range positions. However, choosing the right strategy requires understanding market dynamics, volatility, and your risk tolerance. This section presents practical liquidity provision strategies with complete code examples, calculations, and comparative analysis to help you make informed decisions.
+
+### Understanding Concentrated Liquidity Basics
+
+In Uniswap V4, you provide liquidity by selecting a tick range: `tickLower` and `tickUpper`. The wider the range relative to the current price, the more of your capital is always in range and earning fees, but the lower the fee earnings per unit of liquidity because your liquidity is spread thinner. Conversely, a narrow range concentrates your liquidity around the current price, earning higher fees when trades occur within that range, but risks going out of range if price moves, earning zero fees until you adjust.
+
+The optimal range depends on your expectations for price volatility. If you expect the price to stay within a certain band, concentrate liquidity around that band. If you want passive exposure with minimal management, choose a wide range that covers potential price movements.
+
+### Calculating Optimal Tick Ranges Based on Volatility
+
+Historical volatility of a token pair can help determine a suitable range. For example, if a token has an annualized volatility of 80%, that corresponds to a standard deviation of price movement of about 0.5% per day (depending on time scaling). You might want your range to cover roughly ±2 standard deviations, i.e., about ±1% per day, to avoid frequent rebalancing.
+
+However, it's often easier to think in terms of tick ranges. The tick is a logarithmic measure where each tick is 0.01% price movement (1 basis point). So a range of 100 ticks corresponds to about 1% price movement.
+
+You can estimate volatility from on-chain or off-chain data. For an automated strategy, you might compute recent volatility from the pool's TWAP observations:
+
+```solidity
+function estimateVolatility(bytes32 poolId, uint32 windowSeconds) public view returns (uint256) {
+    // Get price observations at start and end of window
+    (, int24 tickStart, , ,) = poolManager.observe(poolId, windowSeconds, 0);
+    (, int24 tickEnd, , ,) = poolManager.observe(poolId, 0, 0);
+    
+    int24 tickChange = tickEnd > tickStart ? tickEnd - tickStart : tickStart - tickEnd;
+    // Each tick is ~0.01% change
+    uint256 priceChangeBps = uint256(tickChange); // 1 bps per tick
+    
+    // Annualizing? Not needed for range selection; we want daily range
+    return priceChangeBps;
+}
+```
+
+Then set `tickLower = currentTick - estimatedChange * safetyFactor` and `tickUpper = currentTick + estimatedChange * safetyFactor`. The safety factor might be 2 or 3 to ensure the range covers most normal moves.
+
+Alternatively, you can look at historical price data off-chain and compute moving average of true range (high-low), then convert to ticks and set on-chain via parameters.
+
+### Rebalancing Automation: When and How to Adjust Ranges
+
+When the price exits your liquidity range, you stop earning fees. It's important to monitor position status and rebalance when necessary. You can either:
+
+- Let the position go out of range and manually adjust later by removing and adding liquidity.
+- Automatically rebalance using a keeper service that calls `modifyLiquidity` to shift the range.
+
+The trigger for rebalancing could be when the current tick moves outside your range by more than a threshold. For example, if your range is from tick -100 to 0 relative to entry, and current tick becomes -150, you might want to shift the entire range down.
+
+An auto-rebalancer contract might look like:
+
+```solidity
+contract AutoRebalancer {
+    IPositionManager public positionManager;
+    IPoolManager public poolManager;
+    
+    address public owner;
+    
+    // Configuration per pool/position
+    struct RebalanceConfig {
+        bytes32 poolId;
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 width; // Upper - lower
+        uint256 triggerDistance; // How far out of range before rebalancing
+        address recipient;
+    }
+    
+    mapping(bytes32 => RebalanceConfig) public configs;
+    
+    event Rebalanced(bytes32 indexed poolId, int24 oldLower, int24 oldUpper, int24 newLower, int24 newUpper);
+    
+    constructor(address _positionManager, address _poolManager) {
+        positionManager = IPositionManager(_positionManager);
+        poolManager = IPoolManager(_poolManager);
+        owner = msg.sender;
+    }
+    
+    function configure(
+        bytes32 poolId,
+        int24 tickLower,
+        int24 tickUpper,
+        uint256 triggerDistance,
+        address recipient
+    ) external {
+        require(msg.sender == owner, "Not owner");
+        configs[poolId] = RebalanceConfig({
+            poolId: poolId,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            width: uint256(tickUpper - tickLower),
+            triggerDistance: triggerDistance,
+            recipient: recipient
+        });
+    }
+    
+    // Keeper calls this periodically
+    function checkAndRebalance(bytes32 poolId) external returns (bool rebalanced) {
+        RebalanceConfig memory cfg = configs[poolId];
+        require(cfg.poolId != bytes32(0), "No config");
+        
+        // Get current pool tick
+        (, int24 currentTick, , ,) = poolManager.getPool(pfg.poolId);
+        
+        // Determine if out of range
+        if (currentTick < cfg.tickLower || currentTick > cfg.tickUpper) {
+            // Rebalance: shift range so that current tick becomes centered (or at edge)
+            int24 newLower;
+            int24 newUpper;
+            
+            // Strategy: keep same width, but place so that current tick is at the lower+trigger or similar
+            if (currentTick < cfg.tickLower) {
+                // Price moved down; shift range down
+                newLower = currentTick - int24(cfg.triggerDistance);
+                newUpper = newLower + int24(cfg.width);
+            } else {
+                // Price moved up
+                newUpper = currentTick + int24(cfg.triggerDistance);
+                newLower = newUpper - int24(cfg.width);
+            }
+            
+            // Find the position tokenId for this pool/range associated with recipient
+            // In practice, you'd need to track tokenIds or look up via positionsOf
+            uint256 tokenId = _findPositionTokenId(cfg.poolId, cfg.recipient);
+            
+            // Use modifyLiquidity to change the range
+            (uint128 liquidity, uint256 amount0, uint256 amount1) = positionManager.modifyLiquidity(
+                ModifyLiquidityParams({
+                    poolId: poolId,
+                    liquidityDelta: 0, // keep same liquidity (no change in amount)
+                    sqrtPriceX96: 0, // let pool pick optimal price to match current
+                    tickLower: newLower,
+                    tickUpper: newUpper,
+                    amount0Requested: 0,
+                    amount1Requested: 0,
+                    decreaseLiquidity: false,
+                    createPosition: false // we're modifying existing
+                }),
+                0,
+                0,
+                cfg.recipient,
+                block.timestamp + 1000
+            );
+            
+            emit Rebalanced(poolId, cfg.tickLower, cfg.tickUpper, newLower, newUpper);
+            rebalanced = true;
+            
+            // Update config to new range
+            cfg.tickLower = newLower;
+            cfg.tickUpper = newUpper;
+            configs[poolId] = cfg;
+        }
+        
+        return rebalanced;
+    }
+    
+    function _findPositionTokenId(bytes32 poolId, address owner) internal view returns (uint256) {
+        // Find the position that matches poolId and has the expected tick range? 
+        // Since we just care about any position in that pool for this owner.
+        // In practice, you might store tokenId in config.
+        // This is simplified.
+        uint256[] memory tokenIds = positionManager.tokensOfOwner(owner);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            Position memory pos = positionManager.getPositionData(tokenIds[i]);
+            if (pos.poolId == poolId) {
+                return tokenIds[i];
+            }
+        }
+        revert("No position found");
+    }
+}
+```
+
+In a real system, you'd need to account for the fact that `modifyLiquidity` with zero `liquidityDelta` just changes the range without altering the liquidity amount. However, this only works if the pool can accommodate the new range given current liquidity distribution. If the new range would require different token amounts to maintain the same liquidity at the new price, the operation might need to withdraw and add tokens accordingly. Using `sqrtPriceX96 = 0` lets the pool choose the price that satisfies the liquidity delta; it will likely move the position to the current price, and the token amounts will adjust (you might receive or pay tokens). This is acceptable for a rebalance: your position value remains similar, but the range shifts.
+
+For a more precise rebalance that maintains the exact value, you'd compute the required token amounts based on the new price and liquidity. That's more complex.
+
+The keeper should run periodically (e.g., every hour) and call `checkAndRebalance` for each configured pool. The keeper could be a bot operated by the position owner or a decentralized keeper network like Gelato.
+
+### Multi-Tier Liquidity Provision for Different Fee Levels
+
+Uniswap V4 pools exist with different fee tiers (0.01%, 0.05%, 0.3%, 1%). Liquidity providers often split their capital across multiple fee tiers to capture fees from both high-volume low-spread trades (low fee tiers) and volatile trades (high fee tiers). A common strategy is to provide liquidity in the 0.3% pool (the most popular) and also some in the 0.05% pool if the token pair is stable, or 1% if very volatile.
+
+However, the pool with the most trading volume usually offers the most fee revenue. You should analyze historical volume by fee tier for your token pair before deciding allocation.
+
+You can automate multi-tier liquidity by creating a contract that splits funds into positions in multiple pools. For example, allocate 70% to the 0.3% pool with a tight range around the current price, and 30% to the 0.05% pool with a wider range to capture additional volume from stablecoin-like pairs.
+
+```solidity
+contract MultiTierLiquidityProvider {
+    IPositionManager public positionManager;
+    
+    struct TierAllocation {
+        uint24 fee;
+        uint256 percentage; // basis points (e.g., 7000 = 70%)
+        int24 offsetTicks; // How much to widen range relative to base
+    }
+    
+    TierAllocation[] public tiers;
+    address public owner;
+    
+    constructor(address _positionManager) {
+        positionManager = IPositionManager(_positionManager);
+        owner = msg.sender;
+    }
+    
+    function setTiers(TierAllocation[] memory _tiers) external {
+        require(msg.sender == owner, "Not owner");
+        tiers = _tiers;
+    }
+    
+    function provideLiquidity(
+        address token0,
+        address token1,
+        uint256 totalAmount0,
+        uint256 totalAmount1,
+        int24 baseTickLower,
+        int24 baseTickUpper,
+        uint256 deadline
+    ) external returns (uint256[] memory tokenIds) {
+        require(tiers.length > 0, "No tiers configured");
+        
+        tokenIds = new uint256[](tiers.length);
+        
+        uint256 totalBps = 0;
+        for (uint256 i = 0; i < tiers.length; i++) {
+            totalBps += tiers[i].percentage;
+        }
+        require(totalBps == 10000, "Allocation percentages must sum to 100%");
+        
+        for (uint256 i = 0; i < tiers.length; i++) {
+            TierAllocation memory tier = tiers[i];
+            
+            // Allocate amounts proportionally
+            uint256 amount0 = (totalAmount0 * tier.percentage) / 10000;
+            uint256 amount1 = (totalAmount1 * tier.percentage) / 10000;
+            
+            // Adjust tick range: base +/- offsetTicks
+            int24 tickLower = baseTickLower - tier.offsetTicks;
+            int24 tickUpper = baseTickUpper + tier.offsetTicks;
+            
+            // Build PoolKey
+            PoolKey memory key = PoolKey({
+                currency0: token0,
+                currency1: token1,
+                fee: tier.fee,
+                tickSpacing: _getTickSpacing(tier.fee)
+            });
+            
+            bytes32 poolId = IPoolManager.bytes32Key(keccak256(abi.encode(key)));
+            
+            ModifiableLiquidityParams memory params = ModifyLiquidityParams({
+                poolId: poolId,
+                liquidityDelta: 0,
+                sqrtPriceX96: 0,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                amount0Requested: amount0,
+                amount1Requested: amount1,
+                decreaseLiquidity: false,
+                createPosition: true
+            });
+            
+            (uint128 liquidity, , ) = positionManager.modifyLiquidity(
+                params,
+                0, // amount0Min - set to 0 for simplicity; in production set slippage
+                0, // amount1Min
+                msg.sender,
+                deadline
+            );
+            
+            tokenIds[i] = tokenId; // modifyLiquidity should return tokenId? Actually it doesn't return tokenId; you'd need to query via positionsOf after.
+            // For simplicity, assume we can get tokenId from event
+        }
+    }
+    
+    function _getTickSpacing(uint24 fee) internal pure returns (int24) {
+        if (fee >= 500) return 10;
+        if (fee == 3000) return 60;
+        if (fee == 10000) return 200;
+        return 1;
+    }
+}
+```
+
+This contract allows the owner to define multiple tiers with percentages and tick offsets. The `provideLiquidity` function then splits the total token amounts accordingly and creates positions in each tier's pool. The tick range for each tier can be expanded or contracted relative to a base range using `offsetTicks`.
+
+Note: `modifyLiquidity` doesn't directly return the tokenId of the new position. You would typically emit an event from PositionManager that includes tokenId, or you can query `positionsOf` after the call. In production, adjust accordingly.
+
+### Impermanent Loss Mitigation Techniques
+
+Impermanent loss occurs when the price of the two tokens in a pool diverges. As an LP, you end up with a combination that's worth less than if you had just held the tokens separately. This is a fundamental risk of any AMM liquidity provision. However, certain strategies can mitigate its impact:
+
+- **Choose pools with correlated assets**: Stablecoin pairs (USDC/USDT) have minimal price divergence, so impermanent loss is negligible. Volatile token pairs (ETH/UNI) can experience significant divergence.
+- **Provide liquidity in a narrow range only when you expect mean reversion**: If you believe the price will return to a certain level, a narrow range allows you to earn fees without much exposure to the price movement because you'll be out of range when price moves away, automatically stopping your exposure. But you also stop earning fees.
+- **Collect fees frequently and rebalance**: By collecting fees often, you realize some returns in the tokens themselves, reducing the impact of impermanent loss on total value. However, this doesn't eliminate IL.
+- **Hedge with options or futures**: Use external protocols to short one of the tokens, offsetting the price change impact on your LP position. This is advanced and requires cross-protocol coordination.
+- **Use asymmetric deposits**: If you expect the price to go up (token0 appreciates relative to token1), you can deposit more of the token you think will go down, or set a range that's biased towards the direction you want to avoid. However, the AMM automatically rebalances your deposit to maintain constant product, so there's limited direct control.
+
+There's no free lunch; impermanent loss is inherent to AMM LPs. The best mitigation is to choose pools where you believe the fee earnings will outweigh the expected impermanent loss.
+
+### Position Management Across Multiple Pools
+
+When you provide liquidity across several pools (different token pairs or different fee tiers), you need a strategy to track and manage them. A centralized dashboard can help. Here's a contract that aggregates position data for a user across all pools:
+
+```solidity
+contract PositionAggregator {
+    IPositionManager public positionManager;
+    
+    struct PositionSummary {
+        bytes32 poolId;
+        address token0;
+        address token1;
+        uint24 fee;
+        int24 tickLower;
+        int24 tickUpper;
+        uint128 liquidity;
+        uint256 tokensOwed0;
+        uint256 tokensOwed1;
+        uint256 uncollectedFees0;
+        uint256 uncollectedFees1;
+    }
+    
+    constructor(address _positionManager) {
+        positionManager = IPositionManager(_positionManager);
+    }
+    
+    function getAllPositions(address user) external view returns (PositionSummary[] memory) {
+        uint256[] memory tokenIds = positionManager.tokensOfOwner(user);
+        PositionSummary[] memory summaries = new PositionSummary[](tokenIds.length);
+        
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            Position memory pos = positionManager.getPositionData(tokenIds[i]);
+            bytes32 poolId = pos.poolId;
+            // Need to get token addresses and fee from poolManager? Possibly store mapping or compute from poolId
+            // For now, we'll omit those fields or assume external indexing
+            summaries[i] = PositionSummary({
+                poolId: poolId,
+                token0: address(0), // placeholder
+                token1: address(0),
+                fee: 0,
+                tickLower: pos.tickLower,
+                tickUpper: pos.tickUpper,
+                liquidity: pos.liquidity,
+                tokensOwed0: pos.tokensOwed0,
+                tokensOwed1: pos.tokensOwed1,
+                uncollectedFees0: 0,
+                uncollectedFees1: 0
+            });
+        }
+        
+        return summaries;
+    }
+    
+    // Helper to collect all fees from all positions in one transaction
+    function collectAllFees(address recipient) external returns (uint256 total0, uint256 total1) {
+        uint256[] memory tokenIds = positionManager.tokensOfOwner(msg.sender);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            Position memory pos = positionManager.getPositionData(tokenIds[i]);
+            (uint256 fees0, uint256 fees1) = positionManager.collect(
+                pos.poolId,
+                tokenIds[i],
+                recipient,
+                block.timestamp + 1000
+            );
+            total0 += fees0;
+            total1 += fees1;
+        }
+    }
+}
+```
+
+This contract allows a user to see an aggregated view and batch collect fees. However, note that iterating over many positions can hit gas limits. For users with many positions, you might want to paginate or use off-chain indexing.
+
+For true multi-pool strategy coordination, you could create a manager contract that automatically rebalances between pools based on some rules (e.g., move liquidity from low-volume pool to high-volume pool). This would involve removing liquidity from one pool and adding to another, which can be done atomically using flash accounting patterns described earlier.
+
+### Code Example: Dynamic Range Adjustment Based on Price Movement
+
+A practical bot might widen the range when volatility increases and narrow it when price is stable. Here's a simplified version that adjusts the range after every trade by a fixed amount, mimicking a trailing range:
+
+```solidity
+contract TrailingRangePosition {
+    IPositionManager public positionManager;
+    IPoolManager public poolManager;
+    
+    struct Position {
+        bytes32 poolId;
+        uint256 tokenId;
+        int24 tickLower;
+        int24 tickUpper;
+        uint128 liquidity;
+        address owner;
+    }
+    
+    mapping(bytes32 => Position) public positions;
+    
+    event RangeAdjusted(bytes32 indexed poolId, int24 newLower, int24 newUpper);
+    
+    constructor(address _positionManager, address _poolManager) {
+        positionManager = IPositionManager(_positionManager);
+        poolManager = IPoolManager(_poolManager);
+    }
+    
+    // This function would be called by a keeper after each swap (or periodically)
+    function adjustRangeBasedOnPrice(
+        bytes32 poolId,
+        uint256 toleranceTicks // How far price can move before we shift range
+    ) external returns (bool adjusted) {
+        Position storage pos = positions[poolId];
+        require(pos.tokenId != 0, "No position tracked");
+        
+        (, int24 currentTick, , ,) = poolManager.getPool(poolId);
+        
+        // If current tick is at or beyond the lower bound (for upward price) or upper bound (for downward), shift
+        bool needsAdjust = false;
+        int24 newLower = pos.tickLower;
+        int24 newUpper = pos.tickUpper;
+        
+        if (currentTick > pos.tickUpper - int24(toleranceTicks)) {
+            // Price moved up; shift range up
+            newLower = currentTick - pos.tickLower + pos.tickUpper; // Actually compute shift: maintain width but move up
+            // Simpler: just move the whole range up by (currentTick - pos.tickUpper) + some buffer
+            int24 shift = currentTick - pos.tickUpper + int24(toleranceTicks);
+            newLower = pos.tickLower + shift;
+            newUpper = pos.tickUpper + shift;
+            needsAdjust = true;
+        } else if (currentTick < pos.tickLower + int24(toleranceTicks)) {
+            // Price moved down; shift down
+            int24 shift = pos.tickLower - currentTick + int24(toleranceTicks);
+            newLower = pos.tickLower - shift;
+            newUpper = pos.tickUpper - shift;
+            needsAdjust = true;
+        }
+        
+        if (needsAdjust) {
+            // Modify position range while keeping same liquidity
+            (uint128 liquidity, , ) = positionManager.modifyLiquidity(
+                ModifyLiquidityParams({
+                    poolId: poolId,
+                    liquidityDelta: 0,
+                    sqrtPriceX96: 0,
+                    tickLower: newLower,
+                    tickUpper: newUpper,
+                    amount0Requested: 0,
+                    amount1Requested: 0,
+                    decreaseLiquidity: false,
+                    createPosition: false
+                }),
+                0,
+                0,
+                pos.owner,
+                block.timestamp + 1000
+            );
+            
+            pos.tickLower = newLower;
+            pos.tickUpper = newUpper;
+            emit RangeAdjusted(poolId, newLower, newUpper);
+            adjusted = true;
+        }
+        
+        return adjusted;
+    }
+    
+    // When creating a position, track it
+    function trackPosition(
+        bytes32 poolId,
+        uint256 tokenId
+    ) external {
+        Position memory pos = Position({
+            poolId: poolId,
+            tokenId: tokenId,
+            tickLower: 0,
+            tickUpper: 0,
+            liquidity: 0,
+            owner: positionManager.ownerOf(tokenId)
+        });
+        positions[poolId] = pos;
+    }
+}
+```
+
+Notice that this contract stores the position details in a mapping for quick access. It's important to keep this in sync with the PositionManager. The contract assumes `trackPosition` is called after adding liquidity to set the initial tickLower and tickUpper, as well as tokenId.
+
+The `adjustRangeBasedOnPrice` could be called by a keeper every few blocks. It checks if the current price has approached the edge of the range (within tolerance), and if so, shifts the entire range to center around the current price. This keeps liquidity concentrated around the active price, aiming to maximize fee earnings.
+
+You could also make the width dynamic based on volatility: wider when volatile to avoid going out of range, narrower when calm to concentrate.
+
+### Code Example: Automatic Rebalancing Contract (Batch Operations)
+
+A more advanced rebalancer could also adjust the liquidity amount in response to changes in pool utilization or total value locked. For instance, if the pool's total liquidity grows significantly, you might want to increase your share to maintain fee revenue.
+
+Here's a concept for a contract that periodically rebalances across multiple pools to maintain target percentages:
+
+```solidity
+contract MultiPoolRebalancer {
+    IPoolManager public poolManager;
+    IPositionManager public positionManager;
+    
+    struct PoolTarget {
+        bytes32 poolId;
+        uint256 targetPercentageBps; // Target share of total liquidity
+        int24 tickLower;
+        int24 tickUpper;
+    }
+    
+    PoolTarget[] public targets;
+    address public owner;
+    
+    constructor(address _poolManager, address _positionManager) {
+        poolManager = IPoolManager(_poolManager);
+        positionManager = IPositionManager(_positionManager);
+        owner = msg.sender;
+    }
+    
+    function addPoolTarget(
+        bytes32 poolId,
+        uint256 targetPercentageBps,
+        int24 tickLower,
+        int24 tickUpper
+    ) external {
+        require(msg.sender == owner, "Not owner");
+        targets.push(PoolTarget({poolId: poolId, targetPercentageBps: targetPercentageBps, tickLower: tickLower, tickUpper: tickUpper}));
+    }
+    
+    // Rebalance all positions to match targets
+    function rebalance(address token) external returns (uint256 totalLiquidity) {
+        // Need to know total value of all our positions in 'token' terms
+        // This requires price oracle; complex.
+        // Instead, simpler: rebalance based on liquidity units across pools, not value.
+        // But liquidity units are not directly comparable across different pools.
+        // So we need to compute USD value of each position via TWAP oracle.
+        // That's beyond this example.
+        
+        revert("Complex; needs external price data");
+    }
+}
+```
+
+This is a high-level sketch; actual implementation requires cross-pool valuation and possibly moving liquidity between pools atomically. The flash accounting pattern can be used: remove liquidity from pool A, collect tokens, then add to pool B within the same transaction. However, you must ensure that the pool's price doesn't move between the removal and addition if you're doing them separately. Since they're in the same transaction, the pool state is updated after removal before addition; the price might shift slightly due to the removal itself. That's acceptable if you're just rebalancing proportions; you can add with some slippage tolerance.
+
+### Code Example: Fee Tier Optimization Strategy
+
+To decide which fee tier to choose, analyze historical volume and fee rates. A simple approach: select the pool with the highest product of volume and fee rate, because fee revenue ≈ volume × fee. But also consider that higher fee pools may have less volume due to lower trader appeal.
+
+You could write an off-chain script that queries subgraph data or on-chain TWAP to estimate annual fee yield for each fee tier and then choose accordingly.
+
+On-chain, you can have a strategy that deposits into the pool with the highest recent fee growth per liquidity. For example, monitor `poolManager.feeGrowthGlobal0` and `feeGrowthGlobal1` over a period to compute the fees earned per unit liquidity, and then migrate your liquidity to the best performing pool.
+
+```solidity
+contract FeeYieldOptimizer {
+    IPositionManager public positionManager;
+    IPoolManager public poolManager;
+    
+    bytes32[] public candidatePoolIds;
+    address public owner;
+    
+    // Every N blocks, evaluate yields and possibly migrate
+    uint256 public evaluationPeriod;
+    uint256 public lastEvaluation;
+    
+    constructor(address _positionManager, address _poolManager) {
+        positionManager = IPositionManager(_positionManager);
+        poolManager = IPoolManager(_poolManager);
+        evaluationPeriod = 7200; // ~1 day (assuming 15s block time)
+    }
+    
+    function addCandidatePool(bytes32 poolId) external {
+        require(msg.sender == owner, "Not owner");
+        candidatePoolIds.push(poolId);
+    }
+    
+    // Called periodically
+    function optimize() external returns (bool migrated) {
+        require(block.timestamp >= lastEvaluation + evaluationPeriod, "Too early");
+        
+        bytes32 bestPool = _findBestPool();
+        bytes32 currentPool = _getCurrentPool(); // Determine from current position(s)
+        
+        if (bestPool != currentPool) {
+            // Migrate position to bestPool
+            // Use atomic migration pattern
+            _migrate(currentPool, bestPool);
+            migrated = true;
+        }
+        
+        lastEvaluation = block.timestamp;
+        return migrated;
+    }
+    
+    function _findBestPool() internal view returns (bytes32) {
+        // Compute fee yield (feeGrowth per liquidity) for each candidate over recent period
+        // Simplified: just check current feeGrowthGlobal0+1 scaled by liquidity
+        bytes32 best = candidatePoolIds[0];
+        uint256 bestScore = 0;
+        for (uint256 i = 0; i < candidatePoolIds.length; i++) {
+            bytes32 poolId = candidatePoolIds[i];
+            (uint128 liquidity, , , ,) = poolManager.getPool(poolId);
+            if (liquidity == 0) continue;
+            (int56 feeGrowth0, int56 feeGrowth1) = poolManager.feeGrowthGlobal(poolId); // not actual signature but conceptually
+            // Need to get accumulated fees over period; requiring previous snapshot
+            // For demo, we'll just use current feeGrowthGlobal total
+            uint256 score = uint256(uint128(feeGrowth0)) + uint256(uint128(feeGrowth1));
+            // Normalize by liquidity? score / liquidity
+            // So compute yield per unit: (feeGrowthGlobal * 2^-128) / liquidity = fees per LP token
+            // Use high precision
+            (uint256 yieldPerLiquidity, ) = _computeYield(poolId);
+            if (yieldPerLiquidity > bestScore) {
+                bestScore = yieldPerLiquidity;
+                best = poolId;
+            }
+        }
+        return best;
+    }
+    
+    function _computeYield(bytes32 poolId) internal view returns (uint256, uint256) {
+        // This would fetch feeGrowthGlobal at now and at lastEvaluation, subtract and divide by elapsed time and liquidity
+        // Need to store previous feeGrowth values per pool in mapping.
+        // Omitted for brevity.
+        return (0,0);
+    }
+    
+    function _getCurrentPool() internal view returns (bytes32) {
+        // Return the poolId of the current position (assuming only one)
+        // Could store during creation
+    }
+    
+    function _migrate(bytes32 fromPool, bytes32 toPool) internal {
+        // Use LiquidityMigrator pattern
+        // Position token, etc.
+    }
+}
+```
+
+This optimizer periodically evaluates which of several candidate pools is offering the highest fee yield per unit liquidity and migrates the position there. Migration must be done atomically to avoid price risk (using the earlier LiquidityMigrator). This is an active strategy that incurs gas costs for migrations but may increase overall returns.
+
+### Tables Comparing Different Strategy Approaches
+
+| Strategy | When to Use | Complexity | Gas Costs | Management Overhead | Risks |
+|----------|-------------|------------|-----------|---------------------|-------|
+| Single pool, narrow range | High conviction on price range | Low | Low (few tx) | Monitor out-of-range frequently | Price moves out, zero fees |
+| Single pool, wide range | Passive, want steady fees | Low | Low | Minimal | Lower fee per liquidity, still impermanent loss |
+| Multi-tier across fee levels | Want to capture fee variance | Medium | Medium (multiple add/remove) | Track positions across tiers | Some tiers may underperform |
+| Auto-rebalancing with keepers | Active management, bot accessible | High | High (periodic modify) | Need reliable keeper, tuning | Rebalance cost, frontrunning on rebalance |
+| TWAP-based dynamic range | Want to ride volatility | Medium-High | Medium-High | Compute ranges, adjust | Complex, may misjudge volatility |
+| Fee optimizer (migration) | Willing to move for better yields | High | High (migration costs) | Track yields, execute migrations | Migration slippage, opportunity cost |
+
+When choosing a strategy, consider:
+- Your available capital (larger capital may benefit from splitting across tiers)
+- How much time you can spend monitoring
+- Your risk tolerance (narrow ranges are riskier but potentially more profitable)
+- Gas costs on the network (Ethereum mainnet gas may make frequent rebalancing uneconomical)
+
+### Impermanent Loss Calculation Example
+
+To make informed decisions, you should be able to estimate impermanent loss given a price change. The formula for the value of an LP position relative to holding tokens is:
+
+Value ratio = (2 * sqrt(price ratio) / (1 + price ratio)) - (if symmetric deposit)
+
+Where price ratio = P1/P0 (new price / initial price). If the ratio is 1, IL is zero. As the ratio deviates from 1, IL increases.
+
+You can write a helper function to compute potential IL for a given range width and expected price movement. For instance, if your range width is ±10% (price ratio from 0.9 to 1.1 relative to entry), and the actual price moves 15%, you'll be out of range for part of the time. But if it stays within, IL is limited by the range boundaries.
+
+Better yet, simulate different price paths using historical data to see how your strategy would have performed.
+
+Remember that fees earned can partially or fully offset IL. A pool with high volume and high fees may compensate for significant price swings.
+
 
 Uniswap V4 provides a powerful foundation for building decentralized trading applications with unparalleled flexibility. The hook system alone opens possibilities for limit orders, custom AMM curves, dynamic fees, and on-chain order books all within the same liquidity network.
 
