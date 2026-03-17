@@ -1,4 +1,4 @@
-agents/
+.opencode/
 opencode.json
 AGENTS.md
 prompts_fully_autonomous_agentic_research
